@@ -36,7 +36,7 @@
     <div id="search-header-inner">
         <p class="num-results">
             About
-            <strong>{{ search_results['estimated_results'] }}</strong>
+            <strong>{{ format_number_thousands(search_results['estimated_results']) }}</strong>
             results
         </p>
 
@@ -369,75 +369,140 @@
                     </div>
                 </div>
                 {% elif item['type'] == 'playlist' %}
-                <div class="result-item">
-                    <div class="result-item-thumbnail">
+                <div class="result-item yt-uix-tile yt-tile-default result-playlist-experiment">
+                    <div class="thumb-container">
                         <a
                             href="/playlist?list={{ item['id'] }}"
-                            class="yt-uix-tile-link"
+                            class="thumb-experimental-playlist ux-thumb-wrap result-item-thumb"
                             dir="ltr"
                             title="{{ item['title'] }}"
                         >
-                            <img
-                                src="{{ item['thumbnail_url'] }}"
-                                alt="{{ item['title'] }}"
-                                class="yt-uix-tile-img"
-                            />
+                            <span class="playlist-rec-video-thumbs">
+                                {% if item['playlist_entries'] %}
+                                <span class="playlist-thumb-0">
+                                    <span class="video-thumb ux-thumb ux-thumb-128">
+                                        <span class="clip">
+                                            <img
+                                                src="//i4.ytimg.com/vi/{{ item['playlist_entries'][0]['id'] }}/default.jpg"
+                                                alt="{{ item['title'] }}"
+                                            />
+                                        </span>
+                                    </span>
+                                </span>
+                                {% if item['playlist_entries']|length > 1 %}
+                                <span class="playlist-thumb-1">
+                                    <span class="video-thumb ux-thumb ux-thumb-128">
+                                        <span class="clip">
+                                            <img
+                                                src="//i4.ytimg.com/vi/{{ item['playlist_entries'][1]['id'] }}/default.jpg"
+                                                alt=""
+                                            />
+                                        </span>
+                                    </span>
+                                </span>
+                                {% endif %}
+                                {% elif item['thumbnail_url'] %}
+                                <span class="playlist-thumb-0">
+                                    <span class="video-thumb ux-thumb ux-thumb-128">
+                                        <span class="clip">
+                                            <img
+                                                src="{{ item['thumbnail_url'] }}"
+                                                alt="{{ item['title'] }}"
+                                            />
+                                        </span>
+                                    </span>
+                                </span>
+                                {% endif %}
+                            </span>
                         </a>
                     </div>
                     <div class="result-item-main-content">
-                        <h3 id="video-long-title-{{ item['id'] }}">
-                            <a
-                                href="/playlist?list={{ item['id'] }}"
-                                class="yt-uix-tile-link"
-                                dir="ltr"
-                                title="{{ item['title'] }}"
+                        <div class="result-item-playlist-header">
+                            <h3
+                                id="playlist-long-title-{{ item['id'] }}"
+                                class="playlist-long-title"
                             >
-                                {{ item['title'] }}
-                            </a>
-                        </h3>
+                                <a
+                                    href="/playlist?list={{ item['id'] }}"
+                                    class="yt-uix-tile-link"
+                                    dir="ltr"
+                                    title="{{ item['title'] }}"
+                                >
+                                    {{ item['title'] }}
+                                </a>
+                            </h3>
+                            <span class="byline">
+                                <span class="username-prepend">by</span>
+                                <a
+                                    href="/channel/{{ item['channel_id'] }}"
+                                    class="yt-user-name"
+                                    dir="ltr"
+                                >
+                                    {{ item['channel_name'] }}
+                                </a>
+                            </span>
+                            <span class="yt-badge-std">Playlist</span>
+                        </div>
 
-                        <p
-                            id="video-description-{{ item['id'] }}"
-                            class="description"
-                        >
-                            {{ item['description'] }}
-                        </p>
+                        {% if item['playlist_entries'] %}
+                        <div class="playlist-videos">
+                            <ul>
+                                {% for video in item['playlist_entries'] %}
+                                <li class="playlist-video">
+                                    <span class="tiny-video-icon floatL"></span>
+                                    <a
+                                        href="/watch?v={{ video['id'] }}&amp;list={{ item['id'] }}"
+                                        class="playlist-detail-title"
+                                        dir="ltr"
+                                        title="{{ video['title'] }}"
+                                    >
+                                        {{ video['title'] }}
+                                    </a>
+                                    {% if video['length_text'] %}
+                                    <span class="playlist-video-length">
+                                        {{ video['length_text'] }}
+                                    </span>
+                                    {% endif %}
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        {% endif %}
 
-                        <p class="facets">
-                            <span class="username-prepend">by</span>
-                            <a
-                                href="/channel/{{ item['channel_id'] }}"
-                                class="yt-user-name"
-                                dir="ltr"
-                            >
-                                {{ item['channel_name'] }}
-                            </a>
-
-                            <span class="metadata-separator">|</span>
-                            <span class="date-added">{{ item['published_text'] }}</span>
-                            <span class="metadata-separator">|</span>
-                            <span class="viewcount">{{ item['viewcount_text'] }}</span>
+                        <p class="facets playlist-facets">
+                            <span class="playlist-video-count">{{ item['video_count'] }}</span>
                         </p>
                     </div>
                 </div>
                 {% elif item['type'] == 'channel' %}
-                <div class="result-item">
-                    <div class="result-item-thumbnail">
+                <div class="result-item yt-uix-tile yt-tile-default channel">
+                    <div class="thumb-container">
                         <a
                             href="/channel/{{ item['channel_id'] }}"
-                            class="yt-uix-tile-link"
+                            class="ux-thumb-wrap result-item-thumb"
                             dir="ltr"
                             title="{{ item['title'] }}"
                         >
-                            <img
-                                src="{{ item['thumbnail_url'] }}"
-                                alt="{{ item['title'] }}"
-                                class="yt-uix-tile-img"
-                            />
+                            <span class="user-thumb-large ux-thumb ux-thumb-profile-77">
+                                <span class="clip">
+                                    <span class="clip-inner">
+                                        <span class="profile-centering-wrap">
+                                            <img
+                                                src="{{ item['thumbnail_url'] }}"
+                                                alt="{{ item['title'] }}"
+                                            />
+                                        </span>
+                                        <span class="vertical-align"></span>
+                                    </span>
+                                </span>
+                            </span>
                         </a>
                     </div>
-                    <div class="result-item-main-content">
-                        <h3 id="video-long-title-{{ item['id'] }}">
+                    <div class="result-item-main-content channel-main-content">
+                        <h3
+                            id="channel-long-title-{{ item['id'] }}"
+                            class="channel-long-title"
+                        >
                             <a
                                 href="/channel/{{ item['channel_id'] }}"
                                 class="yt-uix-tile-link"
@@ -448,27 +513,17 @@
                             </a>
                         </h3>
 
+                        {% if item['description'] %}
                         <p
-                            id="video-description-{{ item['id'] }}"
-                            class="description"
+                            id="channel-description-{{ item['id'] }}"
+                            class="description channel-description"
                         >
                             {{ item['description'] }}
                         </p>
+                        {% endif %}
 
-                        <p class="facets">
-                            <span class="username-prepend">by</span>
-                            <a
-                                href="/channel/{{ item['channel_id'] }}"
-                                class="yt-user-name"
-                                dir="ltr"
-                            >
-                                {{ item['channel_name'] }}
-                            </a>
-
-                            <span class="metadata-separator">|</span>
-                            <span class="date-added">{{ item['published_text'] }}</span>
-                            <span class="metadata-separator">|</span>
-                            <span class="viewcount">{{ item['viewcount_text'] }}</span>
+                        <p class="facets channel-facets">
+                            <span class="channel-video-count">{{ item['video_count'] }}</span>
                         </p>
                     </div>
                 </div>
