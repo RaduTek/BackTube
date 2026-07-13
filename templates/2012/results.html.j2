@@ -1,0 +1,380 @@
+{% extends "2012/_root.html.j2" %}
+
+{% block title %}{{ search_query }} - YouTube{% endblock %}
+
+{% block content %}
+
+<noscript>
+    <div class="yt-alert yt-alert-default yt-alert-error">
+        <div class="yt-alert-icon">
+            <img
+                src="//s.ytimg.com/yt/img/pixel-vfl3z5WfW.gif"
+                class="icon master-sprite"
+                alt="Alert icon"
+            />
+        </div>
+        <button
+            type="button"
+            onclick=""
+            class="close yt-uix-close"
+            data-close-parent-class="yt-alert"
+        >
+            Close
+        </button>
+        <div class="yt-alert-content">
+            <span class="yt-alert-vertical-trick"></span>
+            <div class="yt-alert-message">
+                Hello, you seem to have JavaScript turned off. Please enable it
+                to see search results properly.
+            </div>
+        </div>
+    </div>
+</noscript>
+
+
+<div id="search-header">
+    <div id="search-header-inner">
+        {# <p class="num-results">
+            About
+            <strong>0</strong>
+            results
+        </p> #}
+
+        <h2>
+            Search results for
+            <strong class="query">{{ search_query }}</strong>
+        </h2>
+    </div>
+
+    <hr class="horizontal-rule" />
+</div>
+
+<div id="search-refinements">
+    <div id="search-section-header" class="ytg-box">
+        <div
+            id="search-option-expander"
+            class="floatL"
+            onclick="yt.www.search.toggleToolbelt()"
+        >
+            <button
+                type="button"
+                class="yt-uix-button yt-uix-button-text"
+                onclick="return false;"
+                data-button-toggle="true"
+                data-button-menu-id="some-nonexistent-menu"
+                data-button-action=""
+                role="button"
+            >
+                <span class="yt-uix-button-content">Filter</span>
+                <img
+                    class="yt-uix-button-arrow"
+                    src="//s.ytimg.com/yt/img/pixel-vfl3z5WfW.gif"
+                    alt=""
+                />
+            </button>
+        </div>
+
+        <div class="clear"></div>
+        <div id="toolbelt-top" class="hid">
+            <div id="toolbelt-container">
+                <div class="search-option-box search-option-box-first">
+                    <div class="search-option-label">Result type:</div>
+                    <div class="search-option">All</div>
+
+                    <div class="search-option">
+                        <a
+                            href="/results?search_type=videos&amp;search_query=Ernie+%26+Bert&amp;uni=3"
+                        >
+                            Videos
+                        </a>
+                    </div>
+
+                    <div class="search-option">
+                        <a
+                            href="/results?search_type=search_users&amp;search_query=Ernie+%26+Bert&amp;uni=3"
+                        >
+                            Channels
+                        </a>
+                    </div>
+
+                    <div class="search-option">
+                        <a
+                            href="/results?search_type=search_playlists&amp;search_query=Ernie+%26+Bert&amp;uni=3"
+                        >
+                            Playlists
+                        </a>
+                    </div>
+                </div>
+
+                <div class="search-option-box">
+                    <div class="search-option-label">Sort by:</div>
+                    <div class="search-option">Relevance</div>
+
+                    <div class="search-option">
+                        <a
+                            href="/results?search_type=videos&amp;search_query=Ernie+%26+Bert&amp;search=tag&amp;search_sort=video_date_uploaded&amp;uni=3"
+                        >
+                            Upload date
+                        </a>
+                    </div>
+
+                    <div class="search-option">
+                        <a
+                            href="/results?search_type=videos&amp;search_query=Ernie+%26+Bert&amp;search=tag&amp;search_sort=video_view_count&amp;uni=3"
+                        >
+                            View count
+                        </a>
+                    </div>
+
+                    <div class="search-option">
+                        <a
+                            href="/results?search_type=videos&amp;search_query=Ernie+%26+Bert&amp;search=tag&amp;search_sort=video_avg_rating&amp;uni=3"
+                        >
+                            Rating
+                        </a>
+                    </div>
+                </div>
+
+                <div class="search-option-box">
+                    <div class="search-option-label">Upload date:</div>
+                    <div class="search-option">Anytime</div>
+
+                    <div class="search-option">
+                        <a
+                            href="/results?uploaded=d&amp;search_type=videos&amp;search=tag&amp;uni=3&amp;search_query=Ernie+%26+Bert"
+                        >
+                            Today
+                        </a>
+                    </div>
+
+                    <div class="search-option">
+                        <a
+                            href="/results?uploaded=w&amp;search_type=videos&amp;search=tag&amp;uni=3&amp;search_query=Ernie+%26+Bert"
+                        >
+                            This week
+                        </a>
+                    </div>
+
+                    <div class="search-option">
+                        <a
+                            href="/results?uploaded=m&amp;search_type=videos&amp;search=tag&amp;uni=3&amp;search_query=Ernie+%26+Bert"
+                        >
+                            This month
+                        </a>
+                    </div>
+                </div>
+
+                <div class="search-option-box">
+                    <div class="search-option-label">Categories:</div>
+                    <div class="search-option">All</div>
+                    <div class="search-option">
+                        <a
+                            href=" /results?search_type=videos&amp;search_category=27&amp;search=tag&amp;uni=3&amp;search_query=Ernie+%26+Bert"
+                        >
+                            Education
+                        </a>
+                    </div>
+                    <div class="search-option">
+                        <a
+                            href=" /results?search_type=videos&amp;search_category=22&amp;search=tag&amp;uni=3&amp;search_query=Ernie+%26+Bert"
+                        >
+                            People &amp; Blogs
+                        </a>
+                    </div>
+                    <div class="search-option">
+                        <a
+                            href=" /results?search_type=videos&amp;search_category=10&amp;search=tag&amp;uni=3&amp;search_query=Ernie+%26+Bert"
+                        >
+                            Music
+                        </a>
+                    </div>
+                    <div class="search-option">
+                        <a
+                            href=" /results?search_type=videos&amp;search_category=17&amp;search=tag&amp;uni=3&amp;search_query=Ernie+%26+Bert"
+                        >
+                            Sports
+                        </a>
+                    </div>
+                    <div class="search-option">
+                        <a
+                            href=" /results?search_type=videos&amp;search_category=23&amp;search=tag&amp;uni=3&amp;search_query=Ernie+%26+Bert"
+                        >
+                            Comedy
+                        </a>
+                    </div>
+                </div>
+
+                <div class="search-option-box">
+                    <div class="search-option-label">Duration:</div>
+                    <div class="search-option">All</div>
+
+                    <div class="search-option">
+                        <a
+                            href="/results?search_type=videos&amp;search_query=Ernie+%26+Bert&amp;search=tag&amp;search_duration=short&amp;uni=3"
+                        >
+                            Short (~4 minutes)
+                        </a>
+                    </div>
+
+                    <div class="search-option">
+                        <a
+                            href="/results?search_type=videos&amp;search_query=Ernie+%26+Bert&amp;search=tag&amp;search_duration=long&amp;uni=3"
+                        >
+                            Long (20~ minutes)
+                        </a>
+                    </div>
+                </div>
+
+                <div class="search-option-box">
+                    <div class="search-option-label">Features:</div>
+                    <div class="search-option">All</div>
+
+                    <div class="search-option">
+                        <a
+                            href="/results?search_type=videos&amp;closed_captions=1&amp;search=tag&amp;uni=3&amp;search_query=Ernie+%26+Bert"
+                        >
+                            Closed captions
+                        </a>
+                    </div>
+
+                    <div class="search-option">
+                        <a
+                            href="/results?search_type=videos&amp;search_query=Ernie+%26+Bert&amp;search=tag&amp;high_definition=1&amp;uni=3"
+                        >
+                            HD (high definition)
+                        </a>
+                    </div>
+
+                    <div class="search-option">
+                        <a
+                            href="/results?search_type=videos&amp;partner=1&amp;search=tag&amp;uni=3&amp;search_query=Ernie+%26+Bert"
+                        >
+                            Partner videos
+                        </a>
+                    </div>
+
+                    <div class="search-option">
+                        <a
+                            href="/results?search_type=videos&amp;search_query=Ernie+%26+Bert&amp;search=tag&amp;rental=1&amp;uni=3"
+                        >
+                            Rental
+                        </a>
+                    </div>
+
+                    <div class="search-option">
+                        <a
+                            href="/results?search_type=videos&amp;search_query=Ernie+%26+Bert&amp;search=tag&amp;uni=3&amp;webm=1"
+                        >
+                            WebM
+                        </a>
+                    </div>
+                </div>
+
+                <div class="clear"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="horizontal-rule">
+    <span class="first"></span>
+    <span class="second"></span>
+    <span class="third"></span>
+</div>
+
+<div id="search-base-div">
+    <div id="search-main" class="ytg-4col new-snippets">
+        <div id="results-main-content">
+            <div id="search-results">
+
+                {% for item in search_results %}
+                {% if item['type'] == 'video' %}
+
+                <div class="result-item yt-uix-tile yt-tile-default *sr">
+                    <div class="thumb-container">
+                        <a
+                            href="/watch?v={{ item['id'] }}"
+                            class="ux-thumb-wrap contains-addto result-item-thumb"
+                        >
+                            <span class="video-thumb ux-thumb ux-thumb-128">
+                                <span class="clip">
+                                    <span class="clip-inner">
+                                        <img
+                                            alt="Thumbnail"
+                                            src="//i4.ytimg.com/vi/{{ item['id'] }}/default.jpg"
+                                        />
+                                        <span class="vertical-align"></span>
+                                    </span>
+                                </span>
+                            </span>
+                            <span class="video-time">{{ format_duration(item['duration']) }}</span>
+
+                            <button
+                                onclick="return false;"
+                                title="Watch Later"
+                                type="button"
+                                class="addto-button video-actions addto-watch-later-button-sign-in yt-uix-button yt-uix-button-default yt-uix-button-short yt-uix-tooltip"
+                                data-button-menu-id="shared-addto-watch-later-login"
+                                data-video-ids="{{ item['id'] }}"
+                                data-feature="thumbnail"
+                                role="button"
+                            >
+                                <img
+                                    class="yt-uix-button-icon yt-uix-button-icon-addto"
+                                    src="//s.ytimg.com/yt/img/pixel-vfl3z5WfW.gif"
+                                    alt=""
+                                /><span class="yt-uix-button-content">
+                                    <span class="addto-label">Add to</span>
+                                </span><img
+                                    class="yt-uix-button-arrow"
+                                    src="//s.ytimg.com/yt/img/pixel-vfl3z5WfW.gif"
+                                    alt=""
+                                />
+                            </button>
+                        </a>
+                    </div>
+                    <div class="result-item-main-content">
+                        <h3 id="video-long-title-{{ item['id'] }}">
+                            <a
+                                href="/watch?v={{ item['id'] }}"
+                                class="yt-uix-tile-link"
+                                dir="ltr"
+                                title="{{ item['title'] }}"
+                            >
+                                {{ item['title'] }}
+                            </a>
+                        </h3>
+
+                        <p
+                            id="video-description-{{ item['id'] }}"
+                            class="description"
+                        >
+                            {{ item['description'] }}
+                        </p>
+
+                        <p class="facets">
+                            <span class="username-prepend">by</span>
+                            <a
+                                href="/channel/{{ item['channel_id'] }}"
+                                class="yt-user-name"
+                                dir="ltr"
+                            >
+                                {{ item['channel'] }}
+                            </a>
+
+                            {# <span class="metadata-separator">|</span>
+                            <span class="date-added">2 years ago</span> #}
+                            <span class="metadata-separator">|</span>
+                            <span class="viewcount">{{ format_view_count(item['view_count']) }} views</span>
+                        </p>
+                    </div>
+                </div>
+
+                {% endif %}
+                {% endfor %}
+
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
