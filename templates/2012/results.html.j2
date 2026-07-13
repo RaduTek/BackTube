@@ -34,11 +34,11 @@
 
 <div id="search-header">
     <div id="search-header-inner">
-        {# <p class="num-results">
+        <p class="num-results">
             About
-            <strong>0</strong>
+            <strong>{{ search_results['estimated_results'] }}</strong>
             results
-        </p> #}
+        </p>
 
         <h2>
             Search results for
@@ -287,9 +287,8 @@
         <div id="results-main-content">
             <div id="search-results">
 
-                {% for item in search_results %}
+                {% for item in search_results['entries'] %}
                 {% if item['type'] == 'video' %}
-
                 <div class="result-item yt-uix-tile yt-tile-default *sr">
                     <div class="thumb-container">
                         <a
@@ -307,7 +306,7 @@
                                     </span>
                                 </span>
                             </span>
-                            <span class="video-time">{{ format_duration(item['duration']) }}</span>
+                            <span class="video-time">{{ item['length_text'] }}</span>
 
                             <button
                                 onclick="return false;"
@@ -359,17 +358,120 @@
                                 class="yt-user-name"
                                 dir="ltr"
                             >
-                                {{ item['channel'] }}
+                                {{ item['channel_name'] }}
                             </a>
 
-                            {# <span class="metadata-separator">|</span>
-                            <span class="date-added">2 years ago</span> #}
                             <span class="metadata-separator">|</span>
-                            <span class="viewcount">{{ format_view_count(item['view_count']) }} views</span>
+                            <span class="date-added">{{ item['published_text'] }}</span>
+                            <span class="metadata-separator">|</span>
+                            <span class="viewcount">{{ item['viewcount_text'] }}</span>
                         </p>
                     </div>
                 </div>
+                {% elif item['type'] == 'playlist' %}
+                <div class="result-item">
+                    <div class="result-item-thumbnail">
+                        <a
+                            href="/playlist?list={{ item['id'] }}"
+                            class="yt-uix-tile-link"
+                            dir="ltr"
+                            title="{{ item['title'] }}"
+                        >
+                            <img
+                                src="{{ item['thumbnail_url'] }}"
+                                alt="{{ item['title'] }}"
+                                class="yt-uix-tile-img"
+                            />
+                        </a>
+                    </div>
+                    <div class="result-item-main-content">
+                        <h3 id="video-long-title-{{ item['id'] }}">
+                            <a
+                                href="/playlist?list={{ item['id'] }}"
+                                class="yt-uix-tile-link"
+                                dir="ltr"
+                                title="{{ item['title'] }}"
+                            >
+                                {{ item['title'] }}
+                            </a>
+                        </h3>
 
+                        <p
+                            id="video-description-{{ item['id'] }}"
+                            class="description"
+                        >
+                            {{ item['description'] }}
+                        </p>
+
+                        <p class="facets">
+                            <span class="username-prepend">by</span>
+                            <a
+                                href="/channel/{{ item['channel_id'] }}"
+                                class="yt-user-name"
+                                dir="ltr"
+                            >
+                                {{ item['channel_name'] }}
+                            </a>
+
+                            <span class="metadata-separator">|</span>
+                            <span class="date-added">{{ item['published_text'] }}</span>
+                            <span class="metadata-separator">|</span>
+                            <span class="viewcount">{{ item['viewcount_text'] }}</span>
+                        </p>
+                    </div>
+                </div>
+                {% elif item['type'] == 'channel' %}
+                <div class="result-item">
+                    <div class="result-item-thumbnail">
+                        <a
+                            href="/channel/{{ item['channel_id'] }}"
+                            class="yt-uix-tile-link"
+                            dir="ltr"
+                            title="{{ item['title'] }}"
+                        >
+                            <img
+                                src="{{ item['thumbnail_url'] }}"
+                                alt="{{ item['title'] }}"
+                                class="yt-uix-tile-img"
+                            />
+                        </a>
+                    </div>
+                    <div class="result-item-main-content">
+                        <h3 id="video-long-title-{{ item['id'] }}">
+                            <a
+                                href="/channel/{{ item['channel_id'] }}"
+                                class="yt-uix-tile-link"
+                                dir="ltr"
+                                title="{{ item['title'] }}"
+                            >
+                                {{ item['title'] }}
+                            </a>
+                        </h3>
+
+                        <p
+                            id="video-description-{{ item['id'] }}"
+                            class="description"
+                        >
+                            {{ item['description'] }}
+                        </p>
+
+                        <p class="facets">
+                            <span class="username-prepend">by</span>
+                            <a
+                                href="/channel/{{ item['channel_id'] }}"
+                                class="yt-user-name"
+                                dir="ltr"
+                            >
+                                {{ item['channel_name'] }}
+                            </a>
+
+                            <span class="metadata-separator">|</span>
+                            <span class="date-added">{{ item['published_text'] }}</span>
+                            <span class="metadata-separator">|</span>
+                            <span class="viewcount">{{ item['viewcount_text'] }}</span>
+                        </p>
+                    </div>
+                </div>
                 {% endif %}
                 {% endfor %}
 
