@@ -1,11 +1,21 @@
+import hashlib
 from datetime import datetime
 from typing import Literal, TypedDict
 from . import client
 from .utils import get_text, get_first_run, get_channel_from_byline, get_thumbnail_url
+from ..cache import save_cache_data, get_cache_data
 
 
-class SearchResults(TypedDict):
-    timestamp: int
+class SearchResultsCache(TypedDict):
+    hash: str
+    created_at: int
+    updated_at: int
+    search_query: str
+    pages: list['SearchResultsPage']
+
+
+class SearchResultsPage(TypedDict):
+    fetched_at: int
     search_query: str
     estimated_results: int
     continuation_token: str
@@ -239,7 +249,8 @@ def parse_innertube_playlist_lockup_renderer(lockup_renderer: dict) -> SearchRes
         title=get_text(lockup_metadata.get('title')),
         channel_name=channel_name,
         channel_id=channel_id,
-        video_count=get_text(lockup_renderer.get('videoCountText')),
+        # video_count=get_text(lockup_renderer.get('videoCountText')),
+        video_count=_playlist_video_count(lockup_renderer),
         thumbnail_url=get_thumbnail_url(
             lockup_renderer.get('contentImage', {})
             .get('collectionThumbnailViewModel', {})
@@ -267,7 +278,7 @@ def parse_innertube_search_item(item: dict) -> SearchResultEntry | None:
 def get_search_results_innertube(
     search_query: str,
     continuation_token: str | None = None,
-) -> SearchResults:
+) -> SearchResultsPage:
     """Get search results from YouTube using the innertube API."""
 
     data = client.search(search_query, continuation=continuation_token)
@@ -278,10 +289,60 @@ def get_search_results_innertube(
             entries.append(entry)
 
     return {
-        'timestamp': int(datetime.now().timestamp()),
+        'fetched_at': int(datetime.now().timestamp()),
         'search_query': search_query,
         'estimated_results': int(data.get('estimatedResults', '')),
         'continuation_token': _get_continuation_token(data),
         'entries': entries,
     }
+
+
+def search_query_hash(search_query: str) -> str:
+    """Generate a hash for a search query to use as a cache key."""
+    search_query = search_query.strip().lower()
+
+    return hashlib.md5(search_query.encode('utf-8')).hexdigest()
+
+
+def get_search_results_page(
+    search_query: str,
+    page_number: int = 1,
+) -> SearchResultsPage | None:
+    """Get a specific page of search results from YouTube using the innertube API."""
+
+    if page_number < 1:
+        raise ValueError("Page number must be greater than or equal to 1.")
+
+    query_hash = search_query_hash(search_query)
+    cached = get_cache_data('search_results', query_hash)
+    created_at = int(cached.get('created_at', 0)) if cached else int(datetime.now().timestamp())
+
+    pages: list[SearchResultsPage] = cached.get('pages', []) if cached else []
+
+    if 1 <= page_number <= len(pages):
+        # Page already cached
+        return pages[page_number - 1]
+
+    # Page not cached already, fetch missing pages
+    missing_pages = page_number - len(pages)
+
+    for _ in range(missing_pages):
+        continuation_token = None
+        if pages:
+            continuation_token = pages[-1].get('continuation_token')
+
+        results_page = get_search_results_innertube(search_query, continuation_token)
+        pages.append(results_page)
+    
+    # Save the updated cache
+    new_cache: SearchResultsCache = {
+        'created_at': created_at,
+        'updated_at': int(datetime.now().timestamp()),
+        'hash': query_hash,
+        'search_query': search_query,
+        'pages': pages
+    }
+    save_cache_data('search_results', query_hash, dict(new_cache))
+
+    return pages[-1]  # Return the last page, which is the requested page
 
