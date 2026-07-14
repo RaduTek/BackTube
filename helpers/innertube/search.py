@@ -68,26 +68,35 @@ def _video_description(video_renderer: dict) -> str:
     return get_text(snippets[0].get('snippetText'), bold=True)
 
 
-def _get_search_sections(data: dict) -> list[dict]:
-    return (
+def _get_search_result_items(data: dict) -> list[dict]:
+    """Get search result container items from an initial or continuation response."""
+
+    if contents := (
         data.get('contents', {})
         .get('twoColumnSearchResultsRenderer', {})
         .get('primaryContents', {})
         .get('sectionListRenderer', {})
         .get('contents', [])
-    )
+    ):
+        return contents
+
+    items: list[dict] = []
+    for command in data.get('onResponseReceivedCommands', []):
+        if action := command.get('appendContinuationItemsAction'):
+            items.extend(action.get('continuationItems', []))
+    return items
 
 
 def _get_item_section_contents(data: dict) -> list[dict]:
-    for section in _get_search_sections(data):
-        if item_section := section.get('itemSectionRenderer'):
+    for item in _get_search_result_items(data):
+        if item_section := item.get('itemSectionRenderer'):
             return item_section.get('contents', [])
     return []
 
 
 def _get_continuation_token(data: dict) -> str:
-    for section in _get_search_sections(data):
-        if continuation := section.get('continuationItemRenderer'):
+    for item in _get_search_result_items(data):
+        if continuation := item.get('continuationItemRenderer'):
             return (
                 continuation.get('continuationEndpoint', {})
                 .get('continuationCommand', {})
