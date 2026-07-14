@@ -1,5 +1,7 @@
 from urllib.parse import quote_plus
 from flask import request, render_template
+
+from . import get_preferred_template
 from ..helpers.innertube.search import get_search_results_page
 
 
@@ -30,7 +32,7 @@ def results_page():
     page['prev'] = page['current'] - 1 if page['current'] > 1 else None
 
     return render_template(
-        '2012/results.html.j2',
+        get_preferred_template('results'),
         search_query=search_query,
         search_query_url=search_query_url,
         search_results=search_results,

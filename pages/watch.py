@@ -1,4 +1,6 @@
 from flask import request, render_template
+
+from . import get_preferred_template
 from ..helpers.innertube.watch import get_watch_data_innertube
 
 
@@ -10,4 +12,4 @@ def watch_page():
     
     watch_data = get_watch_data_innertube(video_id)
 
-    return render_template("2012/watch.html.j2", video_id=video_id, video=watch_data['video'])
+    return render_template(get_preferred_template('watch'), video_id=video_id, video=watch_data['video'])
