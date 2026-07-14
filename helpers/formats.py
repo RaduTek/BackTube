@@ -1,5 +1,5 @@
 
-def format_number_thousands(number: int):
+def format_number(number: int):
     return f"{number:,d}"
 
 
@@ -37,5 +37,5 @@ def get_all_formatters():
     return {
         'format_view_count': format_view_count,
         'format_duration': format_duration,
-        'format_number_thousands': format_number_thousands,
+        'format_number': format_number,
     }
