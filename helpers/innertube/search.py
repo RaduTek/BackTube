@@ -206,6 +206,140 @@ def parse_innertube_channel_renderer(channel_renderer: dict) -> FeedItem:
     )
 
 
+def _lockup_metadata_rows(lockup_metadata: dict) -> list[dict]:
+    return (
+        lockup_metadata.get('metadata', {})
+        .get('contentMetadataViewModel', {})
+        .get('metadataRows', [])
+    )
+
+
+def _lockup_metadata_texts(metadata_rows: list[dict]) -> list[str]:
+    texts: list[str] = []
+    for row in metadata_rows:
+        for part in row.get('metadataParts', []):
+            content = part.get('text', {}).get('content', '')
+            if content:
+                texts.append(content)
+    return texts
+
+
+def _channel_from_video_lockup_metadata(lockup_metadata: dict) -> tuple[str, str]:
+    metadata_rows = _lockup_metadata_rows(lockup_metadata)
+    channel_name = _lockup_metadata_texts(metadata_rows)[0] if metadata_rows else ''
+
+    browse_endpoint = (
+        lockup_metadata.get('image', {})
+        .get('decoratedAvatarViewModel', {})
+        .get('rendererContext', {})
+        .get('commandContext', {})
+        .get('onTap', {})
+        .get('innertubeCommand', {})
+        .get('browseEndpoint', {})
+    )
+    return channel_name, browse_endpoint.get('browseId', '')
+
+
+def _video_lockup_length_text(lockup_renderer: dict) -> str:
+    overlays = (
+        lockup_renderer.get('contentImage', {})
+        .get('thumbnailViewModel', {})
+        .get('overlays', [])
+    )
+    for overlay in overlays:
+        for badge in overlay.get('thumbnailBottomOverlayViewModel', {}).get('badges', []):
+            text = badge.get('thumbnailBadgeViewModel', {}).get('text', '')
+            if text:
+                return text
+    return ''
+
+
+def parse_innertube_video_lockup_renderer(lockup_renderer: dict) -> FeedItem:
+    """Parse a video lockupViewModel from the innertube API into a FeedItem."""
+
+    video_id = lockup_renderer.get('contentId', '')
+    lockup_metadata = lockup_renderer.get('metadata', {}).get('lockupMetadataViewModel', {})
+    metadata_rows = _lockup_metadata_rows(lockup_metadata)
+    channel_name, channel_id = _channel_from_video_lockup_metadata(lockup_metadata)
+
+    viewcount_text = ''
+    published_text = ''
+    for text in _lockup_metadata_texts(metadata_rows)[1:]:
+        lower_text = text.lower()
+        if 'view' in lower_text:
+            viewcount_text = text
+        elif any(marker in lower_text for marker in ('ago', 'streamed', 'premiered')):
+            published_text = text
+
+    return FeedItem(
+        type='video',
+        id=video_id,
+        title=get_text(lockup_metadata.get('title')),
+        url=links.video_url(video_id),
+        thumbnail_url=get_thumbnail_url(
+            lockup_renderer.get('contentImage', {})
+            .get('thumbnailViewModel', {})
+            .get('image', {})
+            .get('sources', [])
+        ),
+        channel_name=channel_name,
+        channel_id=channel_id,
+        channel_url=links.channel_url(channel_id),
+        viewcount_text=viewcount_text,
+        published_text=published_text,
+        length_text=_video_lockup_length_text(lockup_renderer),
+    )
+
+
+def parse_innertube_compact_video_renderer(compact_renderer: dict) -> FeedItem:
+    """Parse a compactVideoRenderer object from the innertube API into a FeedItem."""
+
+    video_id = compact_renderer.get('videoId', '')
+    channel_name, channel_id = get_channel_from_byline(compact_renderer.get('shortBylineText'))
+
+    return FeedItem(
+        type='video',
+        id=video_id,
+        title=get_text(compact_renderer.get('title')),
+        url=links.video_url(video_id),
+        thumbnail_url=get_thumbnail_url(compact_renderer.get('thumbnail', {}).get('thumbnails', [])),
+        channel_name=channel_name,
+        channel_id=channel_id,
+        channel_url=links.channel_url(channel_id),
+        published_text=get_text(compact_renderer.get('publishedTimeText')),
+        length_text=get_text(compact_renderer.get('lengthText')),
+        viewcount_text=get_text(compact_renderer.get('viewCountText')),
+    )
+
+
+def parse_innertube_compact_playlist_renderer(compact_renderer: dict) -> FeedItem:
+    """Parse a compactPlaylistRenderer object from the innertube API into a FeedItem."""
+
+    playlist_id = compact_renderer.get('playlistId', '')
+    channel_name, channel_id = get_channel_from_byline(compact_renderer.get('shortBylineText'))
+
+    return FeedItem(
+        type='playlist',
+        id=playlist_id,
+        title=get_text(compact_renderer.get('title')),
+        url=f'/playlist?list={playlist_id}',
+        thumbnail_url=get_thumbnail_url(compact_renderer.get('thumbnail', {}).get('thumbnails', [])),
+        channel_name=channel_name,
+        channel_id=channel_id,
+        channel_url=links.channel_url(channel_id),
+        video_count=get_text(compact_renderer.get('videoCountText')),
+    )
+
+
+def _parse_lockup_renderer(lockup_renderer: dict) -> FeedItem:
+    content_type = lockup_renderer.get('contentType', '')
+    if content_type == 'LOCKUP_CONTENT_TYPE_PLAYLIST':
+        return parse_innertube_playlist_lockup_renderer(lockup_renderer)
+    if lockup_renderer.get('contentImage', {}).get('collectionThumbnailViewModel'):
+        return parse_innertube_playlist_lockup_renderer(lockup_renderer)
+    return parse_innertube_video_lockup_renderer(lockup_renderer)
+
+
 def parse_innertube_playlist_lockup_renderer(lockup_renderer: dict) -> FeedItem:
     """Parse a lockupViewModel object from the innertube API into a SearchResultEntry."""
 
@@ -252,10 +386,14 @@ def parse_innertube_playlist_lockup_renderer(lockup_renderer: dict) -> FeedItem:
 def parse_innertube_search_item(item: dict) -> FeedItem | None:
     if video := item.get('videoRenderer'):
         return parse_innertube_video_renderer(video)
+    if compact_video := item.get('compactVideoRenderer'):
+        return parse_innertube_compact_video_renderer(compact_video)
     if channel := item.get('channelRenderer'):
         return parse_innertube_channel_renderer(channel)
+    if compact_playlist := item.get('compactPlaylistRenderer'):
+        return parse_innertube_compact_playlist_renderer(compact_playlist)
     if lockup := item.get('lockupViewModel'):
-        return parse_innertube_playlist_lockup_renderer(lockup)
+        return _parse_lockup_renderer(lockup)
     return None
 
 
