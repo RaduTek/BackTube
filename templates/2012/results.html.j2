@@ -264,28 +264,7 @@
                             </span>
                             <span class="video-time">{{ item.length_text }}</span>
 
-                            <button
-                                onclick="return false;"
-                                title="Watch Later"
-                                type="button"
-                                class="addto-button video-actions addto-watch-later-button-sign-in yt-uix-button yt-uix-button-default yt-uix-button-short yt-uix-tooltip"
-                                data-button-menu-id="shared-addto-watch-later-login"
-                                data-video-ids="{{ item.id }}"
-                                data-feature="thumbnail"
-                                role="button"
-                            >
-                                <img
-                                    class="yt-uix-button-icon yt-uix-button-icon-addto"
-                                    src="//s.ytimg.com/yt/img/pixel-vfl3z5WfW.gif"
-                                    alt=""
-                                /><span class="yt-uix-button-content">
-                                    <span class="addto-label">Add to</span>
-                                </span><img
-                                    class="yt-uix-button-arrow"
-                                    src="//s.ytimg.com/yt/img/pixel-vfl3z5WfW.gif"
-                                    alt=""
-                                />
-                            </button>
+                            {{ macros.watch_later_button(item) }}
                         </a>
                     </div>
                     <div class="result-item-main-content">
