@@ -8,3 +8,127 @@
         </div>
     </div>
 {% endmacro %}
+
+{% macro create_pager(pager) %}
+    <div class="yt-uix-pager" role="navigation">
+        {% if pager.prev %}
+        <a href="{{ pager.prev }}" class="yt-uix-button yt-uix-pager-prev yt-uix-pager-button">
+            <span class="yt-uix-button-content">« Previous</span>
+        </a>
+        &nbsp;
+        {% endif %}
+        {% for page, url in pager.links %}
+        <a
+            href="{{ url }}"
+            class="yt-uix-button yt-uix-pager-page-num yt-uix-pager-button {{ 'yt-uix-button-toggled' if page == pager.current else '' }}"
+            data-page="{{ page }}"
+            aria-label="Go to page {{ page }}"
+        >
+            <span class="yt-uix-button-content">{{ page }}</span>
+        </a>
+        &nbsp;
+        {% endfor %}
+        {% if pager.next %}
+        <a href="{{ pager.next }}" class="yt-uix-button yt-uix-pager-next yt-uix-pager-button">
+            <span class="yt-uix-button-content">Next »</span>
+        </a>
+        &nbsp;
+        {% endif %}
+    </div>
+{% endmacro %}
+
+{% macro guide_feed_item_video(data) %}
+    <div class="feed-item-container yt-uix-expander yt-uix-expander-collapsed">
+        <div class="feed-item-outer"><div class="feed-item-main">
+            <div class="feed-item-thumb">
+                <a class="ux-thumb-wrap contains-addto  yt-uix-sessionlink"
+                    href="/watch?v={{ data.video_id }}">
+                    <span
+                        class="video-thumb ux-thumb yt-thumb-default-106 "><span
+                            class="yt-thumb-clip"><span
+                                class="yt-thumb-clip-inner"><img
+                                    src="//i1.ytimg.com/vi/{{ data.video_id }}/default.jpg"
+                                    alt="Thumbnail"
+                                    width="106"><span
+                                    class="vertical-align"></span></span></span></span>
+                    <span class="video-time">{{ data.length_text }}</span>
+
+
+
+                    <button onclick=";return false;" title="Watch Later"
+                        type="button"
+                        class="addto-button video-actions addto-watch-later-button-sign-in yt-uix-button yt-uix-button-default yt-uix-button-short yt-uix-tooltip"
+                        data-button-menu-id="shared-addto-watch-later-login"
+                        data-video-ids="{{ data.video_id }}" role="button"><span
+                            class="yt-uix-button-content"> <span
+                                class="addto-label">
+                                Watch Later
+                            </span>
+                            <span class="addto-label-error">
+                                Error
+                            </span>
+                            <img
+                                src="//s.ytimg.com/yt/img/pixel-vfl3z5WfW.gif">
+                        </span><img class="yt-uix-button-arrow"
+                            src="//s.ytimg.com/yt/img/pixel-vfl3z5WfW.gif"
+                            alt=""></button>
+
+                </a>
+
+
+            </div>
+            <div class="feed-item-time">
+                {{ data.published_text }}
+            </div>
+            <div class="feed-item-content">
+                <h4>
+                    <a class="title yt-uix-sessionlink"
+                        href="/watch?v={{ data.video_id }}"
+                        data-sessionlink="context=G2a2a188FOAAAAAAAAAA"
+                        dir="ltr">
+                        {{ data.title }}
+                    </a>
+                </h4>
+                <div class="description">
+                    <p>{{ data.description }}</p>
+                </div>
+
+                <div class="metadata ">
+                    <p>
+                        <a href="/channel/{{ data.channel_id }}"
+                            class="yt-user-name " dir="ltr">{{ data.channel_name }}</a>
+
+                        <span class="bull">&bull;</span>
+                        <span class="view-count">
+                            {{ data.viewcount_text }}
+                        </span>
+                    </p>
+                </div>
+
+                <div class="feed-item-actions-line ">
+                    <span class="feed-item-author"> <a
+                            href="/channel/{{ data.channel_id }}"
+                            class="yt-user-photo ">
+                            <span
+                                class="video-thumb ux-thumb yt-thumb-square-18 "><span
+                                    class="yt-thumb-clip"><span
+                                        class="yt-thumb-clip-inner"><img
+                                            src="http://s.ytimg.com/yt/img/pixel-vfl3z5WfW.gif"
+                                            alt="{{ data.channel_name }}"
+                                            data-thumb="//i1.ytimg.com/i/H-_hzb2ILSCo9ftVSnrCIQ/1.jpg?v=4f457758"
+                                            width="18"><span
+                                            class="vertical-align"></span></span></span></span>
+
+                        </a>
+                    </span>
+                    <span class="feed-item-owner"> <a
+                            href="/channel/{{ data.channel_id }}"
+                            class="yt-user-name " dir="ltr">{{ data.channel_name }}</a>
+                    </span>
+                    uploaded
+
+                </div>
+            </div>
+        </div></div>
+    </div>
+{% endmacro %}
