@@ -1,6 +1,7 @@
-from typing import TypedDict
+from datetime import datetime
+from typing import cast, TypedDict
 from . import client, FeedItem
-from .. import links
+from .. import links, cache
 from ..formats import format_duration
 from .search import parse_innertube_search_item
 from .utils import get_text, get_channel_from_byline
@@ -25,9 +26,26 @@ class WatchPageVideo(TypedDict):
 
 
 class WatchPageData(TypedDict):
+    video_id: str
+    fetched_at: int
     video: WatchPageVideo
-    suggestions: list[FeedItem]
-    suggestions_continuation_token: str
+    related: list[FeedItem]
+    related_token: str
+
+
+class WatchPageRelated(TypedDict):
+    video_id: str
+    fetched_at: int
+    related: list[FeedItem]
+    related_token: str
+
+
+class WatchPageCache(TypedDict):
+    video_id: str
+    fetched_at: int
+    updated_at: int
+    data: WatchPageData
+    related: list[WatchPageRelated]
 
 
 def _get_watch_result_contents(response: dict) -> list[dict]:
@@ -119,6 +137,14 @@ def _parse_like_dislike_counts(video_actions: dict) -> tuple[str, str]:
                 walk(value)
 
     walk(video_actions)
+
+    # Ignore values if not numeric (for videos with hidden ratings)
+    if len(like_count) > 0 and not like_count[0].isdigit():
+        like_count = ''
+    
+    if len(dislike_count) > 0 and not dislike_count[0].isdigit():
+        dislike_count = ''
+    
     return like_count, dislike_count
 
 
@@ -189,12 +215,94 @@ def get_watch_suggestions_innertube(
 
 
 def get_watch_data_innertube(video_id: str) -> WatchPageData:
+    """Fetch watch page data from the innertube next API."""
     response = client.next(video_id)
     player_response = client.player(video_id)
     suggestions, suggestions_continuation_token = parse_watch_suggestions(response)
 
     return WatchPageData(
+        video_id=video_id,
+        fetched_at=int(datetime.now().timestamp()),
         video=parse_watch_page_video(video_id, response, player_response),
-        suggestions=suggestions,
-        suggestions_continuation_token=suggestions_continuation_token,
+        related=suggestions,
+        related_token=suggestions_continuation_token,
     )
+
+
+def get_watch_suggestions_continuation_innertube(
+    video_id: str,
+    continuation_token: str,
+) -> WatchPageRelated:
+    """Fetch watch page suggestions continuation from the innertube next API."""
+
+    response = client.next(video_id, continuation=continuation_token)
+    related, related_token = parse_watch_suggestions(response)
+
+    return WatchPageRelated(
+        video_id=video_id,
+        fetched_at=int(datetime.now().timestamp()),
+        related=related,
+        related_token=related_token,
+    )
+
+
+def get_watch_data(video_id: str, nocache: bool = False) -> WatchPageData:
+    """Fetch watch page data from the innertube next API, with caching."""
+
+    cached = cache.get_cache_data('watch', video_id)
+
+    if cached and not nocache:
+        return cast(WatchPageData, cached['data'])
+
+    data = get_watch_data_innertube(video_id)
+    
+    to_cache = WatchPageCache(
+        video_id=video_id,
+        fetched_at=int(datetime.now().timestamp()),
+        updated_at=int(datetime.now().timestamp()),
+        data=data,
+        related=[],
+    )
+    cache.save_cache_data('watch', video_id, dict(to_cache))
+
+    return data
+
+
+def get_watch_related(
+    video_id: str,
+    index: int = -1,
+) -> WatchPageRelated:
+    """Fetch watch page related continuation from the innertube next API, with caching."""
+
+    cached = cache.get_cache_data('watch', video_id)
+
+    if not cached:
+        raise ValueError(f"No cached watch data for video_id: {video_id}. Get watch data must be fetched first.")
+
+    cached = cast(WatchPageCache, cached)
+
+    # Negative index means counting from end of list
+    if index < 0:
+        index = len(cached['related']) + index
+    
+    # Check if already cached
+    if 0 <= index <= len(cached['related']):
+        return cached['related'][index]
+
+    # Fetch missing continuations until we reach the requested index
+    missing = len(cached['related']) - index
+
+    for _ in range(missing):
+        continuation_token = (
+            cached['data']['related_token']
+            if not len(cached['related']) > 0
+            else cached['related'][-1]['related_token']
+        )
+        continuation_data = get_watch_suggestions_continuation_innertube(video_id, continuation_token)
+        cached['related'].append(continuation_data)
+    
+    cached['updated_at'] = int(datetime.now().timestamp())
+    cache.save_cache_data('watch_suggestions', video_id, dict(cached))
+
+    return cached['related'][-1]
+    
