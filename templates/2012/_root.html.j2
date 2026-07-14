@@ -2,7 +2,7 @@
 <html lang="en" dir="ltr">
 
 <head>
-    {% block head %}
+    {% block head -%}
 
     <title>{% block title %}YouTube - Broadcast Yourself.{% endblock %}</title>
 
@@ -17,10 +17,10 @@
     <meta name="description" content="Share your videos with friends, family, and the world" />
     <meta name="keywords" content="video, sharing, camera phone, video phone, free, upload" />
 
-    {% block core_css %}
-    {# <link id="www-core-css" rel="stylesheet" href="http://s.ytimg.com/yt/cssbin/www-core-vflnhJKDt.css"> #}
+    {% block core_css -%}
+    {#- <link id="www-core-css" rel="stylesheet" href="http://s.ytimg.com/yt/cssbin/www-core-vflnhJKDt.css"> -#}
     <link id="www-core-css" rel="stylesheet" href="https://s.ytimg.com/yt/cssbin/www-refresh-vfll-f0-R.css">
-    {% endblock %}
+    {%- endblock %}
     {% block extra_css %}{% endblock %}
     <style>
         .yt-alert .close {
@@ -28,16 +28,15 @@
         }
     </style>
 
-    {% endblock %}
+    {%- endblock %}
 </head>
 
 <body id="" class="en_US ltr exp-edit-on-watch exp-channel-promo-on-watch ytg-old-clearfix">
-    {% block body %}
+    {% block body -%}
 
     <div id="page" class="">
-
         <div id="masthead-container">
-            {% block masthead_container %}
+            {% block masthead_container -%}
 
             <div id="masthead" class="" dir="ltr">
                 <a id="logo-container" href="/" title="YouTube home">
@@ -121,23 +120,22 @@
 
             <div id="alerts">{% block alerts %}{% endblock %}</div>
 
-            {% endblock %}
+            {%- endblock %}
         </div>
-
     </div>
 
     <div id="content-container">
-        {% block content_container %}
+        {% block content_container -%}
 
         <div id="content">
             {% block content %}{% endblock %}
         </div>
 
-        {% endblock %}
+        {%- endblock %}
     </div>
 
     <div id="footer-container">
-        {% block footer %}
+        {% block footer -%}
 
         <div id="footer">
             <div class="horizontal-rule yt-horizontal-rule">
@@ -337,15 +335,15 @@
 
         </div>
         
-        {% endblock %}
+        {%- endblock %}
     </div>
 
-    {% block core_js %}
+    {% block core_js -%}
     <script id="www-core-js" src="//s.ytimg.com/yt/jsbin/www-core-vflWYkZkj.js"></script>
-    {% endblock %}
+    {%- endblock %}
     {% block body_js %}{% endblock %}
 
-    {% endblock %}
+    {%- endblock %}
 </body>
 
 </html>
