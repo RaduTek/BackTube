@@ -1,14 +1,19 @@
 from typing import TypedDict
 from . import client
+from .. import links
 from .utils import get_text
 
 
 class WatchPageVideo(TypedDict):
     video_id: str
+    url: str
     title: str
     description: str
+    
     channel_name: str
     channel_id: str
+    channel_url: str
+
     view_count: int
     like_count: int
     dislike_count: int
@@ -38,22 +43,26 @@ def parse_video_primary_info(response: dict) -> WatchPageVideo:
     dislike_count = int(video_primary_info.get('dislikeCount', 0))
     published_date = get_text(video_primary_info.get('publishedTimeText', {}))
 
-    return {
-        'video_id': video_id,
-        'title': title,
-        'description': description,
-        'channel_name': channel_name,
-        'channel_id': channel_id,
-        'view_count': view_count,
-        'like_count': like_count,
-        'dislike_count': dislike_count,
-        'published_date': published_date,
-    }
+    return WatchPageVideo(
+        video_id=video_id,
+        url=links.video_url(video_id),
+        title=title,
+        description=description,
+
+        channel_name=channel_name,
+        channel_id=channel_id,
+        channel_url=links.channel_url(channel_id),
+
+        view_count=view_count,
+        like_count=like_count,
+        dislike_count=dislike_count,
+        published_date=published_date,
+    )
 
 
 def get_watch_data_innertube(video_id: str) -> WatchPageData:
     response = client.next(video_id)
 
-    return {
-        'video': parse_video_primary_info(response),
-    }
+    return WatchPageData(
+        video=parse_video_primary_info(response),
+    )
