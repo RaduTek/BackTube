@@ -489,16 +489,31 @@
 
                         <ul id="watch-description-extra-info">
                             <li>
+                                {% if data.rydratings.deleted %}
                                 <div class="watch-sparkbars">
                                     <div class="watch-sparkbar-likes" style="width: 99%">
                                     </div>
                                     <div class="watch-sparkbar-dislikes" style="width: 1%">
                                     </div>
                                 </div>
+
                                 <span class="watch-likes-dislikes">
                                     <span class="likes">{{ data.video.like_count }}</span> likes{% if data.video.dislike_count|length %}, <span
                                         class="dislikes">{{ data.video.dislike_count }}</span> dislikes{% endif %}
                                 </span>
+                                {% else%}
+                                <div class="watch-sparkbars">
+                                    <div class="watch-sparkbar-likes" style="width: {{ data.rydratings.rating * 20 }}%">
+                                    </div>
+                                    <div class="watch-sparkbar-dislikes" style="width: {{ (5 - data.rydratings.rating) * 20 }}%">
+                                    </div>
+                                </div>
+                                
+                                <span class="watch-likes-dislikes">
+                                    <span class="likes">{{ format_number(data.rydratings.likes) }}</span> likes{% if data.rydratings.dislikes %}, <span
+                                        class="dislikes">{{ format_number(data.rydratings.dislikes) }}</span> dislikes{% endif %}
+                                </span>
+                                {% endif %}
                             </li>
 
                             {# <li class="">

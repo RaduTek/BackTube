@@ -5,6 +5,7 @@ from .. import links, cache
 from ..formats import format_duration
 from .search import parse_innertube_search_item
 from .utils import get_text, get_channel_from_byline
+from ..rydratings import get_ratings, RydRatings
 
 
 class WatchPageVideo(TypedDict):
@@ -29,6 +30,7 @@ class WatchPageData(TypedDict):
     video_id: str
     fetched_at: int
     video: WatchPageVideo
+    rydratings: RydRatings
     related: list[FeedItem]
     related_token: str
 
@@ -220,12 +222,15 @@ def get_watch_data_innertube(video_id: str) -> WatchPageData:
     player_response = client.player(video_id)
     suggestions, suggestions_continuation_token = parse_watch_suggestions(response)
 
+    rydratings = get_ratings(video_id)
+
     return WatchPageData(
         video_id=video_id,
         fetched_at=int(datetime.now().timestamp()),
         video=parse_watch_page_video(video_id, response, player_response),
         related=suggestions,
         related_token=suggestions_continuation_token,
+        rydratings=rydratings,
     )
 
 
