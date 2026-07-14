@@ -139,7 +139,7 @@
         {% block footer %}
 
         <div id="footer">
-            <div class="horizontal-rule">
+            <div class="horizontal-rule yt-horizontal-rule">
                 <span class="first"></span>
                 <span class="second"></span>
                 <span class="third"></span>
@@ -338,6 +338,11 @@
         
         {% endblock %}
     </div>
+
+    {% block core_js %}
+    <script id="www-core-js" src="//s.ytimg.com/yt/jsbin/www-core-vflWYkZkj.js"></script>
+    {% endblock %}
+    {% block body_js %}{% endblock %}
 
     {% endblock %}
 </body>

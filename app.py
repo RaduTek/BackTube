@@ -19,3 +19,7 @@ def search_route():
 @app.route("/watch")
 def watch_route():
     return watch.watch_page()
+
+@app.route("/share_ajax")
+def share_ajax_route():
+    return { 'share_html': '<h4>Share HTML goes here...</h4>' }

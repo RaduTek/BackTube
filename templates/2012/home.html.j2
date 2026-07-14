@@ -4,15 +4,83 @@
 <link rel="stylesheet" href="http://s.ytimg.com/yt/cssbin/www-guide-vfl13boML.css">
 {% endblock %}
 
-{% block alerts %}
+{# {% block alerts %}
 
 {% import '2012/_macros.html.j2' as macros %}
 {{ macros.alert('You are using Microsoft Internet Explorer 7 web browser. YouTube is ending support for
                 Internet Explorer 7 soon, <a href="/supported_browsers">update your browser now</a>', 'yt-alert-info') }}
 
-{% endblock %}
+{% endblock %} #}
 
 {% block content %}
-    <h1>Welcome to BackTube</h1>
-    <p>This is a simple Flask application that mimics the YouTube homepage.</p>
+
+<div class="guide-layout-container enable-fancy-subscribe-button">
+
+    <div class="guide-container">
+        <div id="guide-builder-promo">
+            <h2>
+                Sign in to add channels to your homepage
+            </h2>
+            <div id="guide-builder-promo-buttons" class="signed-out">
+                <button
+                    href="#"
+                    type="button" class=" yt-uix-button yt-uix-button-dark"
+                    onclick=";window.location.href=this.getAttribute('href');return false;"
+                    role="button"><span class="yt-uix-button-content">Sign In </span></button>
+                <button href="#"
+                    type="button" class=" yt-uix-button yt-uix-button-primary"
+                    onclick=";window.location.href=this.getAttribute('href');return false;"
+                    role="button"><span class="yt-uix-button-content">Create Account </span></button>
+            </div>
+        </div>
+
+
+    </div>
+
+    <div class="guide-background"></div>
+
+    <div id="video-sidebar"></div>
+
+    <div id="feed">
+        <div id="feed-system-youtube" class="individual-feed" data-loaded="true" data-feed-name="youtube" data-feed-type="system">
+            <div class="feed-header no-metadata">
+                <div class="feed-header-thumb">
+                    <img class="feed-header-icon youtube" src="//s.ytimg.com/yt/img/pixel-vfl3z5WfW.gif" alt="">
+                </div>
+                <div class="feed-header-details">
+                    <h2>From YouTube</h2>
+                </div>
+            </div>
+
+            <div class="feed-container" data-filter-type="" data-view-type="">
+                <div class="feed-page">
+                    
+                    {# Feed items go here #}
+
+                </div>
+            </div>
+        </div>
+
+        <div id="feed-error" class="individual-feed hid">
+            <p class="feed-message">
+                We were unable to complete the request, please try again later.
+            </p>
+        </div>
+
+        <div id="feed-loading-template" class="hid">
+            <div class="feed-message">
+                <p class="loading-spinner">
+                    <img src="//s.ytimg.com/yt/img/pixel-vfl3z5WfW.gif" alt="">
+                    Loading...
+                </p>
+            </div>
+        </div>
+
+    </div>
+    
+    <div id="feed-background"></div>
+
+    <div id="footer-ads"></div>
+</div>
+
 {% endblock %}
