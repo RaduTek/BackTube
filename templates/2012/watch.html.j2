@@ -1,27 +1,28 @@
+{% import '2012/_macros.html.j2' as macros %}
 {% extends "2012/_root.html.j2" %}
 
-{% block title %}{{ video.title }} - YouTube{% endblock %}
+{% block title %}{{ data.video.title }} - YouTube{% endblock %}
 
 {% block content %}
 <div id="watch-container" itemscope itemtype="http://schema.org/VideoObject">
-    <link itemprop="url" href="http://www.youtube.com/watch?v={{ video.video_id }}">
+    <link itemprop="url" href="http://www.youtube.com/watch?v={{ data.video.video_id }}">
     <meta itemprop="name"
-        content="{{ video.title }}">
+        content="{{ data.video.title }}">
     <meta itemprop="description"
-        content="{{ video.description }}">
+        content="{{ data.video.description }}">
     <meta itemprop="duration" content="PT25M13S">
     <meta itemprop="unlisted" content="False">
     <meta itemprop="paid" content="False">
     <span itemprop="author" itemscope itemtype="http://schema.org/Person">
-        <link itemprop="url" href="{{ video.channel_url }}">
+        <link itemprop="url" href="{{ data.video.channel_url }}">
     </span>
-    <link itemprop="thumbnailUrl" href="{{ video.thumbnail_url }}">
+    <link itemprop="thumbnailUrl" href="{{ data.video.thumbnail_url }}">
     <span itemprop="thumbnail" itemscope itemtype="http://schema.org/ImageObject">
-        <link itemprop="url" href="{{ video.thumbnail_url }}">
+        <link itemprop="url" href="{{ data.video.thumbnail_url }}">
         <meta itemprop="width" content="320">
         <meta itemprop="height" content="180">
     </span>
-    <link itemprop="embedURL" href="http://www.youtube.com/v/{{ video.video_id }}?version=3&amp;autohide=1">
+    <link itemprop="embedURL" href="http://www.youtube.com/v/{{ data.video.video_id }}?version=3&amp;autohide=1">
     <meta itemprop="playerType" content="Flash">
     <meta itemprop="width" content="1280">
     <meta itemprop="height" content="720">
@@ -52,8 +53,8 @@
                 </a>: #}
 
                 <span id="eow-title" class="long-title" dir="ltr"
-                    title="{{ video.title }}">
-                    {{ video.title }}
+                    title="{{ data.video.title }}">
+                    {{ data.video.title }}
                 </span>
 
             </h1>
@@ -63,34 +64,32 @@
 
                 <span class="yt-uix-button-group">
                     <button
-                        href="{{ video.channel_url }}"
+                        href="{{ data.video.channel_url }}"
                         type="button"
                         class="start yt-uix-button yt-uix-button-default"
                         onclick=";window.location.href=this.getAttribute(&#39;href&#39;);return false;"
                         role="button"
                     >
-                        <span class="yt-uix-button-content">{{ video.channel_name }}</span>
-                    </button><div
-                        class="yt-subscription-button-hovercard yt-uix-hovercard"
-                        data-card-class="watch-subscription-card"
-                    >
+                        <span class="yt-uix-button-content">{{ data.video.channel_name }}</span>
+                    </button><div class="yt-subscription-button-hovercard yt-uix-hovercard"
+                        data-card-class="watch-subscription-card">
                         <button
-                            href="#"
+                            href="https://accounts.google.com/ServiceLogin?uilel=3&amp;service=youtube&amp;passive=true&amp;continue=http%3A%2F%2Fwww.youtube.com%2Fsignin%3Faction_handle_signin%3Dtrue%26nomobiletemp%3D1%26hl%3Den_US%26next%3D%252Fwatch%253Fv%253DHQEC_Y5v3Zw%2526feature%253Dtopics&amp;hl=en_US&amp;ltmpl=sso"
+                            type="button"
+                            class="yt-subscription-button yt-subscription-button-js-default end yt-uix-button yt-uix-button-default"
                             onclick=";window.location.href=this.getAttribute(&#39;href&#39;);return false;"
-                            title="" type="button"
-                            class="yt-subscription-button yt-subscription-button-js-default end yt-uix-button yt-uix-button-subscription yt-uix-tooltip"
                             data-enable-hovercard="true"
-                            data-subscription-value="zH3iADRIq1IJlIXjfNgTpA" data-force-position="true"
+                            data-subscription-value="Sl4AzKp6VU2eWg7cfB-MDQ" data-force-position="true"
                             data-position="topright" data-subscription-feature="watch"
-                            data-subscription-type="" role="button"><span
-                                class="yt-uix-button-icon-wrapper"><img
-                                    class="yt-uix-button-icon yt-uix-button-icon-subscribe"
-                                    src="//s.ytimg.com/yt/img/pixel-vfl3z5WfW.gif" alt=""><span
-                                    class="yt-valign-trick"></span></span><span
-                                class="yt-uix-button-content"> <span
-                                    class="subscribe-label">Subscribe</span>
+                            data-subscription-type="" role="button">
+                            <img class="yt-uix-button-icon yt-uix-button-icon-subscribe"
+                                src="//s.ytimg.com/yt/img/pixel-vfl3z5WfW.gif" alt="" />
+                            <span class="yt-uix-button-content">
+                                <span class="subscribe-label">Subscribe</span>
                                 <span class="subscribed-label">Subscribed</span>
-                                <span class="unsubscribe-label">Unsubscribe</span>
+                                <span class="unsubscribe-label">
+                                    Unsubscribe
+                                </span>
                             </span>
                         </button>
                         <div class="yt-uix-hovercard-content hid">
@@ -102,11 +101,11 @@
                     </div>
                 </span>
 
-                {# <a id="watch-userbanner" rel="author" href="{{ video.channel_url }}"
-                    title="{{ video.channel_name }}">
+                {# <a id="watch-userbanner" rel="author" href="{{ data.video.channel_url }}"
+                    title="{{ data.video.channel_name }}">
                     <strong><img
-                            src="{{ video.channel_thumbnail_url }}"
-                            alt="{{ video.channel_name }}" height="25"></strong>
+                            src="{{ data.video.channel_thumbnail_url }}"
+                            alt="{{ data.video.channel_name }}" height="25"></strong>
                 </a>
                 <div class="yt-subscription-button-hovercard yt-uix-hovercard"
                     data-card-class="watch-subscription-card"><span
@@ -169,7 +168,7 @@
                 if (window.yt.timing) { yt.timing.tick("bf"); }    </script>
 
             <div id="watch-player" class="flash-player">
-                <embed
+                {# <embed
                     type="application/x-shockwave-flash"
                     src="/static/site_assets/2012/watch_as3-vfl9enKfv.swf"
                     width="640"
@@ -199,9 +198,8 @@
                             </div>
                         </div>
                     </div>
-                </noembed>
+                </noembed> #}
             </div>
-            
 
             <div id="watch-video-extra">
             </div>
@@ -239,7 +237,7 @@
                 <div id="watch-actions">
                     <div id="watch-actions-right">
                         <span class="watch-view-count">
-                            <strong>{{ video.view_count }}</strong>
+                            <strong>{{ data.video.view_count }}</strong>
                         </span>
                         <button onclick=";return false;" title="Show video statistics" type="button"
                             id="watch-insight-button"
@@ -377,18 +375,18 @@
                 </div>
 
                 <div id="watch-info">
-                    <div id="watch-description" class="yt-uix-expander  yt-uix-expander-collapsed"
+                    <div id="watch-description" class="watch-expander yt-uix-expander yt-uix-expander-collapsed"
                         data-expander-action="yt.www.watch.watch5.handleToggleDescription">
                         <div id="watch-description-clip">
                             <p id="watch-uploader-info">
 
-                                Published on <span id="eow-date" class="watch-video-date">{{ video.published_date }}</span> by <a href="{{ video.channel_url }}"
-                                    class="yt-user-name author" rel="author" dir="ltr">{{ video.channel_name }}</a>
+                                Published on <span id="eow-date" class="watch-video-date">{{ data.video.published_date }}</span> by <a href="{{ data.video.channel_url }}"
+                                    class="yt-user-name author" rel="author" dir="ltr">{{ data.video.channel_name }}</a>
 
 
                             </p>
                             <div id="watch-description-text">
-                                <p id="eow-description">{{ format_string_multiline(video.description) }}</p>
+                                <p id="eow-description">{{ format_string_multiline(data.video.description) }}</p>
                             </div>
                             <div id="watch-description-extras">
                                 <h4>
@@ -492,27 +490,18 @@
                         <ul id="watch-description-extra-info">
                             <li>
                                 <div class="watch-sparkbars">
-                                    <div class="watch-sparkbar-likes" style="width: 98.2694213616%">
+                                    <div class="watch-sparkbar-likes" style="width: 99%">
                                     </div>
-                                    <div class="watch-sparkbar-dislikes" style="width: 1.73057863841%">
+                                    <div class="watch-sparkbar-dislikes" style="width: 1%">
                                     </div>
                                 </div>
                                 <span class="watch-likes-dislikes">
-                                    <span class="likes">12,890</span> likes, <span
-                                        class="dislikes">227</span> dislikes
+                                    <span class="likes">{{ data.video.like_count }}</span> likes{% if data.video.dislike_count|length %}, <span
+                                        class="dislikes">{{ data.video.dislike_count }}</span> dislikes{% endif %}
                                 </span>
-
                             </li>
 
-
-
-
-
-
-
-
-
-                            <li class="">
+                            {# <li class="">
                                 <a href="/show/achievementhunter?s=12" title="Achievement Hunter">
                                     <img class="metadata-icon"
                                         src="//s.ytimg.com/yt/img/pixel-vfl3z5WfW.gif">
@@ -548,18 +537,12 @@
                                     <strong>Released:</strong> 07/20/12
                                 </span>
 
-                            </li>
-
-
-
-
-
-
+                            </li> #}
 
                         </ul>
 
 
-                        <div class="yt-horizontal-rule "><span class="first"></span><span
+                        <div class="horizontal-rule "><span class="first"></span><span
                                 class="second"></span><span class="third"></span></div>
 
                         <div id="watch-description-toggle" class="yt-uix-expander-head">
@@ -1851,7 +1834,7 @@
             </div>
             <div id="watch-sidebar">
 
-
+                {#
                 <div id="watch-context-container" class="watch-sidebar-section">
                     <div class="watch-sidebar-body">
                         <div id="watch-context">
@@ -1987,797 +1970,18 @@
                         Advertisement
                     </div>
                 </div>
-
-
-
+                #}
 
                 <div class="watch-sidebar-section">
-                    <h4 class="watch-sidebar-head">Suggestions</h4>
+                    {# <h4 class="watch-sidebar-head">Suggestions</h4>
                     <div class="yt-horizontal-rule "><span class="first"></span><span
-                            class="second"></span><span class="third"></span></div>
+                            class="second"></span><span class="third"></span></div> #}
                     <div id="watch-related-container" class="watch-sidebar-body">
                         <ul id="watch-related" class="video-list">
                             <div id="ppv-container" class="hid"></div>
-                            <li class="video-list-item"><a
-                                    href="/watch?v=6znZedpw4Mg&amp;feature=relmfu"
-                                    class="related-video  yt-uix-sessionlink"
-                                    data-sessionlink="ved=CAIQzRooAA%3D%3D&amp;ei=CJTeteXMubECFUIYRAod2yO7Vg%3D%3D&amp;feature=relmfu"><span
-                                        class="ux-thumb-wrap contains-addto "><span
-                                            class="video-thumb ux-thumb yt-thumb-default-120 "><span
-                                                class="yt-thumb-clip"><span
-                                                    class="yt-thumb-clip-inner"><img
-                                                        src="http://s.ytimg.com/yt/img/pixel-vfl3z5WfW.gif"
-                                                        alt="Halo: Reach - Fails of the Weak Volume 96 (Funny Halo Bloopers and Screw-Ups!)"
-                                                        data-thumb="//i3.ytimg.com/vi/6znZedpw4Mg/default.jpg"
-                                                        width="120"><span
-                                                        class="vertical-align"></span></span></span></span><span
-                                            class="video-time">3:49</span>
-
-
-                                        <button onclick=";return false;" title="Watch Later"
-                                            type="button"
-                                            class="addto-button video-actions addto-watch-later-button-sign-in yt-uix-button yt-uix-button-default yt-uix-button-short yt-uix-tooltip"
-                                            data-button-menu-id="shared-addto-watch-later-login"
-                                            data-video-ids="6znZedpw4Mg" role="button"><span
-                                                class="yt-uix-button-content"> <span
-                                                    class="addto-label">
-                                                    Watch Later
-                                                </span>
-                                                <span class="addto-label-error">
-                                                    Error
-                                                </span>
-                                                <img src="//s.ytimg.com/yt/img/pixel-vfl3z5WfW.gif">
-                                            </span><img class="yt-uix-button-arrow"
-                                                src="//s.ytimg.com/yt/img/pixel-vfl3z5WfW.gif"
-                                                alt=""></button>
-                                    </span><span dir="ltr" class="title"
-                                        title="Halo: Reach - Fails of the Weak Volume 96 (Funny Halo Bloopers and Screw-Ups!)">Halo:
-                                        Reach - Fails of the Weak Volume 96 (Funny Halo Bloopers and
-                                        Screw-Ups!)</span><span class="stat attribution">by <span
-                                            class="yt-user-name "
-                                            dir="ltr">RoosterTeeth</span></span><span
-                                        class="stat view-count">273,604 views</span></a>
-                            </li>
-                            <li class="video-list-item"><a
-                                    href="/watch?v=BDl4wg13Sl0&amp;feature=relmfu"
-                                    class="related-video  yt-uix-sessionlink"
-                                    data-sessionlink="ved=CAMQzRooAQ%3D%3D&amp;ei=CJTeteXMubECFUIYRAod2yO7Vg%3D%3D&amp;feature=relmfu"><span
-                                        class="ux-thumb-wrap contains-addto "><span
-                                            class="video-thumb ux-thumb yt-thumb-default-120 "><span
-                                                class="yt-thumb-clip"><span
-                                                    class="yt-thumb-clip-inner"><img
-                                                        src="http://s.ytimg.com/yt/img/pixel-vfl3z5WfW.gif"
-                                                        alt="Tony Hawk&#39;s Pro Skater HD - Race to the finish lines"
-                                                        data-thumb="//i3.ytimg.com/vi/BDl4wg13Sl0/default.jpg"
-                                                        width="120"><span
-                                                        class="vertical-align"></span></span></span></span><span
-                                            class="video-time">2:56</span>
-
-
-                                        <button onclick=";return false;" title="Watch Later"
-                                            type="button"
-                                            class="addto-button video-actions addto-watch-later-button-sign-in yt-uix-button yt-uix-button-default yt-uix-button-short yt-uix-tooltip"
-                                            data-button-menu-id="shared-addto-watch-later-login"
-                                            data-video-ids="BDl4wg13Sl0" role="button"><span
-                                                class="yt-uix-button-content"> <span
-                                                    class="addto-label">
-                                                    Watch Later
-                                                </span>
-                                                <span class="addto-label-error">
-                                                    Error
-                                                </span>
-                                                <img src="//s.ytimg.com/yt/img/pixel-vfl3z5WfW.gif">
-                                            </span><img class="yt-uix-button-arrow"
-                                                src="//s.ytimg.com/yt/img/pixel-vfl3z5WfW.gif"
-                                                alt=""></button>
-                                    </span><span dir="ltr" class="title"
-                                        title="Tony Hawk&#39;s Pro Skater HD - Race to the finish lines">Tony
-                                        Hawk&#39;s Pro Skater
-                                        HD - Race to the finish lines</span><span
-                                        class="stat attribution">by <span class="yt-user-name "
-                                            dir="ltr">RoosterTeeth</span></span><span
-                                        class="stat view-count">151,372 views</span></a></li>
-                            <li class="video-list-item"><a
-                                    href="/watch?v=jZiA26mFRdk&amp;feature=relmfu"
-                                    class="related-video  yt-uix-sessionlink"
-                                    data-sessionlink="ved=CAQQzRooAg%3D%3D&amp;ei=CJTeteXMubECFUIYRAod2yO7Vg%3D%3D&amp;feature=relmfu"><span
-                                        class="ux-thumb-wrap contains-addto "><span
-                                            class="video-thumb ux-thumb yt-thumb-default-120 "><span
-                                                class="yt-thumb-clip"><span
-                                                    class="yt-thumb-clip-inner"><img
-                                                        src="http://s.ytimg.com/yt/img/pixel-vfl3z5WfW.gif"
-                                                        alt="RT Recap - Week of July 20th (ft. Kathleen, Red vs. Blue&#39;s Agent Tex)"
-                                                        data-thumb="//i3.ytimg.com/vi/jZiA26mFRdk/default.jpg"
-                                                        width="120"><span
-                                                        class="vertical-align"></span></span></span></span><span
-                                            class="video-time">2:29</span>
-
-
-                                        <button onclick=";return false;" title="Watch Later"
-                                            type="button"
-                                            class="addto-button video-actions addto-watch-later-button-sign-in yt-uix-button yt-uix-button-default yt-uix-button-short yt-uix-tooltip"
-                                            data-button-menu-id="shared-addto-watch-later-login"
-                                            data-video-ids="jZiA26mFRdk" role="button"><span
-                                                class="yt-uix-button-content"> <span
-                                                    class="addto-label">
-                                                    Watch Later
-                                                </span>
-                                                <span class="addto-label-error">
-                                                    Error
-                                                </span>
-                                                <img src="//s.ytimg.com/yt/img/pixel-vfl3z5WfW.gif">
-                                            </span><img class="yt-uix-button-arrow"
-                                                src="//s.ytimg.com/yt/img/pixel-vfl3z5WfW.gif"
-                                                alt=""></button>
-                                    </span><span dir="ltr" class="title"
-                                        title="RT Recap - Week of July 20th (ft. Kathleen, Red vs. Blue&#39;s Agent Tex)">RT
-                                        Recap -
-                                        Week of July 20th (ft. Kathleen, Red vs. Blue&#39;s Agent
-                                        Tex)</span><span class="stat attribution">by <span
-                                            class="yt-user-name "
-                                            dir="ltr">RoosterTeeth</span></span><span
-                                        class="stat view-count">207,976 views</span></a>
-                            </li>
-                            <li class="video-list-item"><a
-                                    href="/watch?v=voMPYY4-ifg&amp;feature=relmfu"
-                                    class="related-video  yt-uix-sessionlink"
-                                    data-sessionlink="ved=CAUQzRooAw%3D%3D&amp;ei=CJTeteXMubECFUIYRAod2yO7Vg%3D%3D&amp;feature=relmfu"><span
-                                        class="ux-thumb-wrap contains-addto "><span
-                                            class="video-thumb ux-thumb yt-thumb-default-120 "><span
-                                                class="yt-thumb-clip"><span
-                                                    class="yt-thumb-clip-inner"><img
-                                                        src="http://s.ytimg.com/yt/img/pixel-vfl3z5WfW.gif"
-                                                        alt="Minecraft - Hidden Diamond Easter Egg"
-                                                        data-thumb="//i3.ytimg.com/vi/voMPYY4-ifg/default.jpg"
-                                                        width="120"><span
-                                                        class="vertical-align"></span></span></span></span><span
-                                            class="video-time">2:25</span>
-
-
-                                        <button onclick=";return false;" title="Watch Later"
-                                            type="button"
-                                            class="addto-button video-actions addto-watch-later-button-sign-in yt-uix-button yt-uix-button-default yt-uix-button-short yt-uix-tooltip"
-                                            data-button-menu-id="shared-addto-watch-later-login"
-                                            data-video-ids="voMPYY4-ifg" role="button"><span
-                                                class="yt-uix-button-content"> <span
-                                                    class="addto-label">
-                                                    Watch Later
-                                                </span>
-                                                <span class="addto-label-error">
-                                                    Error
-                                                </span>
-                                                <img src="//s.ytimg.com/yt/img/pixel-vfl3z5WfW.gif">
-                                            </span><img class="yt-uix-button-arrow"
-                                                src="//s.ytimg.com/yt/img/pixel-vfl3z5WfW.gif"
-                                                alt=""></button>
-                                    </span><span dir="ltr" class="title"
-                                        title="Minecraft - Hidden Diamond Easter Egg">Minecraft -
-                                        Hidden Diamond Easter Egg</span><span
-                                        class="stat attribution">by <span class="yt-user-name "
-                                            dir="ltr">RoosterTeeth</span></span><span
-                                        class="stat view-count">365,118 views</span></a></li>
-                            <li class="video-list-item"><a
-                                    href="/watch?v=FrLgREKD4kk&amp;feature=relmfu"
-                                    class="related-video  yt-uix-sessionlink"
-                                    data-sessionlink="ved=CAYQzRooBA%3D%3D&amp;ei=CJTeteXMubECFUIYRAod2yO7Vg%3D%3D&amp;feature=relmfu"><span
-                                        class="ux-thumb-wrap contains-addto "><span
-                                            class="video-thumb ux-thumb yt-thumb-default-120 "><span
-                                                class="yt-thumb-clip"><span
-                                                    class="yt-thumb-clip-inner"><img
-                                                        src="http://s.ytimg.com/yt/img/pixel-vfl3z5WfW.gif"
-                                                        alt="Let&#39;s Play Minecraft with Geoff, Jack, Michael, Gavin and Ray"
-                                                        data-thumb="//i3.ytimg.com/vi/FrLgREKD4kk/default.jpg"
-                                                        width="120"><span
-                                                        class="vertical-align"></span></span></span></span><span
-                                            class="video-time">23:05</span>
-
-
-                                        <button onclick=";return false;" title="Watch Later"
-                                            type="button"
-                                            class="addto-button video-actions addto-watch-later-button-sign-in yt-uix-button yt-uix-button-default yt-uix-button-short yt-uix-tooltip"
-                                            data-button-menu-id="shared-addto-watch-later-login"
-                                            data-video-ids="FrLgREKD4kk" role="button"><span
-                                                class="yt-uix-button-content"> <span
-                                                    class="addto-label">
-                                                    Watch Later
-                                                </span>
-                                                <span class="addto-label-error">
-                                                    Error
-                                                </span>
-                                                <img src="//s.ytimg.com/yt/img/pixel-vfl3z5WfW.gif">
-                                            </span><img class="yt-uix-button-arrow"
-                                                src="//s.ytimg.com/yt/img/pixel-vfl3z5WfW.gif"
-                                                alt=""></button>
-                                    </span><span dir="ltr" class="title"
-                                        title="Let&#39;s Play Minecraft with Geoff, Jack, Michael, Gavin and Ray">Let&#39;s
-                                        Play
-                                        Minecraft with Geoff, Jack, Michael, Gavin and Ray</span><span
-                                        class="stat attribution">by
-                                        <span class="yt-user-name "
-                                            dir="ltr">RoosterTeeth</span></span><span
-                                        class="stat view-count">2,189,808 views</span></a></li>
-                            <li class="video-list-item"><a
-                                    href="/watch?v=M9ShCHC7ILI&amp;feature=relmfu"
-                                    class="related-video  yt-uix-sessionlink"
-                                    data-sessionlink="ved=CAcQzRooBQ%3D%3D&amp;ei=CJTeteXMubECFUIYRAod2yO7Vg%3D%3D&amp;feature=relmfu"><span
-                                        class="ux-thumb-wrap contains-addto "><span
-                                            class="video-thumb ux-thumb yt-thumb-default-120 "><span
-                                                class="yt-thumb-clip"><span
-                                                    class="yt-thumb-clip-inner"><img
-                                                        src="http://s.ytimg.com/yt/img/pixel-vfl3z5WfW.gif"
-                                                        alt="Let&#39;s Play Saints Row The Third With Geoff &amp; Michael - Part 1"
-                                                        data-thumb="//i2.ytimg.com/vi/M9ShCHC7ILI/default.jpg"
-                                                        width="120"><span
-                                                        class="vertical-align"></span></span></span></span><span
-                                            class="video-time">37:48</span>
-
-
-                                        <button onclick=";return false;" title="Watch Later"
-                                            type="button"
-                                            class="addto-button video-actions addto-watch-later-button-sign-in yt-uix-button yt-uix-button-default yt-uix-button-short yt-uix-tooltip"
-                                            data-button-menu-id="shared-addto-watch-later-login"
-                                            data-video-ids="M9ShCHC7ILI" role="button"><span
-                                                class="yt-uix-button-content"> <span
-                                                    class="addto-label">
-                                                    Watch Later
-                                                </span>
-                                                <span class="addto-label-error">
-                                                    Error
-                                                </span>
-                                                <img src="//s.ytimg.com/yt/img/pixel-vfl3z5WfW.gif">
-                                            </span><img class="yt-uix-button-arrow"
-                                                src="//s.ytimg.com/yt/img/pixel-vfl3z5WfW.gif"
-                                                alt=""></button>
-                                    </span><span dir="ltr" class="title"
-                                        title="Let&#39;s Play Saints Row The Third With Geoff &amp; Michael - Part 1">Let&#39;s
-                                        Play
-                                        Saints Row The Third With Geoff &amp; Michael - Part
-                                        1</span><span class="stat attribution">by <span
-                                            class="yt-user-name "
-                                            dir="ltr">RoosterTeeth</span></span><span
-                                        class="stat view-count">757,990 views</span></a>
-                            </li>
-                            <li class="video-list-item"><a
-                                    href="/watch?v=Nuj7D5CC_u4&amp;feature=relmfu"
-                                    class="related-video  yt-uix-sessionlink"
-                                    data-sessionlink="ved=CAgQzRooBg%3D%3D&amp;ei=CJTeteXMubECFUIYRAod2yO7Vg%3D%3D&amp;feature=relmfu"><span
-                                        class="ux-thumb-wrap contains-addto "><span
-                                            class="video-thumb ux-thumb yt-thumb-default-120 "><span
-                                                class="yt-thumb-clip"><span
-                                                    class="yt-thumb-clip-inner"><img
-                                                        src="http://s.ytimg.com/yt/img/pixel-vfl3z5WfW.gif"
-                                                        alt="Let&#39;s Play Minecraft Part 7"
-                                                        data-thumb="//i3.ytimg.com/vi/Nuj7D5CC_u4/default.jpg"
-                                                        width="120"><span
-                                                        class="vertical-align"></span></span></span></span><span
-                                            class="video-time">21:55</span>
-
-
-                                        <button onclick=";return false;" title="Watch Later"
-                                            type="button"
-                                            class="addto-button video-actions addto-watch-later-button-sign-in yt-uix-button yt-uix-button-default yt-uix-button-short yt-uix-tooltip"
-                                            data-button-menu-id="shared-addto-watch-later-login"
-                                            data-video-ids="Nuj7D5CC_u4" role="button"><span
-                                                class="yt-uix-button-content"> <span
-                                                    class="addto-label">
-                                                    Watch Later
-                                                </span>
-                                                <span class="addto-label-error">
-                                                    Error
-                                                </span>
-                                                <img src="//s.ytimg.com/yt/img/pixel-vfl3z5WfW.gif">
-                                            </span><img class="yt-uix-button-arrow"
-                                                src="//s.ytimg.com/yt/img/pixel-vfl3z5WfW.gif"
-                                                alt=""></button>
-                                    </span><span dir="ltr" class="title"
-                                        title="Let&#39;s Play Minecraft Part 7">Let&#39;s Play
-                                        Minecraft Part 7</span><span class="stat attribution">by <span
-                                            class="yt-user-name "
-                                            dir="ltr">RoosterTeeth</span></span><span
-                                        class="stat view-count">1,293,167
-                                        views</span></a></li>
-                            <li class="video-list-item"><a
-                                    href="/watch?v=N0cOBlKhfxg&amp;feature=relmfu"
-                                    class="related-video  yt-uix-sessionlink"
-                                    data-sessionlink="ved=CAkQzRooBw%3D%3D&amp;ei=CJTeteXMubECFUIYRAod2yO7Vg%3D%3D&amp;feature=relmfu"><span
-                                        class="ux-thumb-wrap contains-addto "><span
-                                            class="video-thumb ux-thumb yt-thumb-default-120 "><span
-                                                class="yt-thumb-clip"><span
-                                                    class="yt-thumb-clip-inner"><img
-                                                        src="http://s.ytimg.com/yt/img/pixel-vfl3z5WfW.gif"
-                                                        alt="Let&#39;s Play Minecraft Part 6"
-                                                        data-thumb="//i3.ytimg.com/vi/N0cOBlKhfxg/default.jpg"
-                                                        width="120"><span
-                                                        class="vertical-align"></span></span></span></span><span
-                                            class="video-time">14:27</span>
-
-
-                                        <button onclick=";return false;" title="Watch Later"
-                                            type="button"
-                                            class="addto-button video-actions addto-watch-later-button-sign-in yt-uix-button yt-uix-button-default yt-uix-button-short yt-uix-tooltip"
-                                            data-button-menu-id="shared-addto-watch-later-login"
-                                            data-video-ids="N0cOBlKhfxg" role="button"><span
-                                                class="yt-uix-button-content"> <span
-                                                    class="addto-label">
-                                                    Watch Later
-                                                </span>
-                                                <span class="addto-label-error">
-                                                    Error
-                                                </span>
-                                                <img src="//s.ytimg.com/yt/img/pixel-vfl3z5WfW.gif">
-                                            </span><img class="yt-uix-button-arrow"
-                                                src="//s.ytimg.com/yt/img/pixel-vfl3z5WfW.gif"
-                                                alt=""></button>
-                                    </span><span dir="ltr" class="title"
-                                        title="Let&#39;s Play Minecraft Part 6">Let&#39;s Play
-                                        Minecraft Part 6</span><span class="stat attribution">by <span
-                                            class="yt-user-name "
-                                            dir="ltr">RoosterTeeth</span></span><span
-                                        class="stat view-count">1,333,288
-                                        views</span></a></li>
-                            <li class="video-list-item"><a
-                                    href="/watch?v=uvYrA9rCjy4&amp;feature=relmfu"
-                                    class="related-video  yt-uix-sessionlink"
-                                    data-sessionlink="ved=CAoQzRooCA%3D%3D&amp;ei=CJTeteXMubECFUIYRAod2yO7Vg%3D%3D&amp;feature=relmfu"><span
-                                        class="ux-thumb-wrap contains-addto "><span
-                                            class="video-thumb ux-thumb yt-thumb-default-120 "><span
-                                                class="yt-thumb-clip"><span
-                                                    class="yt-thumb-clip-inner"><img
-                                                        src="http://s.ytimg.com/yt/img/pixel-vfl3z5WfW.gif"
-                                                        alt="Rage Quit - Slender"
-                                                        data-thumb="//i2.ytimg.com/vi/uvYrA9rCjy4/default.jpg"
-                                                        width="120"><span
-                                                        class="vertical-align"></span></span></span></span><span
-                                            class="video-time">6:54</span>
-
-
-                                        <button onclick=";return false;" title="Watch Later"
-                                            type="button"
-                                            class="addto-button video-actions addto-watch-later-button-sign-in yt-uix-button yt-uix-button-default yt-uix-button-short yt-uix-tooltip"
-                                            data-button-menu-id="shared-addto-watch-later-login"
-                                            data-video-ids="uvYrA9rCjy4" role="button"><span
-                                                class="yt-uix-button-content"> <span
-                                                    class="addto-label">
-                                                    Watch Later
-                                                </span>
-                                                <span class="addto-label-error">
-                                                    Error
-                                                </span>
-                                                <img src="//s.ytimg.com/yt/img/pixel-vfl3z5WfW.gif">
-                                            </span><img class="yt-uix-button-arrow"
-                                                src="//s.ytimg.com/yt/img/pixel-vfl3z5WfW.gif"
-                                                alt=""></button>
-                                    </span><span dir="ltr" class="title"
-                                        title="Rage Quit - Slender">Rage Quit -
-                                        Slender</span><span class="stat attribution">by <span
-                                            class="yt-user-name "
-                                            dir="ltr">RoosterTeeth</span></span><span
-                                        class="stat view-count">694,986 views</span></a>
-                            </li>
-                            <li class="video-list-item"><a
-                                    href="/watch?v=T7sIiqq66rk&amp;feature=related"
-                                    class="related-video  yt-uix-sessionlink"
-                                    data-sessionlink="ved=CAsQzRooCQ%3D%3D&amp;ei=CJTeteXMubECFUIYRAod2yO7Vg%3D%3D&amp;feature=related"><span
-                                        class="ux-thumb-wrap contains-addto "><span
-                                            class="video-thumb ux-thumb yt-thumb-default-120 "><span
-                                                class="yt-thumb-clip"><span
-                                                    class="yt-thumb-clip-inner"><img
-                                                        src="http://s.ytimg.com/yt/img/pixel-vfl3z5WfW.gif"
-                                                        alt="Shooting in aurora movies people shot"
-                                                        data-thumb="//i1.ytimg.com/vi/T7sIiqq66rk/default.jpg"
-                                                        width="120"><span
-                                                        class="vertical-align"></span></span></span></span><span
-                                            class="video-time">2:45</span>
-
-
-                                        <button onclick=";return false;" title="Watch Later"
-                                            type="button"
-                                            class="addto-button video-actions addto-watch-later-button-sign-in yt-uix-button yt-uix-button-default yt-uix-button-short yt-uix-tooltip"
-                                            data-button-menu-id="shared-addto-watch-later-login"
-                                            data-video-ids="T7sIiqq66rk" role="button"><span
-                                                class="yt-uix-button-content"> <span
-                                                    class="addto-label">
-                                                    Watch Later
-                                                </span>
-                                                <span class="addto-label-error">
-                                                    Error
-                                                </span>
-                                                <img src="//s.ytimg.com/yt/img/pixel-vfl3z5WfW.gif">
-                                            </span><img class="yt-uix-button-arrow"
-                                                src="//s.ytimg.com/yt/img/pixel-vfl3z5WfW.gif"
-                                                alt=""></button>
-                                    </span><span dir="ltr" class="title"
-                                        title="Shooting in aurora movies people shot">Shooting in
-                                        aurora movies people shot</span><span
-                                        class="stat attribution">by <span class="yt-user-name "
-                                            dir="ltr">13shantyltoledo</span></span><span
-                                        class="stat view-count">5,038,105 views</span></a></li>
-                            <li class="video-list-item"><a
-                                    href="/watch?v=FHy6_mHMIaw&amp;feature=relmfu"
-                                    class="related-video  yt-uix-sessionlink"
-                                    data-sessionlink="ved=CAwQzRooCg%3D%3D&amp;ei=CJTeteXMubECFUIYRAod2yO7Vg%3D%3D&amp;feature=relmfu"><span
-                                        class="ux-thumb-wrap contains-addto "><span
-                                            class="video-thumb ux-thumb yt-thumb-default-120 "><span
-                                                class="yt-thumb-clip"><span
-                                                    class="yt-thumb-clip-inner"><img
-                                                        src="http://s.ytimg.com/yt/img/pixel-vfl3z5WfW.gif"
-                                                        alt="Things to do in: Skyrim - Olympics"
-                                                        data-thumb="//i3.ytimg.com/vi/FHy6_mHMIaw/default.jpg"
-                                                        width="120"><span
-                                                        class="vertical-align"></span></span></span></span><span
-                                            class="video-time">3:52</span>
-
-
-                                        <button onclick=";return false;" title="Watch Later"
-                                            type="button"
-                                            class="addto-button video-actions addto-watch-later-button-sign-in yt-uix-button yt-uix-button-default yt-uix-button-short yt-uix-tooltip"
-                                            data-button-menu-id="shared-addto-watch-later-login"
-                                            data-video-ids="FHy6_mHMIaw" role="button"><span
-                                                class="yt-uix-button-content"> <span
-                                                    class="addto-label">
-                                                    Watch Later
-                                                </span>
-                                                <span class="addto-label-error">
-                                                    Error
-                                                </span>
-                                                <img src="//s.ytimg.com/yt/img/pixel-vfl3z5WfW.gif">
-                                            </span><img class="yt-uix-button-arrow"
-                                                src="//s.ytimg.com/yt/img/pixel-vfl3z5WfW.gif"
-                                                alt=""></button>
-                                    </span><span dir="ltr" class="title"
-                                        title="Things to do in: Skyrim - Olympics">Things to do
-                                        in: Skyrim - Olympics</span><span class="stat attribution">by
-                                        <span class="yt-user-name "
-                                            dir="ltr">RoosterTeeth</span></span><span
-                                        class="stat view-count">463,489 views</span></a>
-                            </li>
-                            <li class="video-list-item"><a
-                                    href="/watch?v=fdibwIkjVZE&amp;feature=related"
-                                    class="related-video  yt-uix-sessionlink"
-                                    data-sessionlink="ved=CA0QzRooCw%3D%3D&amp;ei=CJTeteXMubECFUIYRAod2yO7Vg%3D%3D&amp;feature=related"><span
-                                        class="ux-thumb-wrap contains-addto "><span
-                                            class="video-thumb ux-thumb yt-thumb-default-120 "><span
-                                                class="yt-thumb-clip"><span
-                                                    class="yt-thumb-clip-inner"><img
-                                                        src="http://s.ytimg.com/yt/img/pixel-vfl3z5WfW.gif"
-                                                        alt="LIFE HACKING!"
-                                                        data-thumb="//i3.ytimg.com/vi/fdibwIkjVZE/default.jpg"
-                                                        width="120"><span
-                                                        class="vertical-align"></span></span></span></span><span
-                                            class="video-time">4:41</span>
-
-
-                                        <button onclick=";return false;" title="Watch Later"
-                                            type="button"
-                                            class="addto-button video-actions addto-watch-later-button-sign-in yt-uix-button yt-uix-button-default yt-uix-button-short yt-uix-tooltip"
-                                            data-button-menu-id="shared-addto-watch-later-login"
-                                            data-video-ids="fdibwIkjVZE" role="button"><span
-                                                class="yt-uix-button-content"> <span
-                                                    class="addto-label">
-                                                    Watch Later
-                                                </span>
-                                                <span class="addto-label-error">
-                                                    Error
-                                                </span>
-                                                <img src="//s.ytimg.com/yt/img/pixel-vfl3z5WfW.gif">
-                                            </span><img class="yt-uix-button-arrow"
-                                                src="//s.ytimg.com/yt/img/pixel-vfl3z5WfW.gif"
-                                                alt=""></button>
-                                    </span><span dir="ltr" class="title" title="LIFE HACKING!">LIFE
-                                        HACKING!</span><span class="stat attribution">by <span
-                                            class="yt-user-name " dir="ltr">smosh</span></span><span
-                                        class="stat view-count">3,229,485 views</span></a></li>
-                            <li class="video-list-item"><a
-                                    href="/watch?v=KQv90T800kw&amp;feature=related"
-                                    class="related-video  yt-uix-sessionlink"
-                                    data-sessionlink="ved=CA4QzRooDA%3D%3D&amp;ei=CJTeteXMubECFUIYRAod2yO7Vg%3D%3D&amp;feature=related"><span
-                                        class="ux-thumb-wrap contains-addto "><span
-                                            class="video-thumb ux-thumb yt-thumb-default-120 "><span
-                                                class="yt-thumb-clip"><span
-                                                    class="yt-thumb-clip-inner"><img
-                                                        src="http://s.ytimg.com/yt/img/pixel-vfl3z5WfW.gif"
-                                                        alt="Villain Trailer - Official Call of Duty: Black Ops 2 Video"
-                                                        data-thumb="//i4.ytimg.com/vi/KQv90T800kw/default.jpg"
-                                                        width="120"><span
-                                                        class="vertical-align"></span></span></span></span><span
-                                            class="video-time">1:35</span>
-
-
-                                        <button onclick=";return false;" title="Watch Later"
-                                            type="button"
-                                            class="addto-button video-actions addto-watch-later-button-sign-in yt-uix-button yt-uix-button-default yt-uix-button-short yt-uix-tooltip"
-                                            data-button-menu-id="shared-addto-watch-later-login"
-                                            data-video-ids="KQv90T800kw" role="button"><span
-                                                class="yt-uix-button-content"> <span
-                                                    class="addto-label">
-                                                    Watch Later
-                                                </span>
-                                                <span class="addto-label-error">
-                                                    Error
-                                                </span>
-                                                <img src="//s.ytimg.com/yt/img/pixel-vfl3z5WfW.gif">
-                                            </span><img class="yt-uix-button-arrow"
-                                                src="//s.ytimg.com/yt/img/pixel-vfl3z5WfW.gif"
-                                                alt=""></button>
-                                    </span><span dir="ltr" class="title"
-                                        title="Villain Trailer - Official Call of Duty: Black Ops 2 Video">Villain
-                                        Trailer -
-                                        Official Call of Duty: Black Ops 2 Video</span><span
-                                        class="stat attribution">by <span class="yt-user-name "
-                                            dir="ltr">CALLOFDUTY</span></span><span
-                                        class="stat view-count">3,303,951 views</span></a></li>
-                            <li class="video-list-item"><a
-                                    href="/watch?v=p_XhF9tvjY8&amp;feature=relmfu"
-                                    class="related-video  yt-uix-sessionlink"
-                                    data-sessionlink="ved=CA8QzRooDQ%3D%3D&amp;ei=CJTeteXMubECFUIYRAod2yO7Vg%3D%3D&amp;feature=relmfu"><span
-                                        class="ux-thumb-wrap contains-addto "><span
-                                            class="video-thumb ux-thumb yt-thumb-default-120 "><span
-                                                class="yt-thumb-clip"><span
-                                                    class="yt-thumb-clip-inner"><img
-                                                        src="http://s.ytimg.com/yt/img/pixel-vfl3z5WfW.gif"
-                                                        alt="Minecraft - Summer of Arcade Skin Pack!"
-                                                        data-thumb="//i1.ytimg.com/vi/p_XhF9tvjY8/default.jpg"
-                                                        width="120"><span
-                                                        class="vertical-align"></span></span></span></span><span
-                                            class="video-time">1:44</span>
-
-
-                                        <button onclick=";return false;" title="Watch Later"
-                                            type="button"
-                                            class="addto-button video-actions addto-watch-later-button-sign-in yt-uix-button yt-uix-button-default yt-uix-button-short yt-uix-tooltip"
-                                            data-button-menu-id="shared-addto-watch-later-login"
-                                            data-video-ids="p_XhF9tvjY8" role="button"><span
-                                                class="yt-uix-button-content"> <span
-                                                    class="addto-label">
-                                                    Watch Later
-                                                </span>
-                                                <span class="addto-label-error">
-                                                    Error
-                                                </span>
-                                                <img src="//s.ytimg.com/yt/img/pixel-vfl3z5WfW.gif">
-                                            </span><img class="yt-uix-button-arrow"
-                                                src="//s.ytimg.com/yt/img/pixel-vfl3z5WfW.gif"
-                                                alt=""></button>
-                                    </span><span dir="ltr" class="title"
-                                        title="Minecraft - Summer of Arcade Skin Pack!">Minecraft
-                                        - Summer of Arcade Skin Pack!</span><span
-                                        class="stat attribution">by <span class="yt-user-name "
-                                            dir="ltr">RoosterTeeth</span></span><span
-                                        class="stat view-count">202,322 views</span></a></li>
-                            <li class="video-list-item"><a
-                                    href="/watch?v=2LXeKASwP0A&amp;feature=relmfu"
-                                    class="related-video  yt-uix-sessionlink"
-                                    data-sessionlink="ved=CBAQzRooDg%3D%3D&amp;ei=CJTeteXMubECFUIYRAod2yO7Vg%3D%3D&amp;feature=relmfu"><span
-                                        class="ux-thumb-wrap contains-addto "><span
-                                            class="video-thumb ux-thumb yt-thumb-default-120 "><span
-                                                class="yt-thumb-clip"><span
-                                                    class="yt-thumb-clip-inner"><img
-                                                        src="http://s.ytimg.com/yt/img/pixel-vfl3z5WfW.gif"
-                                                        alt="Call Of Duty: Modern Warfare 3 - Terminal Teddy Bear"
-                                                        data-thumb="//i3.ytimg.com/vi/2LXeKASwP0A/default.jpg"
-                                                        width="120"><span
-                                                        class="vertical-align"></span></span></span></span><span
-                                            class="video-time">1:40</span>
-
-
-                                        <button onclick=";return false;" title="Watch Later"
-                                            type="button"
-                                            class="addto-button video-actions addto-watch-later-button-sign-in yt-uix-button yt-uix-button-default yt-uix-button-short yt-uix-tooltip"
-                                            data-button-menu-id="shared-addto-watch-later-login"
-                                            data-video-ids="2LXeKASwP0A" role="button"><span
-                                                class="yt-uix-button-content"> <span
-                                                    class="addto-label">
-                                                    Watch Later
-                                                </span>
-                                                <span class="addto-label-error">
-                                                    Error
-                                                </span>
-                                                <img src="//s.ytimg.com/yt/img/pixel-vfl3z5WfW.gif">
-                                            </span><img class="yt-uix-button-arrow"
-                                                src="//s.ytimg.com/yt/img/pixel-vfl3z5WfW.gif"
-                                                alt=""></button>
-                                    </span><span dir="ltr" class="title"
-                                        title="Call Of Duty: Modern Warfare 3 - Terminal Teddy Bear">Call
-                                        Of Duty: Modern Warfare 3
-                                        - Terminal Teddy Bear</span><span class="stat attribution">by
-                                        <span class="yt-user-name "
-                                            dir="ltr">RoosterTeeth</span></span><span
-                                        class="stat view-count">169,171 views</span></a>
-                            </li>
-                            <li class="video-list-item"><a
-                                    href="/watch?v=THfiHQZVSw0&amp;feature=related"
-                                    class="related-video  yt-uix-sessionlink"
-                                    data-sessionlink="ved=CBEQzRooDw%3D%3D&amp;ei=CJTeteXMubECFUIYRAod2yO7Vg%3D%3D&amp;feature=related"><span
-                                        class="ux-thumb-wrap contains-addto "><span
-                                            class="video-thumb ux-thumb yt-thumb-default-120 "><span
-                                                class="yt-thumb-clip"><span
-                                                    class="yt-thumb-clip-inner"><img
-                                                        src="http://s.ytimg.com/yt/img/pixel-vfl3z5WfW.gif"
-                                                        alt="Atlanta Grape Lady"
-                                                        data-thumb="//i1.ytimg.com/vi/THfiHQZVSw0/default.jpg"
-                                                        width="120"><span
-                                                        class="vertical-align"></span></span></span></span><span
-                                            class="video-time">1:25</span>
-
-
-                                        <button onclick=";return false;" title="Watch Later"
-                                            type="button"
-                                            class="addto-button video-actions addto-watch-later-button-sign-in yt-uix-button yt-uix-button-default yt-uix-button-short yt-uix-tooltip"
-                                            data-button-menu-id="shared-addto-watch-later-login"
-                                            data-video-ids="THfiHQZVSw0" role="button"><span
-                                                class="yt-uix-button-content"> <span
-                                                    class="addto-label">
-                                                    Watch Later
-                                                </span>
-                                                <span class="addto-label-error">
-                                                    Error
-                                                </span>
-                                                <img src="//s.ytimg.com/yt/img/pixel-vfl3z5WfW.gif">
-                                            </span><img class="yt-uix-button-arrow"
-                                                src="//s.ytimg.com/yt/img/pixel-vfl3z5WfW.gif"
-                                                alt=""></button>
-                                    </span><span dir="ltr" class="title"
-                                        title="Atlanta Grape Lady">Atlanta Grape Lady</span><span
-                                        class="stat attribution">by <span class="yt-user-name "
-                                            dir="ltr">drewlacrosse17</span></span><span
-                                        class="stat view-count">2,659,629
-                                        views</span></a></li>
-                            <li class="video-list-item"><a
-                                    href="/watch?v=0vFVnTMwt3w&amp;feature=related"
-                                    class="related-video  yt-uix-sessionlink"
-                                    data-sessionlink="ved=CBIQzRooEA%3D%3D&amp;ei=CJTeteXMubECFUIYRAod2yO7Vg%3D%3D&amp;feature=related"><span
-                                        class="ux-thumb-wrap contains-addto "><span
-                                            class="video-thumb ux-thumb yt-thumb-default-120 "><span
-                                                class="yt-thumb-clip"><span
-                                                    class="yt-thumb-clip-inner"><img
-                                                        src="http://s.ytimg.com/yt/img/pixel-vfl3z5WfW.gif"
-                                                        alt="Grape Lady falls"
-                                                        data-thumb="//i1.ytimg.com/vi/0vFVnTMwt3w/default.jpg"
-                                                        width="120"><span
-                                                        class="vertical-align"></span></span></span></span><span
-                                            class="video-time">0:49</span>
-
-
-                                        <button onclick=";return false;" title="Watch Later"
-                                            type="button"
-                                            class="addto-button video-actions addto-watch-later-button-sign-in yt-uix-button yt-uix-button-default yt-uix-button-short yt-uix-tooltip"
-                                            data-button-menu-id="shared-addto-watch-later-login"
-                                            data-video-ids="0vFVnTMwt3w" role="button"><span
-                                                class="yt-uix-button-content"> <span
-                                                    class="addto-label">
-                                                    Watch Later
-                                                </span>
-                                                <span class="addto-label-error">
-                                                    Error
-                                                </span>
-                                                <img src="//s.ytimg.com/yt/img/pixel-vfl3z5WfW.gif">
-                                            </span><img class="yt-uix-button-arrow"
-                                                src="//s.ytimg.com/yt/img/pixel-vfl3z5WfW.gif"
-                                                alt=""></button>
-                                    </span><span dir="ltr" class="title" title="Grape Lady falls">Grape
-                                        Lady falls</span><span class="stat attribution">by <span
-                                            class="yt-user-name "
-                                            dir="ltr">24millsap24</span></span><span
-                                        class="stat view-count">1,175,620
-                                        views</span></a></li>
-                            <li class="video-list-item"><a
-                                    href="/watch?v=hgiM9tUqMLc&amp;feature=relmfu"
-                                    class="related-video  yt-uix-sessionlink"
-                                    data-sessionlink="ved=CBMQzRooEQ%3D%3D&amp;ei=CJTeteXMubECFUIYRAod2yO7Vg%3D%3D&amp;feature=relmfu"><span
-                                        class="ux-thumb-wrap contains-addto "><span
-                                            class="video-thumb ux-thumb yt-thumb-default-120 "><span
-                                                class="yt-thumb-clip"><span
-                                                    class="yt-thumb-clip-inner"><img
-                                                        src="http://s.ytimg.com/yt/img/pixel-vfl3z5WfW.gif"
-                                                        alt="NATURE TOWN! - The Tortoise and the Rare Disease"
-                                                        data-thumb="//i1.ytimg.com/vi/hgiM9tUqMLc/default.jpg"
-                                                        width="120"><span
-                                                        class="vertical-align"></span></span></span></span><span
-                                            class="video-time">2:27</span>
-
-
-                                        <button onclick=";return false;" title="Watch Later"
-                                            type="button"
-                                            class="addto-button video-actions addto-watch-later-button-sign-in yt-uix-button yt-uix-button-default yt-uix-button-short yt-uix-tooltip"
-                                            data-button-menu-id="shared-addto-watch-later-login"
-                                            data-video-ids="hgiM9tUqMLc" role="button"><span
-                                                class="yt-uix-button-content"> <span
-                                                    class="addto-label">
-                                                    Watch Later
-                                                </span>
-                                                <span class="addto-label-error">
-                                                    Error
-                                                </span>
-                                                <img src="//s.ytimg.com/yt/img/pixel-vfl3z5WfW.gif">
-                                            </span><img class="yt-uix-button-arrow"
-                                                src="//s.ytimg.com/yt/img/pixel-vfl3z5WfW.gif"
-                                                alt=""></button>
-                                    </span><span dir="ltr" class="title"
-                                        title="NATURE TOWN! - The Tortoise and the Rare Disease">NATURE
-                                        TOWN! - The Tortoise and the
-                                        Rare Disease</span><span class="stat attribution">by <span
-                                            class="yt-user-name "
-                                            dir="ltr">RoosterTeeth</span></span><span
-                                        class="stat view-count">217,784 views</span></a>
-                            </li>
-                            <li class="video-list-item"><a
-                                    href="/watch?v=ijuupiAA0aE&amp;feature=relmfu"
-                                    class="related-video  yt-uix-sessionlink"
-                                    data-sessionlink="ved=CBQQzRooEg%3D%3D&amp;ei=CJTeteXMubECFUIYRAod2yO7Vg%3D%3D&amp;feature=relmfu"><span
-                                        class="ux-thumb-wrap contains-addto "><span
-                                            class="video-thumb ux-thumb yt-thumb-default-120 "><span
-                                                class="yt-thumb-clip"><span
-                                                    class="yt-thumb-clip-inner"><img
-                                                        src="http://s.ytimg.com/yt/img/pixel-vfl3z5WfW.gif"
-                                                        alt="Tony Hawk&#39;s Pro Skater HD - The Best, Around"
-                                                        data-thumb="//i2.ytimg.com/vi/ijuupiAA0aE/default.jpg"
-                                                        width="120"><span
-                                                        class="vertical-align"></span></span></span></span><span
-                                            class="video-time">1:30</span>
-
-
-                                        <button onclick=";return false;" title="Watch Later"
-                                            type="button"
-                                            class="addto-button video-actions addto-watch-later-button-sign-in yt-uix-button yt-uix-button-default yt-uix-button-short yt-uix-tooltip"
-                                            data-button-menu-id="shared-addto-watch-later-login"
-                                            data-video-ids="ijuupiAA0aE" role="button"><span
-                                                class="yt-uix-button-content"> <span
-                                                    class="addto-label">
-                                                    Watch Later
-                                                </span>
-                                                <span class="addto-label-error">
-                                                    Error
-                                                </span>
-                                                <img src="//s.ytimg.com/yt/img/pixel-vfl3z5WfW.gif">
-                                            </span><img class="yt-uix-button-arrow"
-                                                src="//s.ytimg.com/yt/img/pixel-vfl3z5WfW.gif"
-                                                alt=""></button>
-                                    </span><span dir="ltr" class="title"
-                                        title="Tony Hawk&#39;s Pro Skater HD - The Best, Around">Tony
-                                        Hawk&#39;s Pro Skater HD - The
-                                        Best, Around</span><span class="stat attribution">by <span
-                                            class="yt-user-name "
-                                            dir="ltr">RoosterTeeth</span></span><span
-                                        class="stat view-count">87,632 views</span></a>
-                            </li>
-                            <li class="video-list-item"><a
-                                    href="/watch?v=uJ_HZ99wjoY&amp;feature=related"
-                                    class="related-video  yt-uix-sessionlink"
-                                    data-sessionlink="ved=CBUQzRooEw%3D%3D&amp;ei=CJTeteXMubECFUIYRAod2yO7Vg%3D%3D&amp;feature=related"><span
-                                        class="ux-thumb-wrap contains-addto "><span
-                                            class="video-thumb ux-thumb yt-thumb-default-120 "><span
-                                                class="yt-thumb-clip"><span
-                                                    class="yt-thumb-clip-inner"><img
-                                                        src="http://s.ytimg.com/yt/img/pixel-vfl3z5WfW.gif"
-                                                        alt="Twelve Killed at Dark Knight Rises Midnight Showing"
-                                                        data-thumb="//i2.ytimg.com/vi/uJ_HZ99wjoY/default.jpg"
-                                                        width="120"><span
-                                                        class="vertical-align"></span></span></span></span><span
-                                            class="video-time">4:15</span>
-
-
-                                        <button onclick=";return false;" title="Watch Later"
-                                            type="button"
-                                            class="addto-button video-actions addto-watch-later-button-sign-in yt-uix-button yt-uix-button-default yt-uix-button-short yt-uix-tooltip"
-                                            data-button-menu-id="shared-addto-watch-later-login"
-                                            data-video-ids="uJ_HZ99wjoY" role="button"><span
-                                                class="yt-uix-button-content"> <span
-                                                    class="addto-label">
-                                                    Watch Later
-                                                </span>
-                                                <span class="addto-label-error">
-                                                    Error
-                                                </span>
-                                                <img src="//s.ytimg.com/yt/img/pixel-vfl3z5WfW.gif">
-                                            </span><img class="yt-uix-button-arrow"
-                                                src="//s.ytimg.com/yt/img/pixel-vfl3z5WfW.gif"
-                                                alt=""></button>
-                                    </span><span dir="ltr" class="title"
-                                        title="Twelve Killed at Dark Knight Rises Midnight Showing">Twelve
-                                        Killed at Dark Knight
-                                        Rises Midnight Showing</span><span class="stat attribution">by
-                                        <span class="yt-user-name " dir="ltr">sxephil</span></span><span
-                                        class="stat view-count">967,378 views</span></a></li>
+                            {% for item in data.related %}
+                                {{ macros.watch_sidebar_item(item) }}
+                            {% endfor %}
                         </ul>
                         <ul id="watch-more-related" class="video-list hid">
                             <li id="watch-more-related-loading">Loading more suggestions...</li>
@@ -2811,4 +2015,88 @@
     </div>
     <!-- end watch-main-container -->
 </div>
+{% endblock %}
+
+{% block body_js %}
+
+<script>
+yt.setConfig({
+    VIDEO_ID: "{{ video_id }}",
+    VIDEO_USERNAME: "{{ data.video.channel_name }}",
+
+    LOGGED_IN: false,
+    SESSION_INDEX: null
+});
+
+
+yt.playerConfig = {
+    assets: {
+        html: "\/html5_player_template",
+        css: "https:\/\/s.ytimg.com\/yt\/cssbin\/www-player-vfl0xKiwZ.css",
+        js: "https:\/\/s.ytimg.com\/yt\/jsbin\/html5player-vflJXrXGC.js"
+    },
+    url: "https:\/\/s.ytimg.com\/yt\/swfbin\/watch_as3-vflqsO0OE.swf",
+    min_version: "8.0.0",
+    args: {
+        ttsurl: "https:\/\/www.youtube.com\/api\/timedtext?sparams=asr_langs%2Ccaps%2Cv%2Cexpire\u0026asr_langs=en%2Cko%2Cja\u0026v=HQEC_Y5v3Zw\u0026caps=asr\u0026expire=1331098044\u0026key=yttt1\u0026signature=544B5F94570C686B4F4C0769E24DB7F839916636.4F3467A5889CC1DF9DDB87A644E8B6B54A53E0FB\u0026hl=en_US",
+        fexp: "906717,919701,911613",
+        enablecsi: "1",
+        allow_embed: 1,
+        rvs: "view_count=86%2C262\u0026feature_type=fvw\u0026author=matteolongokr\u0026title=Samsung+Galaxy+Nexus+Vs+iPhone+4S\u0026length_seconds=596\u0026featured=1\u0026id=Dqoxd2N2Fug,view_count=200%2C963\u0026author=TodaysiPhone\u0026length_seconds=422\u0026id=ERc_lF0dciw\u0026title=iPhone+4S+unboxing,view_count=22%2C509\u0026author=TodaysiPhone\u0026length_seconds=549\u0026id=Z8MKcDrL42I\u0026title=Siri+vs+Tellme%2C+iPhone+4S+vs+Galaxy+Nexus%2C+iOS+apps+vs+Android+apps%2C+and+more%21,view_count=7%2C554\u0026author=TodaysiPhone\u0026length_seconds=372\u0026id=URJfs-PD-a4\u0026title=iPhone+4S+hands+on+coverage%2C+iOS+5+release%2C+and+more%21,view_count=10%2C479\u0026author=TodaysiPhone\u0026length_seconds=122\u0026id=MZmu-sJyCew\u0026title=iOS+5.0.1+released+%2F+jailbroken%2C+Siri+security+cracked+to+work+on+any+device%2C+BiteSMS+updated,view_count=306%2C226\u0026author=ivanzeta73\u0026length_seconds=2523\u0026id=DUCnWZHBd5c\u0026title=Samsung+Galaxy+Note+Vs+Galaxy+Nexus,view_count=255%2C106\u0026author=foxfire235\u0026length_seconds=589\u0026id=eTFmjCFCGQ4\u0026title=Samsung+Galaxy+S+II+vs+Samsung+Galaxy+Nexus+Ultimate+Side+By+Side+Comparison,view_count=1%2C036%2C805\u0026author=pocketnowvideo\u0026length_seconds=897\u0026id=bphZoV8VrLc\u0026title=iPhone+4S+vs.+Samsung+Galaxy+S+2,view_count=215%2C000\u0026author=iPhonedoCom\u0026length_seconds=408\u0026id=tINaSB4vf_Q\u0026title=iPhone+4S+vs+iPhone+4+Camera+Quality+Comparison,view_count=87%2C303\u0026author=tldtoday\u0026length_seconds=281\u0026id=rhu8zfIVZ40\u0026title=iPhone+4S+vs+Galaxy+Nexus%3A+1080P+Video+Export+Speedtest,view_count=37%2C394\u0026author=PhoneBuff\u0026length_seconds=130\u0026id=78qWFXg5-JU\u0026title=iPhone+4S+vs+Galaxy+Nexus+-+App+Speed+Comparison,view_count=484%2C825\u0026author=liquipel\u0026length_seconds=75\u0026id=kVHb5C1GDVw\u0026title=Apple+iPhone+4S+Water+Test+With+Liquipel+-+NO+CASE",
+        is_doubleclick_tracked: "1",
+        rmktEnabled: false,
+        account_playback_token: "",
+        autohide: "2",
+        csi_page_type: "watch5",
+        keywords:
+            "Galaxy Nexus,Samsung,Apple,iPhone,Cam Bunton,TodaysiPhone,News,Reviews,Apps,Speed Test,iOS,Android,iPhone 4S,Apple Inc.,Mobile,Phonedog,Cell,Smartphone",
+        cr: "NL",
+        cc3_module:
+            "https:\/\/s.ytimg.com\/yt\/swfbin\/subtitles3_module-vflGQbvIG.swf",
+        p_s: "QsLkF4VIOhzT5OeFN5v8xOhM-fzHXHnwU8Km4h0KD6N6m99XSzbSKFWqstU-MDDLEjRWiw4Xnd3fM3YtzDX673Ga-0cKJKzAi_P_ieFwkf3wRsgbmSk4Ngw3rQAjcsgc5vdgQDRLs1InGbfHrQpboA==",
+        focEnabled: false,
+        fmt_list:
+            "45\/1280x720\/99\/0\/0,22\/1280x720\/9\/0\/115,44\/854x480\/99\/0\/0,35\/854x480\/9\/0\/115,43\/640x360\/99\/0\/0,34\/640x360\/9\/0\/115,18\/640x360\/9\/0\/115,5\/320x240\/7\/0\/0",
+        length_seconds: 289,
+        feature: "topics",
+        enablejsapi: 1,
+        theme: "tlb",
+        tk: "5yHsaHqIgcaQp5tiYMe9DXyjPBg6RuaNoxKSyde3LJ2DQKQJ2yP6xw==",
+        plid: "AAS6mowSGq67JaGt",
+        cc_font: "Arial Unicode MS, arial, verdana, _sans",
+        sdetail: "f:topics,p:\/topic\/gnAnfPNA_aY\/ip",
+        url_encoded_fmt_stream_map:
+            "url=http%3A%2F%2Fo-o.preferred.xsforall-ams1.v11.lscache8.c.youtube.com%2Fvideoplayback%3Fsparams%3Dcp%252Cid%252Cip%252Cipbits%252Citag%252Cratebypass%252Csource%252Cexpire%26fexp%3D906717%252C919701%252C911613%26itag%3D45%26ip%3D194.0.0.0%26signature%3D592BB6CC00C48D36BFFF6D69B938F8FEC04438DC.8849A32E8599D79F7383A61DC717238214152B29%26sver%3D3%26ratebypass%3Dyes%26source%3Dyoutube%26expire%3D1331096918%26key%3Dyt1%26ipbits%3D8%26cp%3DU0hSRlBUVF9GUkNOMl9ITlhKOnNYX3Y0WDQyelhV%26id%3D1d0102fd8e6fdd9c\u0026quality=hd720\u0026fallback_host=tc.v11.cache8.c.youtube.com\u0026type=video%2Fwebm%3B+codecs%3D%22vp8.0%2C+vorbis%22\u0026itag=45,url=http%3A%2F%2Fo-o.preferred.xsforall-ams1.v12.lscache8.c.youtube.com%2Fvideoplayback%3Fsparams%3Dcp%252Cid%252Cip%252Cipbits%252Citag%252Cratebypass%252Csource%252Cexpire%26fexp%3D906717%252C919701%252C911613%26itag%3D22%26ip%3D194.0.0.0%26signature%3D66D2501CC5DA6BE2AFF965116E1E5FB5F82E1BD8.67CE66D5A0C8376AF31D0358C81E64540D8E0B7D%26sver%3D3%26ratebypass%3Dyes%26source%3Dyoutube%26expire%3D1331096918%26key%3Dyt1%26ipbits%3D8%26cp%3DU0hSRlBUVF9GUkNOMl9ITlhKOnNYX3Y0WDQyelhV%26id%3D1d0102fd8e6fdd9c\u0026quality=hd720\u0026fallback_host=tc.v12.cache8.c.youtube.com\u0026type=video%2Fmp4%3B+codecs%3D%22avc1.64001F%2C+mp4a.40.2%22\u0026itag=22,url=http%3A%2F%2Fo-o.preferred.xsforall-ams1.v2.lscache1.c.youtube.com%2Fvideoplayback%3Fsparams%3Dcp%252Cid%252Cip%252Cipbits%252Citag%252Cratebypass%252Csource%252Cexpire%26fexp%3D906717%252C919701%252C911613%26itag%3D44%26ip%3D194.0.0.0%26signature%3D0253E22A3C209865CED5EF054FE60D7E29B039E6.8BA7489B5A174290CA317D772D18EA4D9B8F77A9%26sver%3D3%26ratebypass%3Dyes%26source%3Dyoutube%26expire%3D1331096918%26key%3Dyt1%26ipbits%3D8%26cp%3DU0hSRlBUVF9GUkNOMl9ITlhKOnNYX3Y0WDQyelhV%26id%3D1d0102fd8e6fdd9c\u0026quality=large\u0026fallback_host=tc.v2.cache1.c.youtube.com\u0026type=video%2Fwebm%3B+codecs%3D%22vp8.0%2C+vorbis%22\u0026itag=44,url=http%3A%2F%2Fo-o.preferred.xsforall-ams1.v21.lscache5.c.youtube.com%2Fvideoplayback%3Fsparams%3Dalgorithm%252Cburst%252Ccp%252Cfactor%252Cid%252Cip%252Cipbits%252Citag%252Csource%252Cexpire%26fexp%3D906717%252C919701%252C911613%26algorithm%3Dthrottle-factor%26itag%3D35%26ip%3D194.0.0.0%26burst%3D40%26sver%3D3%26signature%3D74AF8A14076C617B9D97E6575CF8D6972126F098.6F32E04F2104ECE1C56526B3C8E30187AEA06C22%26source%3Dyoutube%26expire%3D1331096918%26key%3Dyt1%26ipbits%3D8%26factor%3D1.25%26cp%3DU0hSRlBUVF9GUkNOMl9ITlhKOnNYX3Y0WDQyelhV%26id%3D1d0102fd8e6fdd9c\u0026quality=large\u0026fallback_host=tc.v21.cache5.c.youtube.com\u0026type=video%2Fx-flv\u0026itag=35,url=http%3A%2F%2Fo-o.preferred.xsforall-ams1.v7.lscache5.c.youtube.com%2Fvideoplayback%3Fsparams%3Dcp%252Cid%252Cip%252Cipbits%252Citag%252Cratebypass%252Csource%252Cexpire%26fexp%3D906717%252C919701%252C911613%26itag%3D43%26ip%3D194.0.0.0%26signature%3D26E025B922B9E3C22D967407D3754CB25558B503.5651538F9B4068B63D1CC86CA5510E7DFE81318C%26sver%3D3%26ratebypass%3Dyes%26source%3Dyoutube%26expire%3D1331096918%26key%3Dyt1%26ipbits%3D8%26cp%3DU0hSRlBUVF9GUkNOMl9ITlhKOnNYX3Y0WDQyelhV%26id%3D1d0102fd8e6fdd9c\u0026quality=medium\u0026fallback_host=tc.v7.cache5.c.youtube.com\u0026type=video%2Fwebm%3B+codecs%3D%22vp8.0%2C+vorbis%22\u0026itag=43,url=http%3A%2F%2Fo-o.preferred.xsforall-ams1.v12.lscache4.c.youtube.com%2Fvideoplayback%3Fsparams%3Dalgorithm%252Cburst%252Ccp%252Cfactor%252Cid%252Cip%252Cipbits%252Citag%252Csource%252Cexpire%26fexp%3D906717%252C919701%252C911613%26algorithm%3Dthrottle-factor%26itag%3D34%26ip%3D194.0.0.0%26burst%3D40%26sver%3D3%26signature%3DCAF183F736C0B912E296D2ABF624D6E80227F3E7.38B155240939338D7B6C5C5CAE6EF4D83E4599E8%26source%3Dyoutube%26expire%3D1331096918%26key%3Dyt1%26ipbits%3D8%26factor%3D1.25%26cp%3DU0hSRlBUVF9GUkNOMl9ITlhKOnNYX3Y0WDQyelhV%26id%3D1d0102fd8e6fdd9c\u0026quality=medium\u0026fallback_host=tc.v12.cache4.c.youtube.com\u0026type=video%2Fx-flv\u0026itag=34,url=http%3A%2F%2Fo-o.preferred.xsforall-ams1.v4.lscache4.c.youtube.com%2Fvideoplayback%3Fsparams%3Dcp%252Cid%252Cip%252Cipbits%252Citag%252Cratebypass%252Csource%252Cexpire%26fexp%3D906717%252C919701%252C911613%26itag%3D18%26ip%3D194.0.0.0%26signature%3DD4093F309F796FC2864BEAB5BEC7B1089C2D130C.794CC1EB0012DC373AA2C3CF734D4191E4D85957%26sver%3D3%26ratebypass%3Dyes%26source%3Dyoutube%26expire%3D1331096918%26key%3Dyt1%26ipbits%3D8%26cp%3DU0hSRlBUVF9GUkNOMl9ITlhKOnNYX3Y0WDQyelhV%26id%3D1d0102fd8e6fdd9c\u0026quality=medium\u0026fallback_host=tc.v4.cache4.c.youtube.com\u0026type=video%2Fmp4%3B+codecs%3D%22avc1.42001E%2C+mp4a.40.2%22\u0026itag=18,url=http%3A%2F%2Fo-o.preferred.xsforall-ams1.v1.lscache2.c.youtube.com%2Fvideoplayback%3Fsparams%3Dalgorithm%252Cburst%252Ccp%252Cfactor%252Cid%252Cip%252Cipbits%252Citag%252Csource%252Cexpire%26fexp%3D906717%252C919701%252C911613%26algorithm%3Dthrottle-factor%26itag%3D5%26ip%3D194.0.0.0%26burst%3D40%26sver%3D3%26signature%3D0E2654D268B0267639B542AC79B42202DA4392FA.7CF394DF4ADFEE0ABFE76EA0573A106C7EC560FF%26source%3Dyoutube%26expire%3D1331096918%26key%3Dyt1%26ipbits%3D8%26factor%3D1.25%26cp%3DU0hSRlBUVF9GUkNOMl9ITlhKOnNYX3Y0WDQyelhV%26id%3D1d0102fd8e6fdd9c\u0026quality=small\u0026fallback_host=tc.v1.cache2.c.youtube.com\u0026type=video%2Fx-flv\u0026itag=5",
+        watermark:
+            ",https:\/\/s.ytimg.com\/yt\/img\/watermark\/youtube_watermark-vflHX6b6E.png,https:\/\/s.ytimg.com\/yt\/img\/watermark\/youtube_hd_watermark-vflAzLcD6.png",
+        sourceid: "y",
+        timestamp: 1331072844,
+        cc_asr: 1,
+        ssl: 1,
+        showpopout: 1,
+        hl: "en_US",
+        tmi: "1",
+        no_get_video_log: "1",
+        cc_module: "https:\/\/s.ytimg.com\/yt\/swfbin\/subtitle_module-vfl_ihIUi.swf",
+        endscreen_module: "https:\/\/s.ytimg.com\/yt\/swfbin\/endscreen-vflm8ac_r.swf",
+        supersizefeatured: "1",
+        vq: "auto",
+        referrer: "https:\/\/www.youtube.com\/topic\/gnAnfPNA_aY\/iphone",
+        video_id: "HQEC_Y5v3Zw",
+        sendtmp: "1",
+        sk: "SslB5bWUo4JsIQmZpTgoUVDeB-Ni3z2JC",
+        t: "vjVQa1PpcFNDz7AVIBtnCn3WTVU50ifWAQqqsySc89s="
+    },
+    url_v9as2: "https:\/\/s.ytimg.com\/yt\/swfbin\/cps-vflMfscHD.swf",
+    params: {
+        allowscriptaccess: "always",
+        allowfullscreen: "true",
+        bgcolor: "#000000"
+    },
+    attrs: { width: "640", id: "movie_player", height: "390" },
+    url_v8: "https:\/\/s.ytimg.com\/yt\/swfbin\/cps-vflMfscHD.swf",
+    html5: true
+};
+</script>
+
 {% endblock %}

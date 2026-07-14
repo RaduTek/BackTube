@@ -132,3 +132,60 @@
         </div></div>
     </div>
 {% endmacro %}
+
+{% macro watch_later_button(data) %}
+    <button
+        onclick="return false;"
+        title="Watch Later"
+        type="button"
+        class="addto-button video-actions addto-watch-later-button-sign-in yt-uix-button yt-uix-button-default yt-uix-button-short yt-uix-tooltip"
+        data-button-menu-id="shared-addto-watch-later-login"
+        data-video-ids="{{ data.id }}"
+        data-feature="thumbnail"
+        role="button"
+    >
+        <img
+            class="yt-uix-button-icon yt-uix-button-icon-addto"
+            src="//s.ytimg.com/yt/img/pixel-vfl3z5WfW.gif"
+            alt=""
+        /><span class="yt-uix-button-content">
+            <span class="addto-label">Add to</span>
+        </span><img
+            class="yt-uix-button-arrow"
+            src="//s.ytimg.com/yt/img/pixel-vfl3z5WfW.gif"
+            alt=""
+        />
+    </button>
+{% endmacro %}
+
+{% macro watch_sidebar_item(data) %}
+    <li class="video-list-item">
+        <a href="{{ data.url }}" class="related-video">
+            <span class="ux-thumb-wrap contains-addto">
+                <span class="video-thumb ux-thumb ux-thumb-110">
+                    <span class="clip">
+                        <span class="clip-inner">
+                            <img src="{{ data.thumbnail_url }}" alt="{{ data.title }}" width="120" 
+                            /><span class="vertical-align"></span>
+                        </span>
+                    </span>
+                </span>
+                <span class="video-time">{{ data.length_text }}</span>
+
+                {{ watch_later_button(data) }}
+            </span>
+            <span
+                dir="ltr"
+                class="title"
+                title="{{ data.title }}"
+            >
+                {{ data.title }}
+            </span>
+            <span class="stat attribution">
+                by
+                <span class="yt-user-name" dir="ltr">{{ data.channel_name }}</span>
+            </span>
+            <span class="stat view-count">{{ data.viewcount_text }}</span>
+        </a>
+    </li>
+{% endmacro %}

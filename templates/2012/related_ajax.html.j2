@@ -1,0 +1,5 @@
+{% import '2012/_macros.html.j2' as macros %}
+
+{% for item in data.related %}
+    {{ macros.watch_sidebar_item(item) }}
+{% endfor %}

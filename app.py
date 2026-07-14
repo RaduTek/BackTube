@@ -1,4 +1,4 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, request
 from .pages import search, watch
 from .helpers.formats import get_all_formatters
 
@@ -19,6 +19,13 @@ def search_route():
 @app.route("/watch")
 def watch_route():
     return watch.watch_page()
+
+@app.route("/related_ajax")
+def related_ajax_route():
+    if request.args.get('action_more_related_videos', '') == '1':
+        return watch.related_ajax()
+
+    return "Invalid request", 400
 
 @app.route("/share_ajax")
 def share_ajax_route():

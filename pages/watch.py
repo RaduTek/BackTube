@@ -1,15 +1,31 @@
 from flask import request, render_template
 
 from . import get_preferred_template
-from ..helpers.innertube.watch import get_watch_data_innertube
+from ..helpers.innertube.watch import get_watch_data, get_watch_related
 
 
 def watch_page():
-    video_id = request.args.get("v")
-
-    if (not video_id) or (not isinstance(video_id, str)):
-        return "404 not found page should be here", 404
+    video_id = request.args.get("v", '')
+    nocache = request.args.get("nocache", "false").lower() == "true"
     
-    watch_data = get_watch_data_innertube(video_id)
+    data = get_watch_data(video_id, nocache=nocache)
 
-    return render_template(get_preferred_template('watch'), video_id=video_id, video=watch_data['video'])
+    return render_template(
+        get_preferred_template('watch'), 
+        video_id=video_id, 
+        data=data,
+    )
+
+
+def related_ajax():
+    video_id = request.args.get("video_id", '')
+
+    data = get_watch_related(video_id)
+
+    return { 
+        'html': render_template(
+            get_preferred_template('related_ajax'), 
+            video_id=video_id, 
+            data=data,
+        ) 
+    }
