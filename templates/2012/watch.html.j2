@@ -563,8 +563,7 @@
                         <div class="comments-section ">
                             <div id="comments-header-container">
                                 <div id="comments-header">
-                                    <a class="comments-section-see-all"
-                                        href="/all_comments?v=3E-1UMsb7wM">
+                                    <a class="comments-section-see-all" href="/all_comments?v={{ data.video_id }}">
                                         see all
                                     </a>
                                     <h4>
@@ -590,77 +589,7 @@
 
                         <div class="comments-section">
                             <div class="comments-pagination" data-ajax-enabled="true">
-
-
-                                <div class="yt-uix-pager" role="navigation">
-
-
-
-
-                                    <a href="/all_comments?v=3E-1UMsb7wM&amp;page=1"
-                                        class="yt-uix-button yt-uix-sessionlink yt-uix-pager-page-num yt-uix-pager-button yt-uix-button-toggled yt-uix-button-default"
-                                        data-page="1" aria-label="Go to page 1"
-                                        data-sessionlink="ei=CJTeteXMubECFUIYRAod2yO7Vg%3D%3D"><span
-                                            class="yt-uix-button-content">1</span></a>&nbsp;
-
-
-
-                                    <a href="/all_comments?v=3E-1UMsb7wM&amp;page=2"
-                                        class="yt-uix-button yt-uix-sessionlink yt-uix-pager-page-num yt-uix-pager-button yt-uix-button-default"
-                                        data-page="2" aria-label="Go to page 2"
-                                        data-sessionlink="ei=CJTeteXMubECFUIYRAod2yO7Vg%3D%3D"><span
-                                            class="yt-uix-button-content">2</span></a>&nbsp;
-
-
-
-                                    <a href="/all_comments?v=3E-1UMsb7wM&amp;page=3"
-                                        class="yt-uix-button yt-uix-sessionlink yt-uix-pager-page-num yt-uix-pager-button yt-uix-button-default"
-                                        data-page="3" aria-label="Go to page 3"
-                                        data-sessionlink="ei=CJTeteXMubECFUIYRAod2yO7Vg%3D%3D"><span
-                                            class="yt-uix-button-content">3</span></a>&nbsp;
-
-
-
-                                    <a href="/all_comments?v=3E-1UMsb7wM&amp;page=4"
-                                        class="yt-uix-button yt-uix-sessionlink yt-uix-pager-page-num yt-uix-pager-button yt-uix-button-default"
-                                        data-page="4" aria-label="Go to page 4"
-                                        data-sessionlink="ei=CJTeteXMubECFUIYRAod2yO7Vg%3D%3D"><span
-                                            class="yt-uix-button-content">4</span></a>&nbsp;
-
-
-
-                                    <a href="/all_comments?v=3E-1UMsb7wM&amp;page=5"
-                                        class="yt-uix-button yt-uix-sessionlink yt-uix-pager-page-num yt-uix-pager-button yt-uix-button-default"
-                                        data-page="5" aria-label="Go to page 5"
-                                        data-sessionlink="ei=CJTeteXMubECFUIYRAod2yO7Vg%3D%3D"><span
-                                            class="yt-uix-button-content">5</span></a>&nbsp;
-
-
-
-                                    <a href="/all_comments?v=3E-1UMsb7wM&amp;page=6"
-                                        class="yt-uix-button yt-uix-sessionlink yt-uix-pager-page-num yt-uix-pager-button yt-uix-button-default"
-                                        data-page="6" aria-label="Go to page 6"
-                                        data-sessionlink="ei=CJTeteXMubECFUIYRAod2yO7Vg%3D%3D"><span
-                                            class="yt-uix-button-content">6</span></a>&nbsp;
-
-
-
-                                    <a href="/all_comments?v=3E-1UMsb7wM&amp;page=7"
-                                        class="yt-uix-button yt-uix-sessionlink yt-uix-pager-page-num yt-uix-pager-button yt-uix-button-default"
-                                        data-page="7" aria-label="Go to page 7"
-                                        data-sessionlink="ei=CJTeteXMubECFUIYRAod2yO7Vg%3D%3D"><span
-                                            class="yt-uix-button-content">7</span></a>&nbsp;
-
-
-
-
-                                    <a href="/all_comments?v=3E-1UMsb7wM&amp;page=2"
-                                        class="yt-uix-button yt-uix-sessionlink yt-uix-pager-next yt-uix-pager-button yt-uix-button-default"
-                                        data-page="2"
-                                        data-sessionlink="ei=CJTeteXMubECFUIYRAod2yO7Vg%3D%3D"><span
-                                            class="yt-uix-button-content">Next »</span></a>&nbsp;
-                                </div>
-
+                                {{ macros.create_pager(comments_pager) }}
                             </div>
                         </div>
 

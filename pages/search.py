@@ -2,6 +2,7 @@ from urllib.parse import quote_plus
 from flask import request, render_template
 
 from . import get_preferred_template
+from ..helpers.pager import create_pager_props
 from ..helpers.innertube.search import get_search_results_page
 
 
@@ -18,26 +19,14 @@ def results_page():
 
     # Estimated, some pages contain more items
     per_page_count = 20
-
-    window_size = 7
-    half_window = window_size // 2
-
-    # Only an estimated total
     total = (search_results['estimated_results']) // per_page_count
-    start = max(1, search_page - half_window)
-    end = start + min(total, window_size) - 1
 
     def get_page_url(page_number):
         if page_number == 1:
             return f'/results?search_query={search_query_url}'
         return f'/results?search_query={search_query_url}&page={page_number}'
 
-    pager = {
-        'current': search_page,
-        'prev': get_page_url(search_page - 1) if search_page > 1 else None,
-        'next': get_page_url(search_page + 1) if search_page < total else None,
-        'links': [(page, get_page_url(page)) for page in range(start, end + 1)]
-    }
+    pager = create_pager_props(search_page, total, get_page_url)
 
     return render_template(
         get_preferred_template('results'),

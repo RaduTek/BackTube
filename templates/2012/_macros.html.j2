@@ -11,8 +11,8 @@
 
 {% macro create_pager(pager) %}
     <div class="yt-uix-pager" role="navigation">
-        {% if pager.prev %}
-        <a href="{{ pager.prev }}" class="yt-uix-button yt-uix-pager-prev yt-uix-pager-button">
+        {% if pager.prev_link %}
+        <a href="{{ pager.prev_link }}" class="yt-uix-button yt-uix-button-default yt-uix-pager-prev yt-uix-pager-button">
             <span class="yt-uix-button-content">« Previous</span>
         </a>
         &nbsp;
@@ -20,7 +20,7 @@
         {% for page, url in pager.links %}
         <a
             href="{{ url }}"
-            class="yt-uix-button yt-uix-pager-page-num yt-uix-pager-button {{ 'yt-uix-button-toggled' if page == pager.current else '' }}"
+            class="yt-uix-button yt-uix-button-default yt-uix-pager-page-num yt-uix-pager-button {{ 'yt-uix-button-toggled' if page == pager.current else '' }}"
             data-page="{{ page }}"
             aria-label="Go to page {{ page }}"
         >
@@ -28,8 +28,8 @@
         </a>
         &nbsp;
         {% endfor %}
-        {% if pager.next %}
-        <a href="{{ pager.next }}" class="yt-uix-button yt-uix-pager-next yt-uix-pager-button">
+        {% if pager.next_link %}
+        <a href="{{ pager.next_link }}" class="yt-uix-button yt-uix-button-default yt-uix-pager-next yt-uix-pager-button">
             <span class="yt-uix-button-content">Next »</span>
         </a>
         &nbsp;
@@ -223,6 +223,12 @@
                         <span class="time">
                             {{- data.published_text -}}
                         </span>
+                        {% if data.like_count %}
+                        <span class="comments-rating-positive" title="{{ data.like_count }} people liked this">
+                            {{ data.like_count }}
+                            <img class="comments-rating-thumbs-up" src="//s.ytimg.com/yt/img/pixel-vfl3z5WfW.gif">
+                        </span>
+                        {% endif %}
                     </p>
                 </div>
 

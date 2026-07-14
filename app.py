@@ -20,6 +20,10 @@ def search_route():
 def watch_route():
     return watch.watch_page()
 
+@app.route("/all_comments")
+def all_comments_route():
+    return watch.all_comments_page()
+
 @app.route("/related_ajax")
 def related_ajax_route():
     if request.args.get('action_more_related_videos', '') == '1':

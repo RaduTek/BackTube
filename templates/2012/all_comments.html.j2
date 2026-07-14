@@ -1,0 +1,121 @@
+{% import '2012/_macros.html.j2' as macros %}
+{% extends "2012/_root.html.j2" %}
+
+{% block title %}Comments for {{ data.video.title }} - YouTube{% endblock %}
+
+{% block extra_css %}
+<style>
+#watch-discussion {
+    width: 640px;
+}
+.comment-highlight-see-all {
+    display: none;
+}
+#video-reference-info {
+    float: left;
+    margin-right: 10px;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div id="comment-video-info">
+    <div id="video-reference-info">
+        <a href="/watch?v={{ video_id }}"><img src="//i2.ytimg.com/vi/{{ video_id }}/1.jpg" class="vimg90" /></a>&nbsp;
+        <a href="/watch?v={{ video_id }}"><img src="//i2.ytimg.com/vi/{{ video_id }}/2.jpg" class="vimg90" /></a>&nbsp;
+        <a href="/watch?v={{ video_id }}"><img src="//i2.ytimg.com/vi/{{ video_id }}/3.jpg" class="vimg90" /></a>
+    </div>
+    <div class="vtitle">
+        <span style="font-size: 16px;"><a href="/watch?v={{ video_id }}">{{ data.video.title }}</a></span>
+        <div class="runtime">{{ data.video.duration }}</div>
+    </div>
+    <div class="vfacets">
+        <span class="grayText">Added:</span> {{ data.video.published_date }}<br />
+        <span class="grayText">From:</span>
+        <a href="{{ data.video.channel_url }}" class="yt-user-name " dir="ltr">
+            {{ data.video.channel_name }}
+        </a>
+        <br />
+        <span class="grayText">Views:</span> {{ data.video.view_count }}<br />
+    </div>
+    <div class="clear"></div>
+</div>
+
+<div id="threaded-option">
+    <strong>Sort by time</strong> | <a href="/all_comments?threaded=1&amp;v={{ video_id }}">Sort by thread (beta)</a>
+</div>
+
+<div id="watch-discussion">
+    <div id="comments-view" data-type="everything" class="">
+        <div id="comment-share-area" class="comment-share-area yt-rounded hid">
+            <div class="comment-share-content">
+                <h4>Link to this comment:</h4>
+                <div>
+                    <input type="text" class="comment-share-url yt-uix-form-input-text">
+                </div>
+                <div>
+                    <span>Share to:</span>
+                    <img alt="" title="Facebook"
+                        src="//s.ytimg.com/yt/img/pixel-vfl3z5WfW.gif"
+                        class="icon-comment-share icon-comment-share-facebook"
+                        action="yt.window.popup(&#39;http:\/\/www.facebook.com\/sharer.php?u=http%3A%2F%2Fwww.youtube.com%2Fcomment%3Flc%3D_COMMENT_ID_&amp;t=_COMMENT_TEXT_&#39;, {height:440, width:620, scrollbars:true});">
+                    <img alt="" title="Twitter"
+                        src="//s.ytimg.com/yt/img/pixel-vfl3z5WfW.gif"
+                        class="icon-comment-share icon-comment-share-twitter"
+                        action="yt.window.popup(&#39;http:\/\/twitter.com\/share?url=http%3A%2F%2Fwww.youtube.com%2Fcomment%3Flc%3D_COMMENT_ID_&amp;text=_COMMENT_TEXT_%3A&amp;via=youtube&#39;, {height:650, width:1024, scrollbars:true});">
+                    <img alt="" title="Google+"
+                        src="//s.ytimg.com/yt/img/pixel-vfl3z5WfW.gif"
+                        class="icon-comment-share icon-comment-share-googleplus"
+                        action="yt.window.popup(&#39;https:\/\/plus.google.com\/share?url=http%3A%2F%2Fwww.youtube.com%2Fcomment%3Flc%3D_COMMENT_ID_&amp;authuser=None&amp;source=yt&#39;, {height:440, width:620, scrollbars:true});">
+                </div>
+            </div>
+            <div class="close comment-action" data-action="close-share">
+                <img src="//s.ytimg.com/yt/img/pixel-vfl3z5WfW.gif"
+                    class="close-button">
+            </div>
+        </div>
+
+        <div class="comments-section ">
+            <div id="comments-header-container">
+                <div id="comments-header">
+                    <a class="comments-section-see-all"
+                        href="/all_comments?v=3E-1UMsb7wM">
+                        see all
+                    </a>
+                    <h4>
+                        All Comments
+                        <span class="comments-section-stat">({{ data.video.comments_count_text }})</span>
+                    </h4>
+                </div>
+            </div>
+
+            <div class="comments-post-container clearfix">
+                <div class="comments-post-alert">
+                    <a href="#">Sign In</a> or <a href="#">Sign Up</a>
+                    <span class="comments-post-form-rollover-text"> now to post a comment!</span>
+                </div>
+            </div>
+
+            <ul class="comment-list">
+                {% for comment in comments %}
+                    {{- macros.watch_comment(comment) -}}
+                {% endfor %}
+            </ul>
+        </div>
+
+        <div class="comments-section">
+            <div class="comments-pagination" data-ajax-enabled="true">
+                {{ macros.create_pager(pager) }}
+            </div>
+        </div>
+
+        <ul>
+            <li class="hid" id="parent-comment-loading"> Loading comment...</li>
+        </ul>
+
+        <div id="comments-loading" class="hid">Loading...</div>
+    </div>
+</div>
+
+{% endblock %}
