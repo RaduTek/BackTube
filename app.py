@@ -1,5 +1,5 @@
-from flask import Flask, render_template, request
-from .pages import search
+from flask import Flask, render_template
+from .pages import search, watch
 from .helpers.formats import get_all_formatters
 
 app = Flask(__name__)
@@ -9,13 +9,13 @@ def formatters():
     return get_all_formatters()
 
 @app.route("/")
-def home():
+def home_route():
     return render_template("2012/home.html.j2", homepage=True)
 
 @app.route("/results")
-def results():
+def search_route():
     return search.results_page()
 
 @app.route("/watch")
-def watch():
-    return render_template("2012/watch.html.j2")
+def watch_route():
+    return watch.watch_page()
