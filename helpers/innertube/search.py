@@ -2,6 +2,7 @@ import hashlib
 from datetime import datetime
 from typing import TypedDict
 from . import client, FeedItem
+from .. import links
 from .utils import get_text, get_first_run, get_channel_from_byline, get_thumbnail_url
 from ..cache import save_cache_data, get_cache_data
 
@@ -20,24 +21,6 @@ class SearchResultsPage(TypedDict):
     estimated_results: int
     continuation_token: str
     entries: list['FeedItem']
-
-
-def _channel_url(channel_id: str) -> str:
-    if len(channel_id) == 0:
-        return ''
-    
-    return f'/channel/{channel_id}'
-
-
-def _video_url(video_id: str, playlist_id: str | None = None) -> str:
-    if playlist_id:
-        return f'/watch?v={video_id}&list={playlist_id}'
-
-    return f'/watch?v={video_id}'
-
-
-def _video_thumbnail_url(video_id: str) -> str:
-    return f'https://i.ytimg.com/vi/{video_id}/default.jpg'
 
 
 def _video_description(video_renderer: dict) -> str:
@@ -147,14 +130,14 @@ def _parse_playlist_preview_entry(
         type='video',
         id=video_id,
         title=title,
-        url=_video_url(video_id, playlist_id),
+        url=links.video_url(video_id, playlist_id),
 
-        thumbnail_url=_video_thumbnail_url(video_id),
+        thumbnail_url=links.video_thumbnail_url(video_id),
         length_text=length_text,
 
         channel_name=channel_name,
         channel_id=channel_id,
-        channel_url=f'/channel/{channel_id}',
+        channel_url=links.channel_url(channel_id),
     )
 
 
@@ -187,12 +170,12 @@ def parse_innertube_video_renderer(video_renderer: dict) -> FeedItem:
         type='video',
         id=video_id,
         title=get_first_run(video_renderer.get('title')).get('text', ''),
-        url=f'/watch?v={video_id}',
-        thumbnail_url=_video_thumbnail_url(video_id),
+        url=links.video_url(video_id),
+        thumbnail_url=links.video_thumbnail_url(video_id),
 
         channel_name=channel_name,
         channel_id=channel_id,
-        channel_url=_channel_url(channel_id),
+        channel_url=links.channel_url(channel_id),
 
         published_text=get_text(video_renderer.get('publishedTimeText')),
         description=_video_description(video_renderer),
@@ -211,11 +194,11 @@ def parse_innertube_channel_renderer(channel_renderer: dict) -> FeedItem:
         type='channel',
         id=channel_id,
         title=title,
-        url=_channel_url(channel_id),
-        
+        url=links.channel_url(channel_id),
+
         channel_name=title,
         channel_id=channel_id,
-        channel_url=_channel_url(channel_id),
+        channel_url=links.channel_url(channel_id),
 
         description=get_text(channel_renderer.get('descriptionSnippet')),
         video_count=get_text(channel_renderer.get('videoCountText')),
@@ -248,7 +231,7 @@ def parse_innertube_playlist_lockup_renderer(lockup_renderer: dict) -> FeedItem:
 
         channel_name=channel_name,
         channel_id=channel_id,
-        channel_url=_channel_url(channel_id),
+        channel_url=links.channel_url(channel_id),
         video_count=_playlist_video_count(lockup_renderer),
 
         thumbnail_url=get_thumbnail_url(
