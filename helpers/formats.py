@@ -1,4 +1,7 @@
 
+def format_string_multiline(string: str) -> str:
+    return string.replace("\n", "<br>")
+
 def format_number(number: int):
     return f"{number:,d}"
 
@@ -35,6 +38,7 @@ def get_all_formatters():
     """
 
     return {
+        'format_string_multiline': format_string_multiline,
         'format_view_count': format_view_count,
         'format_duration': format_duration,
         'format_number': format_number,
