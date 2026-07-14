@@ -302,7 +302,7 @@ def get_watch_related(
         cached['related'].append(continuation_data)
     
     cached['updated_at'] = int(datetime.now().timestamp())
-    cache.save_cache_data('watch_suggestions', video_id, dict(cached))
+    cache.save_cache_data('watch', video_id, dict(cached))
 
     return cached['related'][-1]
     
