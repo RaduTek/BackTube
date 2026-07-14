@@ -6,13 +6,12 @@ from ..helpers.innertube.search import get_search_results_page
 
 
 def results_page():
-    search_query = request.args.get('search_query', '') or request.args.get('q', '')
+    search_query = request.args.get('search_query', '')
     search_query_url = quote_plus(search_query)
 
-    page = {}
-    page['current'] = int(request.args.get('page', 1))
+    search_page = int(request.args.get('page', 1))
 
-    search_results = get_search_results_page(search_query, page_number=page['current'])
+    search_results = get_search_results_page(search_query, page_number=search_page)
 
     if not search_results:
         return 'no search results found'
@@ -24,17 +23,27 @@ def results_page():
     half_window = window_size // 2
 
     # Only an estimated total
-    page['total'] = (search_results['estimated_results']) // per_page_count
-    page['start'] = max(1, page['current'] - half_window)
-    page['end'] = page['start'] + min(page['total'], window_size) - 1
-    page['range'] = range(page['start'], page['end'] + 1)
-    page['next'] = page['current'] + 1 if page['current'] < page['total'] else None
-    page['prev'] = page['current'] - 1 if page['current'] > 1 else None
+    total = (search_results['estimated_results']) // per_page_count
+    start = max(1, search_page - half_window)
+    end = start + min(total, window_size) - 1
+
+    def get_page_url(page_number):
+        if page_number == 1:
+            return f'/results?search_query={search_query_url}'
+        return f'/results?search_query={search_query_url}&page={page_number}'
+
+    pager = {
+        'current': search_page,
+        'prev': get_page_url(search_page - 1) if search_page > 1 else None,
+        'next': get_page_url(search_page + 1) if search_page < total else None,
+        'links': [(page, get_page_url(page)) for page in range(start, end + 1)]
+    }
 
     return render_template(
         get_preferred_template('results'),
         search_query=search_query,
         search_query_url=search_query_url,
+        search_page=search_page,
         search_results=search_results,
-        search_page=page,
+        pager=pager,
     )

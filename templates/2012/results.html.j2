@@ -504,20 +504,16 @@
 <div id="search-footer-box" class="searchFooterBox">
     <div class="yt-uix-pager" role="navigation">
 
-        {% if search_page.prev %}
-        <a
-            href="/results?search_query={{ search_query_url }}&amp;page={{ search_page.prev }}"
-            class="yt-uix-button yt-uix-pager-prev yt-uix-pager-button"
-            data-page="{{ search_page.prev }}"
-        >
+        {% if pager.prev %}
+        <a href="{{ pager.prev }}" class="yt-uix-button yt-uix-pager-prev yt-uix-pager-button">
             <span class="yt-uix-button-content">« Previous</span>
         </a>
         &nbsp;
         {% endif %}
 
-        {% for page in search_page.range %}
+        {% for page, url in pager.links %}
         <a
-            href="/results?search_query={{ search_query_url }}&amp;page={{ page }}"
+            href="{{ url }}"
             class="yt-uix-button yt-uix-pager-page-num yt-uix-pager-button {{ 'yt-uix-button-toggled' if page == search_results['page'] else '' }}"
             data-page="{{ page }}"
             aria-label="Go to page {{ page }}"
@@ -528,12 +524,8 @@
 
         {% endfor %}
 
-        {% if search_page.next %}
-        <a
-            href="/results?search_query={{ search_query_url }}&amp;page={{ search_page.next }}"
-            class="yt-uix-button yt-uix-pager-next yt-uix-pager-button"
-            data-page="{{ search_page.next }}"
-        >
+        {% if pager.next %}
+        <a href="{{ pager.next }}" class="yt-uix-button yt-uix-pager-next yt-uix-pager-button">
             <span class="yt-uix-button-content">Next »</span>
         </a>
         &nbsp;
