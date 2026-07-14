@@ -276,12 +276,7 @@ def parse_innertube_video_lockup_renderer(lockup_renderer: dict) -> FeedItem:
         id=video_id,
         title=get_text(lockup_metadata.get('title')),
         url=links.video_url(video_id),
-        thumbnail_url=get_thumbnail_url(
-            lockup_renderer.get('contentImage', {})
-            .get('thumbnailViewModel', {})
-            .get('image', {})
-            .get('sources', [])
-        ),
+        thumbnail_url=links.video_thumbnail_url(video_id),
         channel_name=channel_name,
         channel_id=channel_id,
         channel_url=links.channel_url(channel_id),
@@ -302,7 +297,7 @@ def parse_innertube_compact_video_renderer(compact_renderer: dict) -> FeedItem:
         id=video_id,
         title=get_text(compact_renderer.get('title')),
         url=links.video_url(video_id),
-        thumbnail_url=get_thumbnail_url(compact_renderer.get('thumbnail', {}).get('thumbnails', [])),
+        thumbnail_url=links.video_thumbnail_url(video_id),
         channel_name=channel_name,
         channel_id=channel_id,
         channel_url=links.channel_url(channel_id),
