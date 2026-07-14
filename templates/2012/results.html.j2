@@ -248,7 +248,7 @@
                 <div class="result-item yt-uix-tile yt-tile-default *sr">
                     <div class="thumb-container">
                         <a
-                            href="/watch?v={{ item['id'] }}"
+                            href="{{ item.url }}"
                             class="ux-thumb-wrap contains-addto result-item-thumb"
                         >
                             <span class="video-thumb ux-thumb ux-thumb-128">
@@ -256,13 +256,13 @@
                                     <span class="clip-inner">
                                         <img
                                             alt="Thumbnail"
-                                            src="//i4.ytimg.com/vi/{{ item['id'] }}/default.jpg"
+                                            src="{{ item.thumbnail_url }}"
                                         />
                                         <span class="vertical-align"></span>
                                     </span>
                                 </span>
                             </span>
-                            <span class="video-time">{{ item['length_text'] }}</span>
+                            <span class="video-time">{{ item.length_text }}</span>
 
                             <button
                                 onclick="return false;"
@@ -270,7 +270,7 @@
                                 type="button"
                                 class="addto-button video-actions addto-watch-later-button-sign-in yt-uix-button yt-uix-button-default yt-uix-button-short yt-uix-tooltip"
                                 data-button-menu-id="shared-addto-watch-later-login"
-                                data-video-ids="{{ item['id'] }}"
+                                data-video-ids="{{ item.id }}"
                                 data-feature="thumbnail"
                                 role="button"
                             >
@@ -289,38 +289,38 @@
                         </a>
                     </div>
                     <div class="result-item-main-content">
-                        <h3 id="video-long-title-{{ item['id'] }}">
+                        <h3 id="video-long-title-{{ item.id }}">
                             <a
-                                href="/watch?v={{ item['id'] }}"
+                                href="{{ item.url }}"
                                 class="yt-uix-tile-link"
                                 dir="ltr"
-                                title="{{ item['title'] }}"
+                                title="{{ item.title }}"
                             >
-                                {{ item['title'] }}
+                                {{ item.title }}
                             </a>
                         </h3>
 
                         <p
-                            id="video-description-{{ item['id'] }}"
+                            id="video-description-{{ item.id }}"
                             class="description"
                         >
-                            {{ item['description'] }}
+                            {{ item.description }}
                         </p>
 
                         <p class="facets">
                             <span class="username-prepend">by</span>
                             <a
-                                href="/channel/{{ item['channel_id'] }}"
+                                href="{{ item.channel_url }}"
                                 class="yt-user-name"
                                 dir="ltr"
                             >
-                                {{ item['channel_name'] }}
+                                {{ item.channel_name }}
                             </a>
 
                             <span class="metadata-separator">|</span>
-                            <span class="date-added">{{ item['published_text'] }}</span>
+                            <span class="date-added">{{ item.published_text }}</span>
                             <span class="metadata-separator">|</span>
-                            <span class="viewcount">{{ item['viewcount_text'] }}</span>
+                            <span class="viewcount">{{ item.viewcount_text }}</span>
                         </p>
                     </div>
                 </div>
@@ -328,19 +328,19 @@
                 <div class="result-item yt-uix-tile yt-tile-default result-playlist-experiment">
                     <div class="thumb-container">
                         <a
-                            href="/playlist?list={{ item['id'] }}"
+                            href="{{ item.url }}"
                             class="thumb-experimental-playlist ux-thumb-wrap result-item-thumb"
                             dir="ltr"
-                            title="{{ item['title'] }}"
+                            title="{{ item.title }}"
                         >
                             <span class="playlist-rec-video-thumbs">
-                                {% if item['playlist_entries'] %}
+                                {% if item.playlist_items %}
                                 <span class="playlist-thumb-0">
                                     <span class="video-thumb ux-thumb ux-thumb-128">
                                         <span class="clip">
                                             <span class="clip-inner">
                                                 <img
-                                                    src="//i4.ytimg.com/vi/{{ item['playlist_entries'][0]['id'] }}/default.jpg"
+                                                    src="{{ item.playlist_items[0].thumbnail_url }}"
                                                     alt="Thumbnail"
                                                 />
                                                 <span class="vertical-align"></span>
@@ -348,13 +348,13 @@
                                         </span>
                                     </span>
                                 </span>
-                                {% if item['playlist_entries']|length > 1 %}
+                                {% if item.playlist_items|length > 1 %}
                                 <span class="playlist-thumb-1">
                                     <span class="video-thumb ux-thumb ux-thumb-128">
                                         <span class="clip">
                                             <span class="clip-inner">
                                                 <img
-                                                    src="//i4.ytimg.com/vi/{{ item['playlist_entries'][1]['id'] }}/default.jpg"
+                                                    src="{{ item.playlist_items[1].thumbnail_url }}"
                                                     alt="Thumbnail"
                                                 />
                                                 <span class="vertical-align"></span>
@@ -363,13 +363,13 @@
                                     </span>
                                 </span>
                                 {% endif %}
-                                {% elif item['thumbnail_url'] %}
+                                {% elif item.thumbnail_url %}
                                 <span class="playlist-thumb-0">
                                     <span class="video-thumb ux-thumb ux-thumb-128">
                                         <span class="clip">
                                             <img
-                                                src="{{ item['thumbnail_url'] }}"
-                                                alt="{{ item['title'] }}"
+                                                src="{{ item.thumbnail_url }}"
+                                                alt="{{ item.title }}"
                                             />
                                         </span>
                                     </span>
@@ -381,48 +381,48 @@
                     <div class="result-item-main-content">
                         <div class="result-item-playlist-header">
                             <h3
-                                id="playlist-long-title-{{ item['id'] }}"
+                                id="playlist-long-title-{{ item.id }}"
                                 class="playlist-long-title"
                             >
                                 <a
-                                    href="/playlist?list={{ item['id'] }}"
+                                    href="{{ item.url }}"
                                     class="yt-uix-tile-link"
                                     dir="ltr"
-                                    title="{{ item['title'] }}"
+                                    title="{{ item.title }}"
                                 >
-                                    {{ item['title'] }}
+                                    {{ item.title }}
                                 </a>
                             </h3>
                             <span class="byline">
                                 <span class="username-prepend">by</span>
                                 <a
-                                    href="/channel/{{ item['channel_id'] }}"
+                                    href="{{ item.channel_url }}"
                                     class="yt-user-name"
                                     dir="ltr"
                                 >
-                                    {{ item['channel_name'] }}
+                                    {{ item.channel_name }}
                                 </a>
                             </span>
                             <span class="yt-badge-std">Playlist</span>
                         </div>
 
-                        {% if item['playlist_entries'] %}
+                        {% if item.playlist_items %}
                         <div class="playlist-videos">
                             <ul>
-                                {% for video in item['playlist_entries'] %}
+                                {% for video in item.playlist_items %}
                                 <li class="playlist-video">
                                     <span class="tiny-video-icon floatL"></span>
                                     <a
-                                        href="/watch?v={{ video['id'] }}&amp;list={{ item['id'] }}"
+                                        href="{{ video.url }}"
                                         class="playlist-detail-title"
                                         dir="ltr"
-                                        title="{{ video['title'] }}"
+                                        title="{{ video.title }}"
                                     >
-                                        {{ video['title'] }}
+                                        {{ video.title }}
                                     </a>
-                                    {% if video['length_text'] %}
+                                    {% if video.length_text %}
                                     <span class="playlist-video-length">
-                                        {{ video['length_text'] }}
+                                        {{ video.length_text }}
                                     </span>
                                     {% endif %}
                                 </li>
@@ -432,7 +432,7 @@
                         {% endif %}
 
                         <p class="facets playlist-facets">
-                            <span class="playlist-video-count">{{ item['video_count'] }}</span>
+                            <span class="playlist-video-count">{{ item.video_count }}</span>
                         </p>
                     </div>
                 </div>
@@ -440,18 +440,18 @@
                 <div class="result-item yt-uix-tile yt-tile-default channel">
                     <div class="thumb-container">
                         <a
-                            href="/channel/{{ item['channel_id'] }}"
+                            href="{{ item.channel_url }}"
                             class="ux-thumb-wrap result-item-thumb"
                             dir="ltr"
-                            title="{{ item['title'] }}"
+                            title="{{ item.title }}"
                         >
                             <span class="user-thumb-large ux-thumb ux-thumb-profile-77">
                                 <span class="clip">
                                     <span class="clip-inner">
                                         <span class="profile-centering-wrap">
                                             <img
-                                                src="{{ item['thumbnail_url'] }}"
-                                                alt="{{ item['title'] }}"
+                                                src="{{ item.thumbnail_url }}"
+                                                alt="{{ item.title }}"
                                             />
                                         </span>
                                         <span class="vertical-align"></span>
@@ -462,30 +462,30 @@
                     </div>
                     <div class="result-item-main-content channel-main-content">
                         <h3
-                            id="channel-long-title-{{ item['id'] }}"
+                            id="channel-long-title-{{ item.id }}"
                             class="channel-long-title"
                         >
                             <a
-                                href="/channel/{{ item['channel_id'] }}"
+                                href="{{ item.channel_url }}"
                                 class="yt-uix-tile-link"
                                 dir="ltr"
-                                title="{{ item['title'] }}"
+                                title="{{ item.title }}"
                             >
-                                {{ item['title'] }}
+                                {{ item.title }}
                             </a>
                         </h3>
 
                         {% if item['description'] %}
                         <p
-                            id="channel-description-{{ item['id'] }}"
+                            id="channel-description-{{ item.id }}"
                             class="description channel-description"
                         >
-                            {{ item['description'] }}
+                            {{ item.description }}
                         </p>
                         {% endif %}
 
                         <p class="facets channel-facets">
-                            <span class="channel-video-count">{{ item['video_count'] }}</span>
+                            <span class="channel-video-count">{{ item.video_count }}</span>
                         </p>
                     </div>
                 </div>
@@ -502,35 +502,7 @@
 
 
 <div id="search-footer-box" class="searchFooterBox">
-    <div class="yt-uix-pager" role="navigation">
-
-        {% if pager.prev %}
-        <a href="{{ pager.prev }}" class="yt-uix-button yt-uix-pager-prev yt-uix-pager-button">
-            <span class="yt-uix-button-content">« Previous</span>
-        </a>
-        &nbsp;
-        {% endif %}
-
-        {% for page, url in pager.links %}
-        <a
-            href="{{ url }}"
-            class="yt-uix-button yt-uix-pager-page-num yt-uix-pager-button {{ 'yt-uix-button-toggled' if page == search_results['page'] else '' }}"
-            data-page="{{ page }}"
-            aria-label="Go to page {{ page }}"
-        >
-            <span class="yt-uix-button-content">{{ page }}</span>
-        </a>
-        &nbsp;
-
-        {% endfor %}
-
-        {% if pager.next %}
-        <a href="{{ pager.next }}" class="yt-uix-button yt-uix-pager-next yt-uix-pager-button">
-            <span class="yt-uix-button-content">Next »</span>
-        </a>
-        &nbsp;
-        {% endif %}
-    </div>
+    {{ macros.create_pager(pager) }}
 </div>
 
 <div class="clear"></div>
