@@ -1,5 +1,17 @@
 {% extends "2012/_root.html.j2" %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="http://s.ytimg.com/yt/cssbin/www-guide-vfl13boML.css">
+{% endblock %}
+
+{% block alerts %}
+
+{% import '2012/_macros.html.j2' as macros %}
+{{ macros.alert('You are using Microsoft Internet Explorer 7 web browser. YouTube is ending support for
+                Internet Explorer 7 soon, <a href="/supported_browsers">update your browser now</a>', 'yt-alert-info') }}
+
+{% endblock %}
+
 {% block content %}
     <h1>Welcome to BackTube</h1>
     <p>This is a simple Flask application that mimics the YouTube homepage.</p>

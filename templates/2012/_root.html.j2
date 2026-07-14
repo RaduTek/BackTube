@@ -17,25 +17,13 @@
     <meta name="description" content="Share your videos with friends, family, and the world" />
     <meta name="keywords" content="video, sharing, camera phone, video phone, free, upload" />
 
-    <link id="www-core-css" rel="stylesheet" href="https://s.ytimg.com/yt/cssbin/www-refresh-datauri-vflKEEucy.css">
-
+    {% block core_css %}
+    <link id="www-core-css" rel="stylesheet" href="http://s.ytimg.com/yt/cssbin/www-core-vflnhJKDt.css">
+    {% endblock %}
+    {% block extra_css %}{% endblock %}
     <style>
-        /* Layout fixes for playlist search results */
-        .result-item.result-playlist-experiment .thumb-container .result-item-thumb {
-            float: left !important;
-            height: 80px !important;
-        }
-        .playlist-rec-video-thumbs .playlist-thumb-0 {
-            top: 0 !important;
-            left: 0 !important;
-        }
-        .playlist-rec-video-thumbs .playlist-thumb-1,
-        .playlist-rec-video-thumbs .playlist-thumb-2 {
-            top: 4px !important;
-            left: 4px !important;
-        }
-        .result-item .facets {
-            margin-bottom: 0;
+        .yt-alert .close {
+            float: right;
         }
     </style>
 
