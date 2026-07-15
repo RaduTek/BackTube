@@ -5,7 +5,14 @@
 <style>
 .single-playlist .video .video-item-content {
     padding: 15px;
-    width: 464px;
+    width: 400px;
+}
+.ux-thumb-200 {
+    width: 200px !important;
+    height: 112px !important;
+}
+.ux-thumb-200 img {
+    max-width: 200px !important;
 }
 </style>
 {% endblock %}
@@ -69,7 +76,7 @@
                     <a href="{{ item.url }}"
                         class="tile-link-block">
                         <span class="ux-thumb-wrap contains-addto">
-                            <span class="video-thumb ux-thumb ux-thumb-128 ">
+                            <span class="video-thumb ux-thumb ux-thumb-200">
                                 <span class="clip">
                                     <span class="clip-inner">
                                         <img src="{{ video_thumbnail_url(item.id, True) }}" alt="Thumbnail" />

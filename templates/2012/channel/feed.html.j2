@@ -5,17 +5,24 @@
 <link rel="stylesheet" href="https://s.ytimg.com/yt/cssbin/www-guide-feed2-vflSYZ2W5.css">
 <style>
 .channel-activity-feeds {
-    padding: 0 !important;
+    padding: 0;
 }
 .activity-feeds-header {
-    padding: 20px 30px !important;
+    padding: 20px 30px;
+}
+.feed-item-thumb {
+    margin-bottom: 6px;
 }
 .feed-item-main {
     border: none !important;
 }
 .yt-thumb-square-28 {
-    width: 28px !important;
-    height: 28px !important;
+    width: 28px;
+    height: 28px;
+}
+.yt-thumb-default-185 {
+    width: 185px;
+    height: 104px;
 }
 </style>
 {% endblock %}
@@ -70,10 +77,10 @@
                                     <div class="feed-item-thumb">
                                         <a class="ux-thumb-wrap contains-addto yt-uix-sessionlink" href="{{ item.url }}">
                                             <span class="video-thumb ux-thumb yt-thumb-default-185">
-                                                <span class="yt-thumb-clip">
-                                                    <span class="yt-thumb-clip-inner">
-                                                        <img src="{{ video_thumbnail_url(item.id, True) }}" alt="Thumbnail" width="185">
-                                                        <span class="vertical-align"></span>
+                                                <span class="clip">
+                                                    <span class="clip-inner">
+                                                        <img src="{{ video_thumbnail_url(item.id, True) }}" alt="Thumbnail" width="185" 
+                                                        /><span class="vertical-align"></span>
                                                     </span>
                                                 </span>
                                             </span>
