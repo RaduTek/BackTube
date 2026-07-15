@@ -1,10 +1,14 @@
 from flask import Flask, render_template, request
-from .pages import home, search, watch, channel
+from .pages import home, search, watch, channel, get_preferred_template
 from .helpers.formats import get_all_formatters
 
 app = Flask(__name__)
 
 app.register_blueprint(channel.bp)
+
+@app.errorhandler(404)
+def page_not_found(e):
+    return render_template(get_preferred_template('404')), 404
 
 @app.context_processor
 def formatters():
