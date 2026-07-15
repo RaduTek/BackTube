@@ -19,9 +19,7 @@
 
 {% block primary_pane %}
 
-    {% set featured_feed = find_feed(feeds, 'feed_type', 'featured_video') %}
-    {% if featured_feed %}
-    {% set featured_video = featured_feed['items'][0] %}
+    {% if featured_video %}
     <div class="channels-featured-video channel-module has-visible-edge">
         <div class="module-view">
             <div class="channels-video-player player-root"
@@ -52,7 +50,6 @@
     </div>
     {% endif %}
 
-    {% set videos_feed = find_feed(feeds, 'feed_id', 'latest-videos') %}
     {% if videos_feed %}
     <div class="single-playlist channel-module yt-uix-c3-module-container" style="overflow: visible;">
     <div class="module-view single-playlist-view-module">

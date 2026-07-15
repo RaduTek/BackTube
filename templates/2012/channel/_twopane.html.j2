@@ -18,6 +18,7 @@
             <h2>About {{ channel.channel_name }}</h2>
 
             <div class="section first">
+                {% if channel.description %}
                 <div class="user-profile-item">
                     <div class="expander-container">
                         <div class="expanded-content">
@@ -37,6 +38,7 @@
                         </div>
                     </div>
                 </div>
+                {% endif %}
                 
                 <div class="user-profile-item">
                 {% for link in channel.featured_socials %}
@@ -56,7 +58,7 @@
                 </div>
             </div>
             
-            <div class="section created-by-section">
+            <div class="section last created-by-section">
                 <div class="user-profile-item">
                     <h5>
                         Created by
