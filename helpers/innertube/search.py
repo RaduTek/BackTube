@@ -23,6 +23,38 @@ class SearchResultsPage(TypedDict):
     entries: list['FeedItem']
 
 
+def _channel_handle_from_browse_endpoint(browse_endpoint: dict) -> str:
+    canonical = browse_endpoint.get('canonicalBaseUrl', '')
+    if '/@' in canonical:
+        return canonical.rsplit('/@', 1)[-1].strip('/')
+    return ''
+
+
+def _channel_handle_from_byline(byline: dict | None) -> str:
+    run = get_first_run(byline)
+    return _channel_handle_from_browse_endpoint(
+        run.get('navigationEndpoint', {})
+        .get('browseEndpoint', {})
+    )
+
+
+def _channel_handle_from_command_text(text_obj: dict) -> str:
+    for run in text_obj.get('commandRuns', []):
+        if handle := _channel_handle_from_browse_endpoint(
+            run.get('onTap', {})
+            .get('innertubeCommand', {})
+            .get('browseEndpoint', {})
+        ):
+            return handle
+    return ''
+
+
+def _prefer_channel_url(channel_id: str, channel_handle: str = '') -> str:
+    if channel_handle:
+        return links.user_url(channel_handle)
+    return links.channel_url(channel_id)
+
+
 def _video_description(video_renderer: dict) -> str:
     snippets = video_renderer.get('detailedMetadataSnippets') or []
     if not snippets:
@@ -102,6 +134,7 @@ def _parse_playlist_preview_entry(
     playlist_id: str,
     channel_name: str,
     channel_id: str,
+    channel_handle: str = '',
 ) -> FeedItem | None:
     content = text_obj.get('content', '')
     if not content or content in {'View full playlist', 'Playlist'}:
@@ -137,7 +170,8 @@ def _parse_playlist_preview_entry(
 
         channel_name=channel_name,
         channel_id=channel_id,
-        channel_url=links.channel_url(channel_id),
+        channel_handle=channel_handle,
+        channel_url=_prefer_channel_url(channel_id, channel_handle),
     )
 
 
@@ -146,6 +180,7 @@ def _parse_playlist_preview_entries(
     playlist_id: str,
     channel_name: str,
     channel_id: str,
+    channel_handle: str = '',
 ) -> list[FeedItem]:
     entries: list[FeedItem] = []
     for row in metadata_rows:
@@ -154,7 +189,7 @@ def _parse_playlist_preview_entries(
         for part in row.get('metadataParts', []):
             text_obj = part.get('text', {})
             if preview := _parse_playlist_preview_entry(
-                text_obj, playlist_id, channel_name, channel_id
+                text_obj, playlist_id, channel_name, channel_id, channel_handle
             ):
                 entries.append(preview)
     return entries
@@ -165,6 +200,7 @@ def parse_innertube_video_renderer(video_renderer: dict) -> FeedItem:
 
     video_id = video_renderer.get('videoId', '')
     channel_name, channel_id = get_channel_from_byline(video_renderer.get('longBylineText'))
+    channel_handle = _channel_handle_from_byline(video_renderer.get('longBylineText'))
 
     return FeedItem(
         type='video',
@@ -175,7 +211,8 @@ def parse_innertube_video_renderer(video_renderer: dict) -> FeedItem:
 
         channel_name=channel_name,
         channel_id=channel_id,
-        channel_url=links.channel_url(channel_id),
+        channel_handle=channel_handle,
+        channel_url=_prefer_channel_url(channel_id, channel_handle),
 
         published_text=get_text(video_renderer.get('publishedTimeText')),
         description=_video_description(video_renderer),
@@ -189,16 +226,21 @@ def parse_innertube_channel_renderer(channel_renderer: dict) -> FeedItem:
 
     channel_id = channel_renderer.get('channelId', '')
     title = get_text(channel_renderer.get('title'))
+    channel_handle = _channel_handle_from_browse_endpoint(
+        channel_renderer.get('navigationEndpoint', {})
+        .get('browseEndpoint', {})
+    )
 
     return FeedItem(
         type='channel',
         id=channel_id,
         title=title,
-        url=links.channel_url(channel_id),
+        url=_prefer_channel_url(channel_id, channel_handle),
 
         channel_name=title,
         channel_id=channel_id,
-        channel_url=links.channel_url(channel_id),
+        channel_handle=channel_handle,
+        channel_url=_prefer_channel_url(channel_id, channel_handle),
 
         description=get_text(channel_renderer.get('descriptionSnippet')),
         video_count=get_text(channel_renderer.get('videoCountText')),
@@ -245,7 +287,7 @@ def _channel_name_from_lockup_avatar(lockup_metadata: dict) -> str:
     return ''
 
 
-def _channel_from_video_lockup_metadata(lockup_metadata: dict) -> tuple[str, str]:
+def _channel_from_video_lockup_metadata(lockup_metadata: dict) -> tuple[str, str, str]:
     metadata_rows = _lockup_metadata_rows(lockup_metadata)
     texts = _lockup_metadata_texts(metadata_rows)
 
@@ -259,6 +301,7 @@ def _channel_from_video_lockup_metadata(lockup_metadata: dict) -> tuple[str, str
         .get('browseEndpoint', {})
     )
     channel_id = browse_endpoint.get('browseId', '')
+    channel_handle = _channel_handle_from_browse_endpoint(browse_endpoint)
 
     channel_name = ''
     for text in texts:
@@ -269,7 +312,7 @@ def _channel_from_video_lockup_metadata(lockup_metadata: dict) -> tuple[str, str
     if not channel_name:
         channel_name = _channel_name_from_lockup_avatar(lockup_metadata)
 
-    return channel_name, channel_id
+    return channel_name, channel_id, channel_handle
 
 
 def _video_lockup_length_text(lockup_renderer: dict) -> str:
@@ -292,7 +335,7 @@ def parse_innertube_video_lockup_renderer(lockup_renderer: dict) -> FeedItem:
     video_id = lockup_renderer.get('contentId', '')
     lockup_metadata = lockup_renderer.get('metadata', {}).get('lockupMetadataViewModel', {})
     metadata_rows = _lockup_metadata_rows(lockup_metadata)
-    channel_name, channel_id = _channel_from_video_lockup_metadata(lockup_metadata)
+    channel_name, channel_id, channel_handle = _channel_from_video_lockup_metadata(lockup_metadata)
 
     viewcount_text = ''
     published_text = ''
@@ -310,7 +353,8 @@ def parse_innertube_video_lockup_renderer(lockup_renderer: dict) -> FeedItem:
         thumbnail_url=links.video_thumbnail_url(video_id),
         channel_name=channel_name,
         channel_id=channel_id,
-        channel_url=links.channel_url(channel_id),
+        channel_handle=channel_handle,
+        channel_url=_prefer_channel_url(channel_id, channel_handle),
         viewcount_text=viewcount_text,
         published_text=published_text,
         length_text=_video_lockup_length_text(lockup_renderer),
@@ -322,6 +366,7 @@ def parse_innertube_compact_video_renderer(compact_renderer: dict) -> FeedItem:
 
     video_id = compact_renderer.get('videoId', '')
     channel_name, channel_id = get_channel_from_byline(compact_renderer.get('shortBylineText'))
+    channel_handle = _channel_handle_from_byline(compact_renderer.get('shortBylineText'))
 
     return FeedItem(
         type='video',
@@ -331,7 +376,8 @@ def parse_innertube_compact_video_renderer(compact_renderer: dict) -> FeedItem:
         thumbnail_url=links.video_thumbnail_url(video_id),
         channel_name=channel_name,
         channel_id=channel_id,
-        channel_url=links.channel_url(channel_id),
+        channel_handle=channel_handle,
+        channel_url=_prefer_channel_url(channel_id, channel_handle),
         published_text=get_text(compact_renderer.get('publishedTimeText')),
         length_text=get_text(compact_renderer.get('lengthText')),
         viewcount_text=get_text(compact_renderer.get('viewCountText')),
@@ -343,6 +389,7 @@ def parse_innertube_compact_playlist_renderer(compact_renderer: dict) -> FeedIte
 
     playlist_id = compact_renderer.get('playlistId', '')
     channel_name, channel_id = get_channel_from_byline(compact_renderer.get('shortBylineText'))
+    channel_handle = _channel_handle_from_byline(compact_renderer.get('shortBylineText'))
 
     return FeedItem(
         type='playlist',
@@ -352,7 +399,8 @@ def parse_innertube_compact_playlist_renderer(compact_renderer: dict) -> FeedIte
         thumbnail_url=get_thumbnail_url(compact_renderer.get('thumbnail', {}).get('thumbnails', [])),
         channel_name=channel_name,
         channel_id=channel_id,
-        channel_url=links.channel_url(channel_id),
+        channel_handle=channel_handle,
+        channel_url=_prefer_channel_url(channel_id, channel_handle),
         video_count=get_text(compact_renderer.get('videoCountText')),
     )
 
@@ -382,6 +430,7 @@ def parse_innertube_playlist_lockup_renderer(lockup_renderer: dict) -> FeedItem:
 
     channel_name = owner_text.get('content', '')
     channel_id = _channel_id_from_command_text(owner_text)
+    channel_handle = _channel_handle_from_command_text(owner_text)
 
     return FeedItem(
         type='playlist',
@@ -391,7 +440,8 @@ def parse_innertube_playlist_lockup_renderer(lockup_renderer: dict) -> FeedItem:
 
         channel_name=channel_name,
         channel_id=channel_id,
-        channel_url=links.channel_url(channel_id),
+        channel_handle=channel_handle,
+        channel_url=_prefer_channel_url(channel_id, channel_handle),
         video_count=_playlist_video_count(lockup_renderer),
 
         thumbnail_url=get_thumbnail_url(
@@ -404,7 +454,7 @@ def parse_innertube_playlist_lockup_renderer(lockup_renderer: dict) -> FeedItem:
         ),
 
         playlist_items=_parse_playlist_preview_entries(
-            metadata_rows, playlist_id, channel_name, channel_id
+            metadata_rows, playlist_id, channel_name, channel_id, channel_handle
         ),
     )
 
