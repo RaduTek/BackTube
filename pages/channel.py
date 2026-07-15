@@ -1,7 +1,6 @@
 from flask import Blueprint, render_template, request
 from werkzeug.exceptions import NotFound
 
-
 from . import get_preferred_template
 from ..helpers import links
 from ..helpers.innertube import FeedCollection
@@ -12,6 +11,9 @@ bp = Blueprint('channel', __name__)
 
 
 def channel_horizontal_menu_items(base_url: str, selected: str = 'featured') -> list[dict]:
+    if selected not in ['featured', 'feed', 'videos']:
+        selected = 'featured'
+    
     return [
         {
             'id': 'featured',
@@ -41,7 +43,7 @@ def find_feed(feeds: list[FeedCollection], key: str, value: str) -> FeedCollecti
     return None
 
 
-def _get_channel_data(channel_id: str | None = None, user_id: str | None = None) -> tuple[str, ChannelPageData]:
+def _get_channel_data(channel_id: str | None = None, user_id: str | None = None) -> tuple[str, ChannelPageData, dict]:
     try:
         if user_id:
             channel_id = resolve_channel_handle(user_id)
@@ -49,7 +51,20 @@ def _get_channel_data(channel_id: str | None = None, user_id: str | None = None)
         if not channel_id:
             raise NotFound("Channel not found")
 
-        return channel_id, get_channel_data(channel_id)
+        data = get_channel_data(channel_id)
+        base_url = links.user_url(data['channel']['channel_handle'])
+        
+        selected_menu_item = request.path.split('/')[-1] or 'featured'
+        horiz_menu = channel_horizontal_menu_items(base_url, selected=selected_menu_item)
+
+        common_context = {
+            'channel_id': data['channel_id'],
+            'channel': data['channel'],
+            'base_url': base_url,
+            'horiz_menu': horiz_menu,
+        }
+
+        return channel_id, data, common_context
     except:
         raise NotFound("Channel not found")
 
@@ -61,20 +76,14 @@ def _get_channel_data(channel_id: str | None = None, user_id: str | None = None)
 @bp.get('/user/<user_id>/')
 @bp.get('/user/<user_id>/featured')
 def channel_featured_page(channel_id: str | None = None, user_id: str | None = None):
-    channel_id, data = _get_channel_data(channel_id=channel_id, user_id=user_id)
-
-    base_url = links.user_url(user_id) if user_id else links.channel_url(channel_id)
-    horiz_menu = channel_horizontal_menu_items(base_url, selected='featured')
+    channel_id, data, common_context = _get_channel_data(channel_id=channel_id, user_id=user_id)
 
     featured_video = (find_feed(data['feeds'], 'feed_type', 'featured_video') or {}).get('items', [None])[0]
     videos_feed = find_feed(data['feeds'], 'feed_type', 'videos')
 
     return render_template(
         get_preferred_template('channel/featured'),
-        channel_id=channel_id,
-        base_url=base_url,
-        channel=data['channel'],
-        horiz_menu=horiz_menu,
+        **common_context,
         featured_video=featured_video,
         videos_feed=videos_feed
     )
@@ -83,10 +92,7 @@ def channel_featured_page(channel_id: str | None = None, user_id: str | None = N
 @bp.get('/channel/<channel_id>/feed')
 @bp.get('/user/<user_id>/feed')
 def channel_feed_page(channel_id: str | None = None, user_id: str | None = None):
-    channel_id, data = _get_channel_data(channel_id=channel_id, user_id=user_id)
-
-    base_url = links.user_url(user_id) if user_id else links.channel_url(channel_id)
-    horiz_menu = channel_horizontal_menu_items(base_url, selected='feed')
+    channel_id, data, common_context = _get_channel_data(channel_id=channel_id, user_id=user_id)
 
     feeds = [
         {
@@ -104,10 +110,7 @@ def channel_feed_page(channel_id: str | None = None, user_id: str | None = None)
 
     return render_template(
         get_preferred_template('channel/feed'),
-        channel_id=channel_id,
-        base_url=base_url,
-        channel=data['channel'],
-        horiz_menu=horiz_menu,
+        **common_context,
         activity_feeds=feeds,
         selected_feed=feed_index
     )
@@ -117,19 +120,9 @@ def channel_feed_page(channel_id: str | None = None, user_id: str | None = None)
 @bp.get('/channel/<channel_id>/videos')
 @bp.get('/user/<user_id>/videos')
 def channel_videos_page(channel_id: str | None = None, user_id: str | None = None):
-    channel_id, data = _get_channel_data(channel_id=channel_id, user_id=user_id)
-
-    data = get_channel_data(channel_id)
-
-    base_url = links.user_url(user_id) if user_id else links.channel_url(channel_id)
-    horiz_menu = channel_horizontal_menu_items(base_url, selected='videos')
+    channel_id, data, common_context = _get_channel_data(channel_id=channel_id, user_id=user_id)
 
     return render_template(
         get_preferred_template('channel/videos'),
-        channel_id=channel_id,
-        base_url=base_url,
-        channel=data['channel'],
-        horiz_menu=horiz_menu,
-        feeds=data['feeds'],
-        find_feed=find_feed
+        **common_context
     )
