@@ -1,8 +1,11 @@
 from flask import Blueprint, render_template, request
+from werkzeug.exceptions import NotFound
+
 
 from . import get_preferred_template
 from ..helpers import links
-from ..helpers.innertube.channel import get_channel_data, resolve_channel_handle
+from ..helpers.innertube import FeedCollection
+from ..helpers.innertube.channel import ChannelPageData, get_channel_data, resolve_channel_handle
 
 
 bp = Blueprint('channel', __name__)
@@ -31,11 +34,24 @@ def channel_horizontal_menu_items(base_url: str, selected: str = 'featured') -> 
     ]
 
 
-def find_feed(feeds: list[dict], key: str, value: str) -> dict | None:
+def find_feed(feeds: list[FeedCollection], key: str, value: str) -> FeedCollection | None:
     for feed in feeds:
         if feed.get(key) == value:
             return feed
     return None
+
+
+def _get_channel_data(channel_id: str | None = None, user_id: str | None = None) -> tuple[str, ChannelPageData]:
+    try:
+        if user_id:
+            channel_id = resolve_channel_handle(user_id)
+
+        if not channel_id:
+            raise NotFound("Channel not found")
+
+        return channel_id, get_channel_data(channel_id)
+    except:
+        raise NotFound("Channel not found")
 
 
 @bp.get('/channel/<channel_id>')
@@ -45,13 +61,7 @@ def find_feed(feeds: list[dict], key: str, value: str) -> dict | None:
 @bp.get('/user/<user_id>/')
 @bp.get('/user/<user_id>/featured')
 def channel_featured_page(channel_id: str | None = None, user_id: str | None = None):
-    if user_id:
-        channel_id = resolve_channel_handle(user_id)
-
-    if not channel_id:
-        return "Channel not found", 404
-
-    data = get_channel_data(channel_id)
+    channel_id, data = _get_channel_data(channel_id=channel_id, user_id=user_id)
 
     base_url = links.user_url(user_id) if user_id else links.channel_url(channel_id)
     horiz_menu = channel_horizontal_menu_items(base_url, selected='featured')
@@ -70,13 +80,7 @@ def channel_featured_page(channel_id: str | None = None, user_id: str | None = N
 @bp.get('/channel/<channel_id>/feed')
 @bp.get('/user/<user_id>/feed')
 def channel_feed_page(channel_id: str | None = None, user_id: str | None = None):
-    if user_id:
-        channel_id = resolve_channel_handle(user_id)
-
-    if not channel_id:
-        return "Channel not found", 404
-
-    data = get_channel_data(channel_id)
+    channel_id, data = _get_channel_data(channel_id=channel_id, user_id=user_id)
 
     base_url = links.user_url(user_id) if user_id else links.channel_url(channel_id)
     horiz_menu = channel_horizontal_menu_items(base_url, selected='feed')
@@ -110,11 +114,7 @@ def channel_feed_page(channel_id: str | None = None, user_id: str | None = None)
 @bp.get('/channel/<channel_id>/videos')
 @bp.get('/user/<user_id>/videos')
 def channel_videos_page(channel_id: str | None = None, user_id: str | None = None):
-    if user_id:
-        channel_id = resolve_channel_handle(user_id)
-
-    if not channel_id:
-        return "Channel not found", 404
+    channel_id, data = _get_channel_data(channel_id=channel_id, user_id=user_id)
 
     data = get_channel_data(channel_id)
 
