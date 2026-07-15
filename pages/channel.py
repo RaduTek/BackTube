@@ -81,14 +81,28 @@ def channel_feed_page(channel_id: str | None = None, user_id: str | None = None)
     base_url = links.user_url(user_id) if user_id else links.channel_url(channel_id)
     horiz_menu = channel_horizontal_menu_items(base_url, selected='feed')
 
+    feeds = [
+        {
+            'title': 'Posts',
+            'items': (find_feed(data['feeds'], 'feed_type', 'posts') or {}).get('items', [])
+        },
+        {
+            'title': 'Videos',
+            'items': (find_feed(data['feeds'], 'feed_type', 'videos') or {}).get('items', [])
+        }
+    ]
+
+    default_feed = next((i for i in range(len(feeds)) if len(feeds[i]['items']) > 0), 0) + 1
+    feed_index = int(request.args.get('filter', default_feed)) - 1
+
     return render_template(
         get_preferred_template('channel/feed'),
         channel_id=channel_id,
         base_url=base_url,
         channel=data['channel'],
         horiz_menu=horiz_menu,
-        feeds=data['feeds'],
-        find_feed=find_feed
+        activity_feeds=feeds,
+        selected_feed=feed_index
     )
 
 

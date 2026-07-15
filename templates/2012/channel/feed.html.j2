@@ -1,6 +1,130 @@
+{% import '2012/_macros.html.j2' as macros %}
 {% extends "2012/channel/_twopane.html.j2" %}
 
+{% block extra_css %}{{ super() }}
+<link rel="stylesheet" href="https://s.ytimg.com/yt/cssbin/www-guide-feed2-vflSYZ2W5.css">
+<style>
+.channel-activity-feeds {
+    padding: 0 !important;
+}
+.activity-feeds-header {
+    padding: 20px 30px !important;
+}
+.feed-item-main {
+    border: none !important;
+}
+.yt-thumb-square-28 {
+    width: 28px !important;
+    height: 28px !important;
+}
+</style>
+{% endblock %}
+
 {% block primary_pane -%}
+<div class="channel-activity-feeds" data-module-id="10500">
+    <div class="activity-feeds-container">
+        <div class="activity-feeds-header ytg-box">
+            <ul>
+                {% for feed in activity_feeds %}
+                    <li class="user-feed-filter {% if loop.index0 == selected_feed %}selected{% endif %}">
+                        <a href="{{ base_url }}/feed?filter={{ loop.index }}">{{ feed.title }}</a>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
 
+        <div class="activity-feed">
+            <div class="feed-list-container">
+                <div class="feed-item-list">
+                {% for item in activity_feeds[selected_feed]['items'] %}
+                    <div>
+                        <div class="feed-item-container">
+                            <a href="{{ base_url }}" class="feed-author-bubble" title="{{ channel.channel_name }}">
+                                <span class="feed-item-author">
+                                    <span class="video-thumb ux-thumb yt-thumb-square-28">
+                                        <span class="clip">
+                                            <span class="clip-inner">
+                                                <img src="{{ channel.thumbnail_url }}" alt="{{ channel.channel_name }}" width="28"><span class="vertical-align"></span>
+                                            </span>
+                                        </span>
+                                    </span>
+                                </span>
+                            </a>
 
+                            <div class="feed-item-main">
+                                <div class="feed-item-header">
+                                    <div class="feed-item-actions-line">
+                                        <span class="feed-item-owner">
+                                            <a href="{{ base_url }}" class="yt-user-name" dir="ltr">{{ channel.channel_name }}</a>
+                                        </span>
+                                        {% if item.type == 'video' %}
+                                        uploaded a video
+                                        {% else %}
+                                        posted
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                {% if item.type == 'video' %}
+                                <div class="feed-item-content-wrapper yt-grid-container">
+                                    <div class="feed-item-thumb">
+                                        <a class="ux-thumb-wrap contains-addto yt-uix-sessionlink" href="{{ item.url }}">
+                                            <span class="video-thumb ux-thumb yt-thumb-default-185">
+                                                <span class="yt-thumb-clip">
+                                                    <span class="yt-thumb-clip-inner">
+                                                        <img src="{{ video_thumbnail_url(item.id, True) }}" alt="Thumbnail" width="185">
+                                                        <span class="vertical-align"></span>
+                                                    </span>
+                                                </span>
+                                            </span>
+                                            {% if item.length_text %}
+                                            <span class="video-time">{{ item.length_text }}</span>
+                                            {% endif %}
+                                            {{ macros.watch_later_button(item) }}
+                                        </a>
+                                    </div>
+                                    <div class="feed-item-content">
+                                        <h4>
+                                            <a class="title yt-uix-sessionlink" href="{{ item.url }}" dir="ltr">
+                                                {{ item.title }}
+                                            </a>
+                                        </h4>
+                                        <div class="metadata">
+                                            {% if item.viewcount_text %}
+                                            <span class="view-count">{{ item.viewcount_text }}</span>
+                                            {% endif %}
+                                            {% if item.description %}
+                                            <div class="description">
+                                                <p>{{ format_string_limit_words(item.description, 30) }}</p>
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                {% else %}
+                                <div class="feed-item-content-wrapper">
+                                    <div class="feed-item-content">
+                                        {% if item.description %}
+                                        <div class="description" dir="ltr">
+                                            <p>{{ format_string_multiline(item.description) }}</p>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                {% endif %}
+
+                                {% if item.published_text %}
+                                <div class="feed-item-time">{{ item.published_text }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                {% else %}
+                    <p>No activity yet.</p>
+                {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 {%- endblock %}
