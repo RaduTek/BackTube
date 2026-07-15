@@ -32,6 +32,7 @@ class ChannelPageChannel(TypedDict):
     channel_handle: str
     channel_name: str
     channel_url: str
+    user_url: str
     thumbnail_url: str
     description: str
     subscriber_count: str
@@ -178,14 +179,14 @@ def _get_channel_handle_map() -> dict[str, str]:
         else:
             _channel_handle_map = {}
 
-    return _channel_handle_map
+    return _channel_handle_map or {}
 
 
 def _save_channel_handle_map(handles: dict[str, str]) -> None:
-    cache.save_cache_data('channel', 'handle_map', ChannelHandleMapCache(
+    cache.save_cache_data('channel', 'handle_map', dict(ChannelHandleMapCache(
         updated_at=int(datetime.now().timestamp()),
         handles=handles,
-    ))
+    )))
 
 
 def _channel_handle_to_url(handle: str) -> str:
@@ -519,6 +520,7 @@ def parse_channel_page_channel(
         channel_handle=channel_handle,
         channel_name=channel_name,
         channel_url=links.channel_url(channel_id),
+        user_url=links.user_url(channel_handle),
         thumbnail_url=get_thumbnail_url(metadata.get('avatar', {}).get('thumbnails', [])),
         description=about_view.get('description') or metadata.get('description', ''),
         subscriber_count=subscriber_count,
