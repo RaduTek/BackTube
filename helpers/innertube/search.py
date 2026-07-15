@@ -224,9 +224,30 @@ def _lockup_metadata_texts(metadata_rows: list[dict]) -> list[str]:
     return texts
 
 
+def _looks_like_viewcount_text(text: str) -> bool:
+    return 'view' in text.lower()
+
+
+def _looks_like_published_text(text: str) -> bool:
+    lower_text = text.lower()
+    return any(marker in lower_text for marker in ('ago', 'streamed', 'premiered'))
+
+
+def _channel_name_from_lockup_avatar(lockup_metadata: dict) -> str:
+    a11y_label = (
+        lockup_metadata.get('image', {})
+        .get('decoratedAvatarViewModel', {})
+        .get('a11yLabel', '')
+    )
+    prefix = 'go to channel '
+    if a11y_label.lower().startswith(prefix):
+        return a11y_label[len(prefix):].strip()
+    return ''
+
+
 def _channel_from_video_lockup_metadata(lockup_metadata: dict) -> tuple[str, str]:
     metadata_rows = _lockup_metadata_rows(lockup_metadata)
-    channel_name = _lockup_metadata_texts(metadata_rows)[0] if metadata_rows else ''
+    texts = _lockup_metadata_texts(metadata_rows)
 
     browse_endpoint = (
         lockup_metadata.get('image', {})
@@ -237,7 +258,18 @@ def _channel_from_video_lockup_metadata(lockup_metadata: dict) -> tuple[str, str
         .get('innertubeCommand', {})
         .get('browseEndpoint', {})
     )
-    return channel_name, browse_endpoint.get('browseId', '')
+    channel_id = browse_endpoint.get('browseId', '')
+
+    channel_name = ''
+    for text in texts:
+        if not _looks_like_viewcount_text(text) and not _looks_like_published_text(text):
+            channel_name = text
+            break
+
+    if not channel_name:
+        channel_name = _channel_name_from_lockup_avatar(lockup_metadata)
+
+    return channel_name, channel_id
 
 
 def _video_lockup_length_text(lockup_renderer: dict) -> str:
@@ -264,11 +296,10 @@ def parse_innertube_video_lockup_renderer(lockup_renderer: dict) -> FeedItem:
 
     viewcount_text = ''
     published_text = ''
-    for text in _lockup_metadata_texts(metadata_rows)[1:]:
-        lower_text = text.lower()
-        if 'view' in lower_text:
+    for text in _lockup_metadata_texts(metadata_rows):
+        if _looks_like_viewcount_text(text):
             viewcount_text = text
-        elif any(marker in lower_text for marker in ('ago', 'streamed', 'premiered')):
+        elif _looks_like_published_text(text):
             published_text = text
 
     return FeedItem(

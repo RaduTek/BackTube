@@ -64,6 +64,29 @@ def _feed_id(title: str, index: int) -> str:
     return slug or f'feed-{index}'
 
 
+def _playlist_id_from_shelf(shelf: dict) -> str:
+    endpoint = shelf.get('endpoint', {})
+    url = (
+        endpoint.get('commandMetadata', {})
+        .get('webCommandMetadata', {})
+        .get('url', '')
+    )
+    if 'list=' in url:
+        return url.split('list=', 1)[1].split('&')[0]
+
+    browse_id = endpoint.get('browseEndpoint', {}).get('browseId', '')
+    if browse_id.startswith('VL'):
+        return browse_id[2:]
+
+    return ''
+
+
+def _shelf_feed_id(shelf: dict, title: str, index: int) -> str:
+    if playlist_id := _playlist_id_from_shelf(shelf):
+        return playlist_id
+    return _feed_id(title, index)
+
+
 def _get_browse_tabs(response: dict) -> list[dict]:
     return (
         response.get('contents', {})
@@ -369,6 +392,8 @@ def _parse_shelf_items(shelf: dict) -> list[FeedItem]:
 
 
 def _infer_shelf_feed_type(shelf: dict, items: list[FeedItem]) -> str:
+    if _playlist_id_from_shelf(shelf):
+        return 'playlist'
     title = get_text(shelf.get('title')).lower()
     if 'short' in title:
         return 'shorts'
@@ -402,7 +427,7 @@ def _parse_home_feed_collections(home_response: dict) -> list[FeedCollection]:
                 if not items:
                     continue
                 feeds.append(FeedCollection(
-                    feed_id=_feed_id(title, index),
+                    feed_id=_shelf_feed_id(shelf, title, index),
                     feed_type=_infer_shelf_feed_type(shelf, items),
                     title=title,
                     items=items,
