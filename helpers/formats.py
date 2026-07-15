@@ -1,6 +1,18 @@
 
+def format_string_limit_words(string: str, limit: int = 10) -> str:
+    """
+    Limit the number of words in a string to the specified limit.
+    If the string has more words than the limit, it will be truncated and "..." will be added at the end.
+    """
+    words = string.split()
+    if len(words) > limit:
+        return ' '.join(words[:limit]) + '...'
+    return string
+
+
 def format_string_multiline(string: str) -> str:
     return string.replace("\n", "<br>")
+
 
 def format_number(number: int):
     return f"{number:,d}"
@@ -32,14 +44,51 @@ def format_duration(duration):
         return f"{minutes}:{seconds:02}"
 
 
+def format_remove_prefix(string: str, prefix_index: int = 1) -> str:
+    """
+    Remove the prefix from a string based on the given index.
+    For example, if the string is "Hello World" and the prefix_index is 1,
+    it will return "World".
+    """
+    return ' '.join(string.split(' ')[prefix_index:])
+
+
+def format_remove_suffix(string: str, suffix_index: int = 1) -> str:
+    """
+    Remove the suffix from a string based on the given index.
+    For example, if the string is "Hello World" and the suffix_index is 1,
+    it will return "Hello".
+    """
+    return ' '.join(string.split(' ')[:-suffix_index])
+
+
+def get_domain(url: str) -> str:
+    """
+    Extract the domain from a given URL.
+    For example, if the URL is "https://www.example.com/path", it will return "example.com".
+    """
+    from urllib.parse import urlparse
+
+    parsed_url = urlparse(url)
+    domain = parsed_url.netloc
+    # Remove 'www.' prefix if present
+    if domain.startswith('www.'):
+        domain = domain[4:]
+    return domain
+
+
 def get_all_formatters():
     """
     Return a dictionary of all available formatters.
     """
 
     return {
+        'format_string_limit_words': format_string_limit_words,
         'format_string_multiline': format_string_multiline,
         'format_view_count': format_view_count,
         'format_duration': format_duration,
         'format_number': format_number,
+        'format_remove_prefix': format_remove_prefix,
+        'format_remove_suffix': format_remove_suffix,
+        'get_domain': get_domain
     }

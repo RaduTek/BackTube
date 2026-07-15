@@ -15,3 +15,10 @@ def video_url(video_id: str, playlist_id: str | None = None) -> str:
 
 def video_thumbnail_url(video_id: str) -> str:
     return f'https://i.ytimg.com/vi/{video_id}/default.jpg'
+
+
+def user_url(user_id: str) -> str:
+    if not user_id or len(user_id) == 0:
+        return ''
+    
+    return f'/user/{user_id}'
