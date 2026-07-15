@@ -1,4 +1,14 @@
+{% import '2012/_macros.html.j2' as macros %}
 {% extends "2012/channel/_twopane.html.j2" %}
+
+{% block extra_css %}{{ super() }}
+<style>
+.single-playlist .video .video-item-content {
+    padding: 15px;
+    width: 464px;
+}
+</style>
+{% endblock %}
 
 {% block primary_pane %}
 
@@ -37,68 +47,55 @@
 
     {% set videos_feed = find_feed(feeds, 'feed_id', 'latest-videos') %}
     {% if videos_feed %}
-    <div class="single-playlist channel-module yt-uix-c3-module-container">
+    <div class="single-playlist channel-module yt-uix-c3-module-container" style="overflow: visible;">
     <div class="module-view single-playlist-view-module">
         <div class="blogger-playall">
-            <a class="yt-playall-link yt-playall-link-default "
-                href="/watch?v=ZbQS_QeWHLc&amp;list=UUSXm6c-n6lsjtyjvdD0bFVw&amp;feature=plcp">
+            <a class="yt-playall-link yt-playall-link-default" href="#">
                 <img class="small-arrow" src="//s.ytimg.com/yt/img/pixel-vfl3z5WfW.gif" alt="">
                 Play all
             </a>
-
         </div>
 
         <div class="playlist-info">
             <h2>{{ videos_feed.title }}</h2>
-            <span class="blogger-video-count">1-10 of 266</span>
-            <div class="yt-horizontal-rule "><span class="first"></span><span class="second"></span><span
-                    class="third"></span></div>
-
+            {# <span class="blogger-video-count">1-10 of 266</span> #}
+            <div class="horizontal-rule "><span class="first"></span><span class="second"></span><span class="third"></span></div>
         </div>
     
         <ul class="gh-single-playlist">
-        {% for item in videos_feed['items'] %}
+        {% for item in videos_feed['items'][:10] %}
             <li class="blogger-video">
-                <div class="video yt-tile-visible">
-                    <a href="{{ item.url }}" title="{{ item.title }}">
-                        <span class="ux-thumb-wrap contains-addto "><span
-                                class="video-thumb ux-thumb yt-thumb-default-288 "><span class="yt-thumb-clip"><span
-                                        class="yt-thumb-clip-inner"><img
-                                            src="{{ item.thumbnail_url }}" alt="Thumbnail"
-                                            width="288"><span class="vertical-align"></span></span></span></span><span
-                                class="video-time">{{ item.duration }}</span>
-
-
-                            <button onclick=";return false;" title="Watch Later" type="button"
-                                class="addto-button video-actions addto-watch-later-button-sign-in yt-uix-button yt-uix-button-default yt-uix-button-short yt-uix-tooltip"
-                                data-button-menu-id="shared-addto-watch-later-login" data-video-ids="{{ item.id }}"
-                                role="button"><span class="yt-uix-button-content"> <span class="addto-label">
-                                        Watch Later
+                <span class="video tile">
+                    <a href="{{ item.url }}"
+                        class="tile-link-block">
+                        <span class="ux-thumb-wrap contains-addto">
+                            <span class="video-thumb ux-thumb ux-thumb-128 ">
+                                <span class="clip">
+                                    <span class="clip-inner">
+                                        <img src="{{ video_thumbnail_url(item.id, True) }}" alt="Thumbnail" />
+                                        <span class="vertical-align"></span>
                                     </span>
-                                    <span class="addto-label-error">
-                                        Error
-                                    </span>
-                                    <img src="//s.ytimg.com/yt/img/pixel-vfl3z5WfW.gif">
-                                </span><img class="yt-uix-button-arrow" src="//s.ytimg.com/yt/img/pixel-vfl3z5WfW.gif"
-                                    alt=""></button>
+                                </span>
+                            </span>
+                            <span class="video-time">{{ item.length_text }}</span>
+                            {{ macros.watch_later_button(item) }}
                         </span>
                         <span class="video-item-content">
                             <span class="video-overview">
                                 <span class="title video-title" title="{{ item.title }}">{{ item.title }}</span>
                             </span>
                             <span class="video-details">
-                                <span class="yt-user-name video-owner" dir="ltr">{{ item.owner }}</span>
+                                {% if item.channel_name -%}
+                                <span class="video-owner">{{ item.channel_name }}</span>
+                                {%- endif %}
                                 <span class="video-view-count">{{ item.viewcount_text }}</span>
                                 <span class="video-time-published">{{ item.published_text }}</span>
-                                {# <span class="video-item-description">{{ format_string_limit_words(item.description, 20) }}</span> #}
+                                <span class="video-item-description">{{ item.description }}</span>
                             </span>
-
                         </span>
                     </a>
-                </div>
-
+                </span>
             </li>
-            {{ item }}
         {% endfor %}
         </ul>
     </div>
