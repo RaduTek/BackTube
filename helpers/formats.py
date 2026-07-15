@@ -1,3 +1,4 @@
+from . import links
 
 def format_string_limit_words(string: str, limit: int = 10) -> str:
     """
@@ -90,5 +91,6 @@ def get_all_formatters():
         'format_number': format_number,
         'format_remove_prefix': format_remove_prefix,
         'format_remove_suffix': format_remove_suffix,
-        'get_domain': get_domain
+        'get_domain': get_domain,
+        'video_thumbnail_url': links.video_thumbnail_url,
     }
