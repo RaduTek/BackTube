@@ -32,96 +32,95 @@
 </head>
 
 <body id="" class="en_US ltr exp-edit-on-watch exp-channel-promo-on-watch ytg-old-clearfix">
-    {% block body -%}
+{% block body -%}
 
-    <div id="page" class="">
-        <div id="masthead-container">
-            {% block masthead_container -%}
+<div id="page" class="{% block page_class %}{% endblock %}">
+    <div id="masthead-container">
+        {% block masthead_container -%}
 
-            <div id="masthead" class="" dir="ltr">
-                <a id="logo-container" href="/" title="YouTube home">
-                    <img
-                        id="logo"
-                        src="//s.ytimg.com/yt/img/pixel-vfl3z5WfW.gif"
-                        alt="YouTube home"
-                    />
-                </a>
+        <div id="masthead" class="" dir="ltr">
+            <a id="logo-container" href="/" title="YouTube home">
+                <img
+                    id="logo"
+                    src="//s.ytimg.com/yt/img/pixel-vfl3z5WfW.gif"
+                    alt="YouTube home"
+                />
+            </a>
 
-                <div id="masthead-user-bar-container">
-                    <div id="masthead-user-bar">
-                        <div id="masthead-user">
-                            <div id="masthead-user-display">
-                                <a class="start" href="#">Create Account</a>
-                                <span class="masthead-link-separator">|</span>
-                                <a class="end" href="#">Sign In</a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div id="masthead-search-bar-container">
-                    <div id="masthead-search-bar">
-                        <div id="masthead-nav">
-                            <a href="/videos?feature=mh">Browse</a>
-                            {% if homepage %}
+            <div id="masthead-user-bar-container">
+                <div id="masthead-user-bar">
+                    <div id="masthead-user">
+                        <div id="masthead-user-display">
+                            <a class="start" href="#">Create Account</a>
                             <span class="masthead-link-separator">|</span>
-                            <a href="/movies?feature=mh">Movies</a>
-                            {% endif %}
-                            <span class="masthead-link-separator">|</span>
-                            <a
-                                id="masthead-upload-link"
-                                class=""
-                                data-upsell="upload"
-                                href="/my_videos_upload"
-                            >
-                                Upload
-                            </a>
+                            <a class="end" href="#">Sign In</a>
                         </div>
-
-                        <form
-                            id="masthead-search"
-                            class="search-form consolidated-form"
-                            action="/results"
-                            onsubmit="if (_gel('masthead-search-term').value == '') return false;"
-                        >
-                            <button
-                                class="search-btn-compontent search-button yt-uix-button yt-uix-button-default"
-                                onclick="if (_gel('masthead-search-term').value == '') return false; _gel('masthead-search').submit(); return false;;return true;"
-                                type="submit"
-                                id="search-btn"
-                                dir="ltr"
-                                tabindex="2"
-                                role="button"
-                            >
-                                <span class="yt-uix-button-content">Search</span>
-                            </button>
-                            <div
-                                id="masthead-search-terms"
-                                class="masthead-search-terms-border"
-                                dir="ltr"
-                            >
-                                <label>
-                                    <input
-                                        id="masthead-search-term"
-                                        autocomplete="off"
-                                        class="search-term"
-                                        name="search_query"
-                                        value="{{ search_query }}"
-                                        type="text"
-                                        tabindex="1"
-                                        onkeyup="goog.i18n.bidi.setDirAttribute(event, this)"
-                                        title="Search"
-                                    />
-                                </label>
-                            </div>
-                        </form>
                     </div>
                 </div>
             </div>
+            <div id="masthead-search-bar-container">
+                <div id="masthead-search-bar">
+                    <div id="masthead-nav">
+                        <a href="/videos?feature=mh">Browse</a>
+                        {% if homepage %}
+                        <span class="masthead-link-separator">|</span>
+                        <a href="/movies?feature=mh">Movies</a>
+                        {% endif %}
+                        <span class="masthead-link-separator">|</span>
+                        <a
+                            id="masthead-upload-link"
+                            class=""
+                            data-upsell="upload"
+                            href="/my_videos_upload"
+                        >
+                            Upload
+                        </a>
+                    </div>
 
-            <div id="alerts">{% block alerts %}{% endblock %}</div>
-
-            {%- endblock %}
+                    <form
+                        id="masthead-search"
+                        class="search-form consolidated-form"
+                        action="/results"
+                        onsubmit="if (_gel('masthead-search-term').value == '') return false;"
+                    >
+                        <button
+                            class="search-btn-compontent search-button yt-uix-button yt-uix-button-default"
+                            onclick="if (_gel('masthead-search-term').value == '') return false; _gel('masthead-search').submit(); return false;;return true;"
+                            type="submit"
+                            id="search-btn"
+                            dir="ltr"
+                            tabindex="2"
+                            role="button"
+                        >
+                            <span class="yt-uix-button-content">Search</span>
+                        </button>
+                        <div
+                            id="masthead-search-terms"
+                            class="masthead-search-terms-border"
+                            dir="ltr"
+                        >
+                            <label>
+                                <input
+                                    id="masthead-search-term"
+                                    autocomplete="off"
+                                    class="search-term"
+                                    name="search_query"
+                                    value="{{ search_query }}"
+                                    type="text"
+                                    tabindex="1"
+                                    onkeyup="goog.i18n.bidi.setDirAttribute(event, this)"
+                                    title="Search"
+                                />
+                            </label>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
+
+        <div id="alerts">{% block alerts %}{% endblock %}</div>
+
+        {%- endblock %}
     </div>
 
     <div id="content-container">
@@ -338,12 +337,14 @@
         {%- endblock %}
     </div>
 
-    {% block core_js -%}
-    <script id="www-core-js" src="//s.ytimg.com/yt/jsbin/www-core-vflWYkZkj.js"></script>
-    {%- endblock %}
-    {% block body_js %}{% endblock %}
+</div>
 
-    {%- endblock %}
+{% block core_js -%}
+<script id="www-core-js" src="//s.ytimg.com/yt/jsbin/www-core-vflWYkZkj.js"></script>
+{%- endblock %}
+{% block body_js %}{% endblock %}
+
+{%- endblock %}
 </body>
 
 </html>

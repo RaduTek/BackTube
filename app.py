@@ -1,8 +1,10 @@
 from flask import Flask, render_template, request
-from .pages import search, watch
+from .pages import home, search, watch, channel
 from .helpers.formats import get_all_formatters
 
 app = Flask(__name__)
+
+app.register_blueprint(channel.bp)
 
 @app.context_processor
 def formatters():
@@ -10,7 +12,7 @@ def formatters():
 
 @app.route("/")
 def home_route():
-    return render_template("2012/home.html.j2", homepage=True)
+    return home.home_page()
 
 @app.route("/results")
 def search_route():

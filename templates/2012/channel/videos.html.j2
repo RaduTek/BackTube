@@ -1,0 +1,63 @@
+{% extends "2012/channel/_root.html.j2" %}
+
+{% block channel_tab_content -%}
+    
+<div class="channel-tab-content channel-layout-full-width">
+<div class="tab-content-body">
+<div class="channel-filtered-page">
+
+<div class="channel-filtered-page-head">
+    <h1 class="channel-section-heading">
+        Uploads
+        <span class="item-count">({{ channel.video_count.split(' ')[0] }})</span>
+    </h1>
+
+    <button type="button" class="video-sort-btn yt-uix-button yt-uix-button-default" onclick=";return false;"
+        role="button" aria-pressed="false" aria-expanded="false" aria-haspopup="true" aria-activedescendant=""><span
+            class="yt-uix-button-content">Date added (newest - oldest) </span><img class="yt-uix-button-arrow"
+            src="//s.ytimg.com/yt/img/pixel-vfl3z5WfW.gif" alt="">
+        <ul class="yt-uix-button-menu yt-uix-button-menu-default" role="menu" aria-haspopup="true"
+            style="display: none;">
+            <li role="menuitem" id="aria-id-6726275644"><span href="/user/Google/videos?sort=p&amp;view=u"
+                    class=" yt-uix-button-menu-item"
+                    onclick=";window.location.href=this.getAttribute('href');return false;">Most popular</span></li>
+            <li role="menuitem" id="aria-id-69115541724"><span href="/user/Google/videos?sort=dd&amp;view=u"
+                    class=" yt-uix-button-menu-item"
+                    onclick=";window.location.href=this.getAttribute('href');return false;">Date added (newest -
+                    oldest)</span></li>
+            <li role="menuitem" id="aria-id-41316787600"><span href="/user/Google/videos?sort=da&amp;view=u"
+                    class=" yt-uix-button-menu-item"
+                    onclick=";window.location.href=this.getAttribute('href');return false;">Date added (oldest -
+                    newest)</span></li>
+        </ul>
+    </button>
+
+
+    <div class="horizontal-rule ">
+        <span class="first"></span>
+        <span class="second"></span>
+        <span class="third"></span>
+    </div>
+
+</div>
+
+<div class="left-pane">
+    <ul class="primary-filter-menu">
+        <li>
+            <a class="filter-option selected-filter" href="{{ base_url }}/videos?view=u">
+                Uploaded Videos
+            </a>
+        </li>
+        <li>
+            <a class="filter-option " href="{{ base_url }}/videos?view=pl">
+                Playlists
+            </a>
+        </li>
+    </ul>
+</div>
+
+</div>
+</div>
+</div>
+
+{%- endblock %}

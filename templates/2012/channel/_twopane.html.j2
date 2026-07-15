@@ -1,0 +1,92 @@
+{% extends "2012/channel/_root.html.j2" %}
+
+{% block channel_tab_content -%}
+    
+<div class="channel-tab-content channel-layout-two-column selected blogger-template">
+<div class="tab-content-body">
+
+<div class="primary-pane">
+{% block primary_pane %}{% endblock %}
+</div>
+
+<div class="secondary-pane">
+{% block secondary_pane %}
+
+    <div class="user-profile channel-module" data-view-module-class-id="profile-view" data-module-loader-lookup-id=":2"
+        data-module-loader-set-id="channel_page_modules">
+        <div class="module-view">
+            <h2>About {{ channel.channel_name }}</h2>
+
+            <div class="section first">
+                <div class="user-profile-item">
+                    <div class="expander-container">
+                        <div class="expanded-content">
+                            <p>{{ format_string_multiline(channel.description) }}</p>
+                            <div class="collapse-button">
+                                less
+                                <img alt="Collapse" src="//s.ytimg.com/yt/img/pixel-vfl3z5WfW.gif">
+                            </div>
+                        </div>
+                        <div class="collapsed-content">
+                            <p>{{ format_string_limit_words(channel.description, 25) }}</p>
+
+                            <div class="expand-button">
+                                more
+                                <img alt="Expand" src="//s.ytimg.com/yt/img/pixel-vfl3z5WfW.gif">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="user-profile-item">
+                {% for link in channel.featured_socials %}
+                    <div class="custom-url field-container ">
+                        <a href="{{ link.url }}" rel="me nofollow" target="_blank" title="{{ link.title }}"
+                            class="yt-uix-redirect-link">
+                            <span class="favicon-container">
+                                <img
+                                    src="//s2.googleusercontent.com/s2/favicons?domain={{ get_domain(link.url) }}&amp;feature=youtube_channel">
+                            </span>
+                            <span class="link-text">
+                                {{ link.platform }}
+                            </span>
+                        </a>
+                    </div>
+                {% endfor %}
+                </div>
+            </div>
+            
+            <div class="section created-by-section">
+                <div class="user-profile-item">
+                    <h5>
+                        Created by
+                    </h5>
+                    <span class="value">
+                        {{ channel.channel_name }}
+                    </span>
+                </div>
+    
+                <div class="user-profile-item">
+                    <h5>Date Joined</h5>
+                    <span class="value">{{ format_remove_prefix(channel.join_date) }}</span>
+                </div>
+
+                {% if channel.country %}
+                <div class="user-profile-item">
+                    <h5>Country</h5>
+                    <span class="value">{{ channel.country }}</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    {% block secondary_pane_extra %}{% endblock %}
+
+{% endblock %}
+</div>
+
+</div>
+</div>
+
+{%- endblock %}

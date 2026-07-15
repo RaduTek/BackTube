@@ -1,0 +1,109 @@
+{% extends "2012/_root.html.j2" %}
+
+{% block title %}{{ channel.channel_name }} - YouTube{% endblock %}
+{% block extra_css %}
+{#- <link id="www-core-css" rel="stylesheet" href="https://s.ytimg.com/yt/cssbin/www-refresh-vfltZ6nGK.css" /> -#}
+<link rel="stylesheet" href="https://s.ytimg.com/yt/cssbin/www-the-rest-vflNb6rAI.css" />
+<link rel="stylesheet" href="https://s.ytimg.com/yt/cssbin/www-channels3-vflqAqth2.css" />
+<link rel="stylesheet" href="https://s.ytimg.com/yt/cssbin/www-guide-vflBxmtVb.css" />
+<style>
+#branded-page-body-container {
+    background-color: #FFFFFF;
+    background-image: none;
+}
+</style>
+{% endblock %}
+
+{% block page_class -%} branded-page channel {%- endblock %}
+
+{% block content %}
+
+<div id="branded-page-default-bg" class="ytg-base">
+<div id="branded-page-body-container" class="ytg-base">
+
+<div id="branded-page-header-container" class="ytg-wide ">
+<div id="branded-page-header" class="ytg-wide">
+<div id="channel-header-main">
+
+    <div class="upper-section ytg-box">
+        <a href="{{ base_url }}">
+            <span class="profile-thumb">
+                <span class="centering-wrap">
+                    <img src="{{ channel.thumbnail_url }}" title="{{ channel.channel_name }}" alt="{{ channel.channel_name }}">
+                </span>
+            </span>
+        </a>
+
+        <div class="upper-left-section enable-fancy-subscribe-button">
+            <h1>{{ channel.channel_name }}</h1>
+            <div class="yt-subscription-button-hovercard yt-uix-hovercard"><button
+                    href="#"
+                    type="button"
+                    class="yt-subscription-button subscription-button-with-recommended-channels   yt-uix-button yt-uix-button-default"
+                    onclick=";window.location.href=this.getAttribute(&#39;href&#39;);return false;" data-enable-hovercard="true"
+                    data-subscription-value="{{ channel.channel_id }}" data-force-position="" data-position=""
+                    data-subscription-feature="channels3" data-subscription-type="" role="button"><img
+                        class="yt-uix-button-icon yt-uix-button-icon-subscribe" src="//s.ytimg.com/yt/img/pixel-vfl3z5WfW.gif"
+                        alt=""><span class="yt-uix-button-content"> <span class="subscribe-label">Subscribe</span>
+                        <span class="subscribed-label">Subscribed</span>
+                        <span class="unsubscribe-label">Unsubscribe</span>
+                    </span></button>
+                <div class="yt-uix-hovercard-content hid">
+                    <p class="loading-spinner">
+                        <img src="//s.ytimg.com/yt/img/pixel-vfl3z5WfW.gif" alt="">
+                        Loading...
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="upper-right-section">
+            <div class="header-stats">
+                <div class="stat-entry">
+                    <span class="stat-value">{{ format_remove_suffix(channel.subscriber_count) }}</span>
+                    <span class="stat-name">subscribers</span>
+                </div>
+                <div class="stat-entry">
+                    <span class="stat-value">{{ format_remove_suffix(channel.view_count) }}</span>
+                    <span class="stat-name">video views</span>
+                </div>
+            </div>
+            <span class="valign-shim"></span>
+        </div>
+    </div>
+
+    <div class="channel-horizontal-menu ytg-box">
+        <ul>
+        {% for item in horiz_menu %}
+            <li class="{{ 'selected' if item['selected'] else '' }}">
+                <a href="{{ item['url'] }}">{{ item['label'] }}</a>
+            </li>
+        {% endfor %}
+        </ul>
+        <form id="channel-search" action="{{ base_url }}/search">
+            <input name="query" type="text" class="search-field" placeholder="Search Channel">
+            <button class="search-btn" type="submit">
+                <span class="search-btn-content">Search<span>
+            </button>
+        </form>
+    </div>
+</div>
+</div>
+</div>
+
+<div id="branded-page-body">
+<div id="channel-tab-content-wrapper">
+
+{% block channel_tab_content %}{% endblock %}
+
+</div>
+</div>
+
+</div>
+</div>
+
+{% endblock %}
+
+{% block body_js %}
+<script src="//s.ytimg.com/yt/jsbin/www-channels3-vflVGvXBT.js"></script>
+{% endblock %}
