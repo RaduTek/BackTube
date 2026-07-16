@@ -4,6 +4,43 @@
 <head>
     {% block head -%}
 
+    <script>
+        var yt = yt || {};
+        yt.timing = yt.timing || {};
+        yt.timing.tick = function (label, opt_time) {
+            var timer = yt.timing["timer"] || {};
+            if (opt_time) {
+                timer[label] = opt_time;
+            } else {
+                timer[label] = new Date().getTime();
+            }
+            yt.timing["timer"] = timer;
+        };
+        yt.timing.info = function (label, value) {
+            var info_args = yt.timing["info_args"] || {};
+            info_args[label] = value;
+            yt.timing["info_args"] = info_args;
+        };
+        yt.timing.info("e", "916404,909708,911615");
+        yt.timing.wff = true;
+        yt.timing.info("an", "");
+        yt.timing.tick("start");
+        yt.timing.info("li", "0");
+        try {
+            yt.timing["srt"] =
+                (window.gtbExternal && window.gtbExternal.pageT()) ||
+                (window.external && window.external.pageT);
+        } catch (e) { }
+        if (window.chrome && window.chrome.csi) {
+            yt.timing["srt"] = Math.floor(window.chrome.csi().pageT);
+        }
+        if (window.msPerformance && window.msPerformance.timing) {
+            yt.timing["srt"] =
+                window.msPerformance.timing.responseStart -
+                window.msPerformance.timing.navigationStart;
+        }
+    </script>
+    
     <title>{% block title %}YouTube - Broadcast Yourself.{% endblock %}</title>
 
     <link rel="icon" href="http://s.ytimg.com/yt/favicon-vfldLzJxy.ico" type="image/x-icon" />
@@ -21,14 +58,20 @@
     {#- <link id="www-core-css" rel="stylesheet" href="http://s.ytimg.com/yt/cssbin/www-core-vflnhJKDt.css"> -#}
     <link id="www-core-css" rel="stylesheet" href="https://s.ytimg.com/yt/cssbin/www-refresh-vfll-f0-R.css">
     {%- endblock %}
+
     {% block extra_css %}{% endblock %}
     <style>
         .yt-alert .close {
             float: right;
         }
     </style>
-
     {%- endblock %}
+
+    <script>
+        if (window.yt.timing) {
+            yt.timing.tick('ct');
+        }
+    </script>
 </head>
 
 <body id="" class="en_US ltr exp-edit-on-watch exp-channel-promo-on-watch ytg-old-clearfix">
@@ -342,7 +385,37 @@
 {% block core_js -%}
 <script id="www-core-js" src="//s.ytimg.com/yt/jsbin/www-core-vflWYkZkj.js"></script>
 {%- endblock %}
-{% block body_js %}{% endblock %}
+{% block body_js %}
+<script>
+    yt.pubsub.subscribe('init', function () {
+        yt.www.thumbnaildelayload.init();
+    });
+
+    yt.pubsub.subscribe('init', function () {
+        yt.net.scriptloader.load("\/\/s.ytimg.com\/yt\/jsbin\/www-searchbox-vflPAcf6y.js", function () {
+
+            if (_gel('masthead-search')) {
+                yt.setTimeout(function () {
+                    searchbox.yt.install(_gel('masthead-search'),
+                        _gel('masthead-search')["search_query"],
+                        "en",
+                        "us",
+                        "close",
+                        false,
+                        '',
+                        '',
+                        null,
+                        "Suggestion dismissed.",
+                        "Dismiss",
+                        -1,
+                        null);
+                }, 100);
+            }
+
+        });
+    });
+</script>
+{% endblock %}
 
 {%- endblock %}
 </body>
