@@ -23,7 +23,7 @@ def save_cache_data(collection: str, key: str, data: dict) -> None:
         json.dump(data, f, ensure_ascii=False, indent=4)
 
 
-def get_cache_data(collection: str, key: str, default: dict = {}) -> dict:
+def get_cache_data(collection: str, key: str, default: dict | None = None) -> dict:
     """
     Get data from the cache for a given collection and key.
 
@@ -35,6 +35,9 @@ def get_cache_data(collection: str, key: str, default: dict = {}) -> dict:
     Returns:
         dict: The cached data if found, otherwise the default value.
     """
+
+    if default is None:
+        default = {}
 
     collection_path = os.path.join(config.cache_dir, collection)
     data_file = os.path.join(collection_path, f"{key}.json")
