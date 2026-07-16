@@ -773,101 +773,12 @@
             </div>
             <div class="clear"></div>
         </div>
-        <div style="visibility: hidden; height: 0px; padding: 0px; overflow: hidden;">
-            <img src="//www.youtube-nocookie.com/gen_204?attributionpartner=Machinima_RoosterTeeth"
-                border="0" width="1" height="1">
-            <img src="//www.youtube-nocookie.com/robots.txt?attributionpartner=Machinima_RoosterTeeth&v=3E-1UMsb7wM"
-                border="0" width="1" height="1">
-
-
-            <div id="baseDiv"></div>
-
-        </div>
     </div>
     <!-- end watch-main-container -->
 </div>
 {% endblock %}
 
 {% block body_js %}
-
-<script>
-yt.setConfig({
-    VIDEO_ID: "{{ video_id }}",
-    VIDEO_USERNAME: "{{ data.video.channel_name }}",
-
-    LOGGED_IN: false,
-    SESSION_INDEX: null
-});
-
-
-yt.playerConfig = {
-    assets: {
-        html: "\/html5_player_template",
-        css: "https:\/\/s.ytimg.com\/yt\/cssbin\/www-player-vfl0xKiwZ.css",
-        js: "https:\/\/s.ytimg.com\/yt\/jsbin\/html5player-vflJXrXGC.js"
-    },
-    url: "https:\/\/s.ytimg.com\/yt\/swfbin\/watch_as3-vflqsO0OE.swf",
-    min_version: "8.0.0",
-    args: {
-        ttsurl: "https:\/\/www.youtube.com\/api\/timedtext?sparams=asr_langs%2Ccaps%2Cv%2Cexpire\u0026asr_langs=en%2Cko%2Cja\u0026v=HQEC_Y5v3Zw\u0026caps=asr\u0026expire=1331098044\u0026key=yttt1\u0026signature=544B5F94570C686B4F4C0769E24DB7F839916636.4F3467A5889CC1DF9DDB87A644E8B6B54A53E0FB\u0026hl=en_US",
-        fexp: "906717,919701,911613",
-        enablecsi: "1",
-        allow_embed: 1,
-        rvs: "view_count=86%2C262\u0026feature_type=fvw\u0026author=matteolongokr\u0026title=Samsung+Galaxy+Nexus+Vs+iPhone+4S\u0026length_seconds=596\u0026featured=1\u0026id=Dqoxd2N2Fug,view_count=200%2C963\u0026author=TodaysiPhone\u0026length_seconds=422\u0026id=ERc_lF0dciw\u0026title=iPhone+4S+unboxing,view_count=22%2C509\u0026author=TodaysiPhone\u0026length_seconds=549\u0026id=Z8MKcDrL42I\u0026title=Siri+vs+Tellme%2C+iPhone+4S+vs+Galaxy+Nexus%2C+iOS+apps+vs+Android+apps%2C+and+more%21,view_count=7%2C554\u0026author=TodaysiPhone\u0026length_seconds=372\u0026id=URJfs-PD-a4\u0026title=iPhone+4S+hands+on+coverage%2C+iOS+5+release%2C+and+more%21,view_count=10%2C479\u0026author=TodaysiPhone\u0026length_seconds=122\u0026id=MZmu-sJyCew\u0026title=iOS+5.0.1+released+%2F+jailbroken%2C+Siri+security+cracked+to+work+on+any+device%2C+BiteSMS+updated,view_count=306%2C226\u0026author=ivanzeta73\u0026length_seconds=2523\u0026id=DUCnWZHBd5c\u0026title=Samsung+Galaxy+Note+Vs+Galaxy+Nexus,view_count=255%2C106\u0026author=foxfire235\u0026length_seconds=589\u0026id=eTFmjCFCGQ4\u0026title=Samsung+Galaxy+S+II+vs+Samsung+Galaxy+Nexus+Ultimate+Side+By+Side+Comparison,view_count=1%2C036%2C805\u0026author=pocketnowvideo\u0026length_seconds=897\u0026id=bphZoV8VrLc\u0026title=iPhone+4S+vs.+Samsung+Galaxy+S+2,view_count=215%2C000\u0026author=iPhonedoCom\u0026length_seconds=408\u0026id=tINaSB4vf_Q\u0026title=iPhone+4S+vs+iPhone+4+Camera+Quality+Comparison,view_count=87%2C303\u0026author=tldtoday\u0026length_seconds=281\u0026id=rhu8zfIVZ40\u0026title=iPhone+4S+vs+Galaxy+Nexus%3A+1080P+Video+Export+Speedtest,view_count=37%2C394\u0026author=PhoneBuff\u0026length_seconds=130\u0026id=78qWFXg5-JU\u0026title=iPhone+4S+vs+Galaxy+Nexus+-+App+Speed+Comparison,view_count=484%2C825\u0026author=liquipel\u0026length_seconds=75\u0026id=kVHb5C1GDVw\u0026title=Apple+iPhone+4S+Water+Test+With+Liquipel+-+NO+CASE",
-        is_doubleclick_tracked: "1",
-        rmktEnabled: false,
-        account_playback_token: "",
-        autohide: "2",
-        csi_page_type: "watch5",
-        keywords:
-            "Galaxy Nexus,Samsung,Apple,iPhone,Cam Bunton,TodaysiPhone,News,Reviews,Apps,Speed Test,iOS,Android,iPhone 4S,Apple Inc.,Mobile,Phonedog,Cell,Smartphone",
-        cr: "NL",
-        cc3_module:
-            "https:\/\/s.ytimg.com\/yt\/swfbin\/subtitles3_module-vflGQbvIG.swf",
-        p_s: "QsLkF4VIOhzT5OeFN5v8xOhM-fzHXHnwU8Km4h0KD6N6m99XSzbSKFWqstU-MDDLEjRWiw4Xnd3fM3YtzDX673Ga-0cKJKzAi_P_ieFwkf3wRsgbmSk4Ngw3rQAjcsgc5vdgQDRLs1InGbfHrQpboA==",
-        focEnabled: false,
-        fmt_list:
-            "45\/1280x720\/99\/0\/0,22\/1280x720\/9\/0\/115,44\/854x480\/99\/0\/0,35\/854x480\/9\/0\/115,43\/640x360\/99\/0\/0,34\/640x360\/9\/0\/115,18\/640x360\/9\/0\/115,5\/320x240\/7\/0\/0",
-        length_seconds: 289,
-        feature: "topics",
-        enablejsapi: 1,
-        theme: "tlb",
-        tk: "5yHsaHqIgcaQp5tiYMe9DXyjPBg6RuaNoxKSyde3LJ2DQKQJ2yP6xw==",
-        plid: "AAS6mowSGq67JaGt",
-        cc_font: "Arial Unicode MS, arial, verdana, _sans",
-        sdetail: "f:topics,p:\/topic\/gnAnfPNA_aY\/ip",
-        url_encoded_fmt_stream_map:
-            "url=http%3A%2F%2Fo-o.preferred.xsforall-ams1.v11.lscache8.c.youtube.com%2Fvideoplayback%3Fsparams%3Dcp%252Cid%252Cip%252Cipbits%252Citag%252Cratebypass%252Csource%252Cexpire%26fexp%3D906717%252C919701%252C911613%26itag%3D45%26ip%3D194.0.0.0%26signature%3D592BB6CC00C48D36BFFF6D69B938F8FEC04438DC.8849A32E8599D79F7383A61DC717238214152B29%26sver%3D3%26ratebypass%3Dyes%26source%3Dyoutube%26expire%3D1331096918%26key%3Dyt1%26ipbits%3D8%26cp%3DU0hSRlBUVF9GUkNOMl9ITlhKOnNYX3Y0WDQyelhV%26id%3D1d0102fd8e6fdd9c\u0026quality=hd720\u0026fallback_host=tc.v11.cache8.c.youtube.com\u0026type=video%2Fwebm%3B+codecs%3D%22vp8.0%2C+vorbis%22\u0026itag=45,url=http%3A%2F%2Fo-o.preferred.xsforall-ams1.v12.lscache8.c.youtube.com%2Fvideoplayback%3Fsparams%3Dcp%252Cid%252Cip%252Cipbits%252Citag%252Cratebypass%252Csource%252Cexpire%26fexp%3D906717%252C919701%252C911613%26itag%3D22%26ip%3D194.0.0.0%26signature%3D66D2501CC5DA6BE2AFF965116E1E5FB5F82E1BD8.67CE66D5A0C8376AF31D0358C81E64540D8E0B7D%26sver%3D3%26ratebypass%3Dyes%26source%3Dyoutube%26expire%3D1331096918%26key%3Dyt1%26ipbits%3D8%26cp%3DU0hSRlBUVF9GUkNOMl9ITlhKOnNYX3Y0WDQyelhV%26id%3D1d0102fd8e6fdd9c\u0026quality=hd720\u0026fallback_host=tc.v12.cache8.c.youtube.com\u0026type=video%2Fmp4%3B+codecs%3D%22avc1.64001F%2C+mp4a.40.2%22\u0026itag=22,url=http%3A%2F%2Fo-o.preferred.xsforall-ams1.v2.lscache1.c.youtube.com%2Fvideoplayback%3Fsparams%3Dcp%252Cid%252Cip%252Cipbits%252Citag%252Cratebypass%252Csource%252Cexpire%26fexp%3D906717%252C919701%252C911613%26itag%3D44%26ip%3D194.0.0.0%26signature%3D0253E22A3C209865CED5EF054FE60D7E29B039E6.8BA7489B5A174290CA317D772D18EA4D9B8F77A9%26sver%3D3%26ratebypass%3Dyes%26source%3Dyoutube%26expire%3D1331096918%26key%3Dyt1%26ipbits%3D8%26cp%3DU0hSRlBUVF9GUkNOMl9ITlhKOnNYX3Y0WDQyelhV%26id%3D1d0102fd8e6fdd9c\u0026quality=large\u0026fallback_host=tc.v2.cache1.c.youtube.com\u0026type=video%2Fwebm%3B+codecs%3D%22vp8.0%2C+vorbis%22\u0026itag=44,url=http%3A%2F%2Fo-o.preferred.xsforall-ams1.v21.lscache5.c.youtube.com%2Fvideoplayback%3Fsparams%3Dalgorithm%252Cburst%252Ccp%252Cfactor%252Cid%252Cip%252Cipbits%252Citag%252Csource%252Cexpire%26fexp%3D906717%252C919701%252C911613%26algorithm%3Dthrottle-factor%26itag%3D35%26ip%3D194.0.0.0%26burst%3D40%26sver%3D3%26signature%3D74AF8A14076C617B9D97E6575CF8D6972126F098.6F32E04F2104ECE1C56526B3C8E30187AEA06C22%26source%3Dyoutube%26expire%3D1331096918%26key%3Dyt1%26ipbits%3D8%26factor%3D1.25%26cp%3DU0hSRlBUVF9GUkNOMl9ITlhKOnNYX3Y0WDQyelhV%26id%3D1d0102fd8e6fdd9c\u0026quality=large\u0026fallback_host=tc.v21.cache5.c.youtube.com\u0026type=video%2Fx-flv\u0026itag=35,url=http%3A%2F%2Fo-o.preferred.xsforall-ams1.v7.lscache5.c.youtube.com%2Fvideoplayback%3Fsparams%3Dcp%252Cid%252Cip%252Cipbits%252Citag%252Cratebypass%252Csource%252Cexpire%26fexp%3D906717%252C919701%252C911613%26itag%3D43%26ip%3D194.0.0.0%26signature%3D26E025B922B9E3C22D967407D3754CB25558B503.5651538F9B4068B63D1CC86CA5510E7DFE81318C%26sver%3D3%26ratebypass%3Dyes%26source%3Dyoutube%26expire%3D1331096918%26key%3Dyt1%26ipbits%3D8%26cp%3DU0hSRlBUVF9GUkNOMl9ITlhKOnNYX3Y0WDQyelhV%26id%3D1d0102fd8e6fdd9c\u0026quality=medium\u0026fallback_host=tc.v7.cache5.c.youtube.com\u0026type=video%2Fwebm%3B+codecs%3D%22vp8.0%2C+vorbis%22\u0026itag=43,url=http%3A%2F%2Fo-o.preferred.xsforall-ams1.v12.lscache4.c.youtube.com%2Fvideoplayback%3Fsparams%3Dalgorithm%252Cburst%252Ccp%252Cfactor%252Cid%252Cip%252Cipbits%252Citag%252Csource%252Cexpire%26fexp%3D906717%252C919701%252C911613%26algorithm%3Dthrottle-factor%26itag%3D34%26ip%3D194.0.0.0%26burst%3D40%26sver%3D3%26signature%3DCAF183F736C0B912E296D2ABF624D6E80227F3E7.38B155240939338D7B6C5C5CAE6EF4D83E4599E8%26source%3Dyoutube%26expire%3D1331096918%26key%3Dyt1%26ipbits%3D8%26factor%3D1.25%26cp%3DU0hSRlBUVF9GUkNOMl9ITlhKOnNYX3Y0WDQyelhV%26id%3D1d0102fd8e6fdd9c\u0026quality=medium\u0026fallback_host=tc.v12.cache4.c.youtube.com\u0026type=video%2Fx-flv\u0026itag=34,url=http%3A%2F%2Fo-o.preferred.xsforall-ams1.v4.lscache4.c.youtube.com%2Fvideoplayback%3Fsparams%3Dcp%252Cid%252Cip%252Cipbits%252Citag%252Cratebypass%252Csource%252Cexpire%26fexp%3D906717%252C919701%252C911613%26itag%3D18%26ip%3D194.0.0.0%26signature%3DD4093F309F796FC2864BEAB5BEC7B1089C2D130C.794CC1EB0012DC373AA2C3CF734D4191E4D85957%26sver%3D3%26ratebypass%3Dyes%26source%3Dyoutube%26expire%3D1331096918%26key%3Dyt1%26ipbits%3D8%26cp%3DU0hSRlBUVF9GUkNOMl9ITlhKOnNYX3Y0WDQyelhV%26id%3D1d0102fd8e6fdd9c\u0026quality=medium\u0026fallback_host=tc.v4.cache4.c.youtube.com\u0026type=video%2Fmp4%3B+codecs%3D%22avc1.42001E%2C+mp4a.40.2%22\u0026itag=18,url=http%3A%2F%2Fo-o.preferred.xsforall-ams1.v1.lscache2.c.youtube.com%2Fvideoplayback%3Fsparams%3Dalgorithm%252Cburst%252Ccp%252Cfactor%252Cid%252Cip%252Cipbits%252Citag%252Csource%252Cexpire%26fexp%3D906717%252C919701%252C911613%26algorithm%3Dthrottle-factor%26itag%3D5%26ip%3D194.0.0.0%26burst%3D40%26sver%3D3%26signature%3D0E2654D268B0267639B542AC79B42202DA4392FA.7CF394DF4ADFEE0ABFE76EA0573A106C7EC560FF%26source%3Dyoutube%26expire%3D1331096918%26key%3Dyt1%26ipbits%3D8%26factor%3D1.25%26cp%3DU0hSRlBUVF9GUkNOMl9ITlhKOnNYX3Y0WDQyelhV%26id%3D1d0102fd8e6fdd9c\u0026quality=small\u0026fallback_host=tc.v1.cache2.c.youtube.com\u0026type=video%2Fx-flv\u0026itag=5",
-        watermark:
-            ",https:\/\/s.ytimg.com\/yt\/img\/watermark\/youtube_watermark-vflHX6b6E.png,https:\/\/s.ytimg.com\/yt\/img\/watermark\/youtube_hd_watermark-vflAzLcD6.png",
-        sourceid: "y",
-        timestamp: 1331072844,
-        cc_asr: 1,
-        ssl: 1,
-        showpopout: 1,
-        hl: "en_US",
-        tmi: "1",
-        no_get_video_log: "1",
-        cc_module: "https:\/\/s.ytimg.com\/yt\/swfbin\/subtitle_module-vfl_ihIUi.swf",
-        endscreen_module: "https:\/\/s.ytimg.com\/yt\/swfbin\/endscreen-vflm8ac_r.swf",
-        supersizefeatured: "1",
-        vq: "auto",
-        referrer: "https:\/\/www.youtube.com\/topic\/gnAnfPNA_aY\/iphone",
-        video_id: "HQEC_Y5v3Zw",
-        sendtmp: "1",
-        sk: "SslB5bWUo4JsIQmZpTgoUVDeB-Ni3z2JC",
-        t: "vjVQa1PpcFNDz7AVIBtnCn3WTVU50ifWAQqqsySc89s="
-    },
-    url_v9as2: "https:\/\/s.ytimg.com\/yt\/swfbin\/cps-vflMfscHD.swf",
-    params: {
-        allowscriptaccess: "always",
-        allowfullscreen: "true",
-        bgcolor: "#000000"
-    },
-    attrs: { width: "640", id: "movie_player", height: "390" },
-    url_v8: "https:\/\/s.ytimg.com\/yt\/swfbin\/cps-vflMfscHD.swf",
-    html5: true
-};
-</script>
-
+{{ macros.player_js(player) }}
+{{ super() }}
 {% endblock %}

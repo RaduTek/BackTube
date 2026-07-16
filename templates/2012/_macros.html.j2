@@ -301,3 +301,18 @@
         </div>
     </li>
 {% endmacro %}
+
+{% macro player_js(player) %}
+<!-- Video player init script -->
+<script>
+yt.setConfig({{ player.config_vars | tojson }});
+
+yt.playerConfig = {{ player.player_config | tojson }};
+
+(function () {
+    var forceUpdate = yt.www.watch.player.updateConfig(yt.playerConfig) || false;
+    var youTubePlayer = yt.player.embed("watch-player", yt.playerConfig, forceUpdate);
+    yt.setConfig({ PLAYER_REFERENCE: youTubePlayer });
+})();
+</script>
+{% endmacro %}

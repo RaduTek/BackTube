@@ -2,6 +2,7 @@ from flask import request, render_template
 
 from . import get_preferred_template
 from ..helpers.pager import create_pager_props
+from ..helpers.player import get_player_data
 from ..helpers.innertube.watch import get_watch_comments, get_watch_data, get_watch_related, WatchPageData
 
 
@@ -30,11 +31,14 @@ def watch_page():
 
     comments_pager = _get_pager_for_comments(data, page=1)
 
+    player = get_player_data(video_id, data)
+
     return render_template(
         get_preferred_template('watch'), 
         video_id=video_id, 
         data=data,
-        comments_pager=comments_pager
+        comments_pager=comments_pager,
+        player=player,
     )
 
 
