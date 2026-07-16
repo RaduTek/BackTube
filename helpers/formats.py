@@ -45,6 +45,25 @@ def format_duration(duration):
         return f"{minutes}:{seconds:02}"
 
 
+def duration_to_seconds(duration_str):
+    """
+    Convert a duration string in the format "HH:MM:SS" or "MM:SS" to total seconds.
+    For example, "1:30" becomes 90, "1:00:00" becomes 3600, etc.
+    """
+    parts = duration_str.split(':')
+    parts = [int(part) for part in parts]
+    
+    if len(parts) == 3:
+        hours, minutes, seconds = parts
+    elif len(parts) == 2:
+        hours = 0
+        minutes, seconds = parts
+    else:
+        raise ValueError("Invalid duration format. Expected 'HH:MM:SS' or 'MM:SS'.")
+    
+    return hours * 3600 + minutes * 60 + seconds
+
+
 def format_remove_prefix(string: str, prefix_index: int = 1) -> str:
     """
     Remove the prefix from a string based on the given index.
