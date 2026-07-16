@@ -23,16 +23,17 @@ def save_cache_data(collection: str, key: str, data: dict) -> None:
         json.dump(data, f, ensure_ascii=False, indent=4)
 
 
-def get_cache_data(collection: str, key: str) -> dict | None:
+def get_cache_data(collection: str, key: str, default: dict = {}) -> dict:
     """
     Get data from the cache for a given collection and key.
 
     Args:
         collection (str): The name of the collection.
         key (str): The key to retrieve data for.
+        default (dict): The default value to return if the key is not found.
 
     Returns:
-        dict | None: The cached data if found, otherwise None.
+        dict: The cached data if found, otherwise the default value.
     """
 
     collection_path = os.path.join(config.cache_dir, collection)
@@ -42,4 +43,4 @@ def get_cache_data(collection: str, key: str) -> dict | None:
         with open(data_file, 'r', encoding='utf-8') as f:
             return json.load(f)
     
-    return None
+    return default

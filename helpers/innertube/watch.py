@@ -678,7 +678,7 @@ def get_watch_data(video_id: str, nocache: bool = False) -> WatchPageData:
 
     cached = cache.get_cache_data('watch', video_id)
 
-    if cached and not nocache:
+    if  isinstance(cached.get('data'), dict) and not nocache:
         return cast(WatchPageData, cached['data'])
 
     data = get_watch_data_innertube(video_id)
@@ -704,7 +704,7 @@ def get_watch_related(
 
     cached = cache.get_cache_data('watch', video_id)
 
-    if not cached:
+    if not isinstance(cached.get('data'), dict):
         raise ValueError(f"No cached watch data for video_id: {video_id}. Get watch data must be fetched first.")
 
     cached = cast(WatchPageCache, cached)
@@ -750,7 +750,7 @@ def get_watch_comments(
 
     cached = cache.get_cache_data('watch', video_id)
 
-    if not cached:
+    if not isinstance(cached.get('data'), dict):
         raise ValueError(
             f"No cached watch data for video_id: {video_id}. Watch data must be fetched first."
         )

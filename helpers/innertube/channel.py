@@ -197,7 +197,7 @@ def _get_channel_handle_map() -> dict[str, str]:
 
     if _channel_handle_map is None:
         cached = cache.get_cache_data('channel', 'handle_map')
-        if cached and isinstance(cached.get('handles'), dict):
+        if isinstance(cached.get('handles'), dict):
             _channel_handle_map = cached['handles']
         else:
             _channel_handle_map = {}
@@ -606,7 +606,7 @@ def get_channel_data(channel_id: str, nocache: bool = False) -> ChannelPageData:
 
     cached = cache.get_cache_data('channel', channel_id)
 
-    if cached and not nocache:
+    if isinstance(cached.get('data'), dict) and not nocache:
         return cast(ChannelPageData, cached['data'])
 
     data = get_channel_data_innertube(channel_id)
