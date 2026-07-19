@@ -51,8 +51,8 @@ def build_stream_map(formats: list[StreamFormat]) -> str:
 
 def download_video(video_id, format, out_file):
     ytdl = YoutubeDL({
-        'quiet': True,
-        'no_warnings': True,
+        # 'quiet': True,
+        # 'no_warnings': True,
         'format': format,
         'outtmpl': out_file + ".%(ext)s"
     })
@@ -146,19 +146,26 @@ def get_video():
     return redirect(f"/{file}", code=302)
 
 
-def get_player_data(video_id: str, watch_data: WatchPageData | dict = {}) -> dict:
+def get_player_data(
+        video_id: str, 
+        autoplay: bool = True,
+        watch_data: WatchPageData | dict = {},
+        config_vars: dict | None = None,
+        player_config: dict | None = None,
+    ) -> dict:
     
-    config_vars = {
+    config_vars_final = {
         'VIDEO_ID': video_id,
         'VIDEO_USERNAME': watch_data.get('video', {}).get('channel_name', ''),
         'WIDE_PLAYER_STYLES': ['watch-wide-mode'],
     }
+    config_vars_final.update(config_vars or {})
 
     length_seconds = formats.duration_to_seconds(watch_data.get('video', {}).get('duration', "0:0"))
     url_encoded_fmt_stream_map = build_stream_map(get_video_available_stream_formats(video_id))
     timestamp = int(datetime.now().timestamp())
 
-    player_config = {
+    player_config_final = {
         'assets': {
             'html': '/html5_player_template',
             'css': 'https://s.ytimg.com/yt/cssbin/www-player-vfl0xKiwZ.css',
@@ -178,6 +185,7 @@ def get_player_data(video_id: str, watch_data: WatchPageData | dict = {}) -> dic
             # 'rmktEnabled': False,
             'account_playback_token': '',
             'autohide': '2',
+            'autoplay': '1' if autoplay else '0',
             'csi_page_type': 'watch5',
             'keywords': '',
             'cr': 'US',
@@ -228,10 +236,11 @@ def get_player_data(video_id: str, watch_data: WatchPageData | dict = {}) -> dic
             'flash': False,
         }
     }
+    player_config_final.update(player_config or {})
 
     return {
         'video_id': video_id,
-        'config_vars': config_vars,
+        'config_vars': config_vars_final,
         # 'stream_map': build_stream_map(get_video_available_stream_formats(video_id)),
-        'player_config': player_config,
+        'player_config': player_config_final,
     }

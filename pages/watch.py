@@ -31,7 +31,7 @@ def watch_page():
 
     comments_pager = _get_pager_for_comments(data, page=1)
 
-    player = get_player_data(video_id, data)
+    player = get_player_data(video_id, watch_data=data)
 
     return render_template(
         get_preferred_template('watch'), 
