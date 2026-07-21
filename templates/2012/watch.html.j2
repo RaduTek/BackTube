@@ -376,9 +376,9 @@
                             <li>
                                 {% if data.rydratings.deleted %}
                                 <div class="watch-sparkbars">
-                                    <div class="watch-sparkbar-likes" style="width: 99%">
+                                    <div class="watch-sparkbar-likes" style="width: 0%">
                                     </div>
-                                    <div class="watch-sparkbar-dislikes" style="width: 1%">
+                                    <div class="watch-sparkbar-dislikes" style="width: 0%">
                                     </div>
                                 </div>
 
@@ -390,12 +390,19 @@
                                 <div class="watch-sparkbars">
                                     <div class="watch-sparkbar-likes" style="width: {{ data.rydratings.rating * 20 }}%">
                                     </div>
+                                    {% if data.rydratings.dislikes %}
                                     <div class="watch-sparkbar-dislikes" style="width: {{ (5 - data.rydratings.rating) * 20 }}%">
                                     </div>
+                                    {% endif %}
                                 </div>
                                 
                                 <span class="watch-likes-dislikes">
-                                    <span class="likes">{{ format_number(data.rydratings.likes) }}</span> likes{% if data.rydratings.dislikes %}, <span
+                                    {% if data.rydratings.likes %}
+                                    <span class="likes">{{ format_number(data.rydratings.likes) }}</span> likes
+                                    {%- else -%}
+                                    No ratings
+                                    {%- endif -%}
+                                    {%- if data.rydratings.dislikes %}, <span
                                         class="dislikes">{{ format_number(data.rydratings.dislikes) }}</span> dislikes{% endif %}
                                 </span>
                                 {% endif %}
