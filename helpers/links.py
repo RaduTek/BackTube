@@ -15,8 +15,8 @@ def video_url(video_id: str, playlist_id: str | None = None) -> str:
 
 def video_thumbnail_url(video_id: str, hq: bool = False) -> str:
     if hq:
-        return f'https://i.ytimg.com/vi/{video_id}/hqdefault.jpg'
-    return f'https://i.ytimg.com/vi/{video_id}/default.jpg'
+        return f'//i.ytimg.com/vi/{video_id}/hqdefault.jpg'
+    return f'//i.ytimg.com/vi/{video_id}/default.jpg'
 
 
 def user_url(user_id: str) -> str:
