@@ -1,10 +1,10 @@
 import os
 from flask import Flask, render_template, request, send_from_directory
 
-from .config import config
-from .pages import home, search, watch, channel, get_preferred_template
-from .helpers import player
-from .helpers.formats import get_all_formatters
+from config import config
+from pages import home, search, watch, channel, get_preferred_template
+from helpers import player
+from helpers.formats import get_all_formatters
 
 app = Flask(__name__)
 
