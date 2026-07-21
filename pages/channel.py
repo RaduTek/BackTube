@@ -2,9 +2,9 @@ from flask import Blueprint, render_template, request
 from werkzeug.exceptions import NotFound
 
 from . import get_preferred_template
-from ..helpers import links, player
-from ..helpers.innertube import FeedCollection
-from ..helpers.innertube.channel import ChannelPageData, get_channel_data, resolve_channel_handle
+from helpers import links, player
+from helpers.innertube import FeedCollection
+from helpers.innertube.channel import ChannelPageData, get_channel_data, resolve_channel_handle
 
 
 bp = Blueprint('channel', __name__)
@@ -81,7 +81,7 @@ def channel_featured_page(channel_id: str | None = None, user_id: str | None = N
     videos_feed = find_feed(data['feeds'], 'feed_type', 'videos')
 
     featured_video = (find_feed(data['feeds'], 'feed_type', 'featured_video') or {}).get('items', [None])[0]
-    featured_player = player.get_player_data(featured_video['id'], autoplay=False) if featured_video else None
+    featured_player = player.get_player_data(featured_video['id'], autoplay=False, player_args={'el': 'profilepage'}) if featured_video else None
 
     return render_template(
         get_preferred_template('channel/featured'),

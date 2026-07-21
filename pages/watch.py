@@ -1,9 +1,9 @@
 from flask import request, render_template
 
 from . import get_preferred_template
-from ..helpers.pager import create_pager_props
-from ..helpers.player import get_player_data
-from ..helpers.innertube.watch import get_watch_comments, get_watch_data, get_watch_related, WatchPageData
+from helpers.pager import create_pager_props
+from helpers.player import get_player_data
+from helpers.innertube.watch import get_watch_comments, get_watch_data, get_watch_related, WatchPageData
 
 
 def _get_pager_for_comments(data: WatchPageData, page: int = 1):
@@ -28,7 +28,8 @@ def watch_page():
     nocache = request.args.get('nocache', 'x') != 'x'
     
     data = get_watch_data(video_id, nocache=nocache)
-
+    related = get_watch_related(video_id)
+    comments = get_watch_comments(video_id, page=1)
     comments_pager = _get_pager_for_comments(data, page=1)
 
     player = get_player_data(video_id, watch_data=data)
@@ -37,6 +38,8 @@ def watch_page():
         get_preferred_template('watch'), 
         video_id=video_id, 
         data=data,
+        related=related,
+        comments=comments,
         comments_pager=comments_pager,
         player=player,
     )
@@ -45,7 +48,7 @@ def watch_page():
 def related_ajax():
     video_id = request.args.get("video_id", '')
 
-    data = get_watch_related(video_id)
+    data = get_watch_related(video_id, page=2)
 
     return { 
         'html': render_template(
@@ -62,12 +65,7 @@ def all_comments_page():
     nocache = request.args.get('nocache', 'x') != 'x'
 
     data = get_watch_data(video_id, nocache=nocache)
-
-    comments = data['comments']
-    
-    if page > 1:
-        comments = get_watch_comments(video_id, page - 1)['comments']
-    
+    comments = get_watch_comments(video_id, page)
     pager = _get_pager_for_comments(data, page)
 
     return render_template(

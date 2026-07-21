@@ -1,7 +1,7 @@
 from flask import render_template
 
 from . import get_preferred_template
-from ..helpers.flags import get_flag
+from helpers.flags import get_flag
 
 
 def _home_2012():

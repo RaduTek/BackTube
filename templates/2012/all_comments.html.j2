@@ -98,7 +98,7 @@
             </div>
 
             <ul class="comment-list">
-                {% for comment in comments %}
+                {% for comment in comments.comments %}
                     {{- macros.watch_comment(comment) -}}
                 {% endfor %}
             </ul>

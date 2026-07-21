@@ -1,4 +1,4 @@
-from ..helpers.flags import get_flag
+from helpers.flags import get_flag
 
 
 def get_preferred_template(template: str, ext: str = '.html.j2') -> str:

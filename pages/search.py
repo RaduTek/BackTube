@@ -2,8 +2,8 @@ from urllib.parse import quote_plus
 from flask import request, render_template
 
 from . import get_preferred_template
-from ..helpers.pager import create_pager_props
-from ..helpers.innertube.search import get_search_results_page
+from helpers.pager import create_pager_props
+from helpers.innertube.search import get_search_results_page
 
 
 def results_page():

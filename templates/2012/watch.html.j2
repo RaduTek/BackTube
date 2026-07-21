@@ -532,7 +532,9 @@
                                     </a>
                                     <h4>
                                         All Comments
+                                        {% if data.video.comments_count_text -%}
                                         <span class="comments-section-stat">({{ data.video.comments_count_text }})</span>
+                                        {%- endif %}
                                     </h4>
                                 </div>
                             </div>
@@ -545,7 +547,7 @@
                             </div>
 
                             <ul class="comment-list">
-                                {% for comment in data.comments[:10] %}
+                                {% for comment in comments.comments %}
                                     {{- macros.watch_comment(comment) -}}
                                 {% endfor %}
                             </ul>
@@ -713,7 +715,7 @@
                     <div id="watch-related-container" class="watch-sidebar-body">
                         <ul id="watch-related" class="video-list">
                             <div id="ppv-container" class="hid"></div>
-                            {% for item in data.related %}
+                            {% for item in related.related %}
                                 {{ macros.watch_sidebar_item(item) }}
                             {% endfor %}
                         </ul>
