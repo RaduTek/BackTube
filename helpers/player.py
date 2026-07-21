@@ -5,20 +5,21 @@ from typing import TypedDict
 from urllib.parse import urlencode, quote
 from yt_dlp import YoutubeDL
 
-from . import cache, formats
+from . import formats
 from .innertube.watch import WatchPageData
+from .cache import CacheData, CacheManager
 
 
 QUALITY_TAGS = ['hd1080', 'hd720', 'highres', 'large', 'medium', 'small', 'light']
 
 
-QUALITY_FORMAT_MAP: dict[str, list[int]] = {
-    'hd1080': [137, 140],
-    'hd720': [136, 140],
-    'large': [135, 140],
-    'medium': [134, 140],
-    'small': [133, 139],
-    'light': [160, 139],
+QUALITY_FORMAT_MAP: dict[str, list[str]] = {
+    'hd1080': ['137', '140'],
+    'hd720': ['136', '140'],
+    'large': ['135', '140'],
+    'medium': ['134', '140'],
+    'small': ['133', '139'],
+    'light': ['160', '139'],
 }
 
 
@@ -26,11 +27,42 @@ class StreamFormat(TypedDict):
     url: str
     type: str
     quality: str
-    itag: int
+    itag: str
 
 
 class PlayerConfig(TypedDict):
     assets: dict
+
+
+cache = CacheManager('media')
+
+def ytdlinfo_generator(video_id: str) -> dict:
+    ytdl = YoutubeDL({
+        'quiet': True,
+        'no_warnings': True,
+    })
+
+    info = ytdl.extract_info(f"https://youtube.com/watch?v={video_id}", download=False)
+    return dict(info)
+
+ytdlinfo_cache = CacheData[dict](cache, 'ytdl_info', default_gen=ytdlinfo_generator, ttl=None, inherit_expiration_time=True)
+
+def format_generator(video_id: str) -> list[str]:
+    info = ytdlinfo_cache.get_default(video_id)
+
+    formats = []
+
+    for format in info.get('formats', []) or []:
+        try:
+            formats.append(str(format['format_id']))
+        except (ValueError, TypeError):
+            continue
+
+    return formats
+
+format_cache = CacheData[list[str]](cache, 'formats', default_gen=format_generator, ttl=None, inherit_expiration_time=True)
+
+saved_cache = CacheData[dict](cache, 'saved', ttl=None, default_gen=lambda key: {}, inherit_expiration_time=True)
 
 
 def build_stream_map(formats: list[StreamFormat]) -> str:
@@ -50,9 +82,9 @@ def build_stream_map(formats: list[StreamFormat]) -> str:
 
 
 def download_video(video_id, format, out_file):
+    out_file = os.path.splitext(out_file)[0]
+
     ytdl = YoutubeDL({
-        # 'quiet': True,
-        # 'no_warnings': True,
         'format': format,
         'outtmpl': out_file + ".%(ext)s"
     })
@@ -60,37 +92,8 @@ def download_video(video_id, format, out_file):
     ytdl.download(f"https://youtube.com/watch?v={video_id}")
 
 
-def get_video_available_formats(video_id):
-    cached = cache.get_cache_data(f'media/{video_id}', 'formats', { 'formats': [], 'saved_at': 0 })
-
-    if len(cached['formats']) > 0:
-        return cached['formats']
-
-    ytdl = YoutubeDL({
-        'quiet': True,
-        'no_warnings': True,
-    })
-
-    info = ytdl.extract_info(f"https://youtube.com/watch?v={video_id}", download=False)
-
-    formats = []
-
-    for format in info.get('formats', []) or []:
-        try:
-            formats.append(int(format['format_id']))
-        except (ValueError, TypeError):
-            continue
-
-    cache.save_cache_data(f'media/{video_id}', 'formats', { 
-        'formats': formats,
-        'saved_at': int(datetime.now().timestamp())
-    })
-
-    return formats
-
-
 def get_video_available_stream_formats(video_id: str) -> list[StreamFormat]:
-    formats = get_video_available_formats(video_id)
+    formats = format_cache.get_default(video_id)
 
     stream_formats = []
 
@@ -112,34 +115,37 @@ def get_video():
     video_id = request.args.get('v')
     quality = request.args.get('q', 'medium').strip()
 
+    if not video_id:
+        return "Missing video ID", 400
+
     if quality not in QUALITY_TAGS:
         return f'Unknown quality: "{quality}"', 400
 
-    saved = cache.get_cache_data(f'media/{video_id}', 'saved')
+    saved = saved_cache.get_default(video_id)
 
     formats = QUALITY_FORMAT_MAP[quality]
     file = saved.get(quality, {}).get('file')
 
     if not file:
-        available_formats = get_video_available_formats(video_id)
+        available_formats = format_cache.get_default(video_id)
 
         missing_formats = [f for f in formats if f not in available_formats]
 
         if len(missing_formats) > 0:
             return f"Missing formats for quality {quality}: {', '.join([str(f) for f in missing_formats])}", 400
 
-        out_file = f"media/{video_id}/video_{quality}"
-        out_file_full = os.path.join(cache.config.cache_dir, out_file)
+        out_file = cache.rel_path(video_id, f"video_{quality}", ".mp4")
+        out_file_full = cache.abs_path(video_id, f"video_{quality}", ".mp4")
         download_video(video_id, '+'.join(str(f) for f in formats), out_file_full)
 
         saved[quality] = {
-            'file': f"{out_file}.mp4",
+            'file': out_file,
             'type': 'video/mp4',
             'quality': quality,
             'itags': formats,
             'saved_at': int(datetime.now().timestamp())
         }
-        cache.save_cache_data(f'media/{video_id}', 'saved', saved)
+        saved_cache.set(video_id, saved)
 
         file = saved[quality]['file']
     
@@ -152,6 +158,7 @@ def get_player_data(
         watch_data: WatchPageData | dict = {},
         config_vars: dict | None = None,
         player_config: dict | None = None,
+        player_args: dict | None = None,
     ) -> dict:
     
     config_vars_final = {
@@ -237,10 +244,11 @@ def get_player_data(
         }
     }
     player_config_final.update(player_config or {})
+    if player_args:
+        player_config_final['args'].update(player_args)
 
     return {
         'video_id': video_id,
         'config_vars': config_vars_final,
-        # 'stream_map': build_stream_map(get_video_available_stream_formats(video_id)),
         'player_config': player_config_final,
     }
