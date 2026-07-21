@@ -1,6 +1,8 @@
 from typing import TypedDict
 from flask import request
 
+from utils import is_boolean_string
+
 
 COOKIE_PREFIX = 'backtube_'
 
@@ -46,7 +48,7 @@ def get_flag_bool(key: str, default: bool = False) -> bool:
     """Return the boolean value of a specific flag."""
 
     value = get_flag(key, str(default).lower())
-    return value.lower() in ['1', 'true', 'yes', 'on']
+    return is_boolean_string(value)
 
 
 def get_flag_int(key: str, default: int = 0) -> int:
