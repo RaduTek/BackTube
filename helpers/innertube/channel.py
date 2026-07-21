@@ -5,20 +5,14 @@ from typing_extensions import NotRequired
 from innertube.errors import RequestError
 
 from . import client, FeedItem, FeedCollection
-from .. import links, cache
+from helpers import links
+from helpers.cache import CacheData, CacheManager
 from .search import parse_innertube_search_item
 from .utils import get_text, get_thumbnail_url
 from .watch import _parse_channel_badges, _clean_tracked_url, _extract_tracked_url
 
 
 CHANNEL_ABOUT_PARAMS = 'EgVhYm91dPIGBgoCMgBKAA%3D%3D'
-
-_channel_handle_map: dict[str, str] | None = None
-
-
-class ChannelHandleMapCache(TypedDict):
-    updated_at: int
-    handles: dict[str, str]
 
 
 class ChannelSocial(TypedDict):
@@ -52,11 +46,11 @@ class ChannelPageData(TypedDict):
     feeds: list[FeedCollection]
 
 
-class ChannelPageCache(TypedDict):
-    channel_id: str
-    fetched_at: int
-    updated_at: int
-    data: ChannelPageData
+_channel_handle_map: dict[str, str] | None = None
+
+cache = CacheManager(collection='channel')
+data_cache = CacheData[ChannelPageData](cache, 'page_data', ttl=None)
+handle_map_cache = CacheData[dict[str, str]](cache, 'handle_map', ttl=None)
 
 
 def _feed_id(title: str, index: int) -> str:
@@ -196,20 +190,13 @@ def _get_channel_handle_map() -> dict[str, str]:
     global _channel_handle_map
 
     if _channel_handle_map is None:
-        cached = cache.get_cache_data('channel', 'handle_map')
-        if isinstance(cached.get('handles'), dict):
-            _channel_handle_map = cached['handles']
-        else:
-            _channel_handle_map = {}
+        _channel_handle_map = handle_map_cache.get_default('_default', {})
 
     return _channel_handle_map or {}
 
 
 def _save_channel_handle_map(handles: dict[str, str]) -> None:
-    cache.save_cache_data('channel', 'handle_map', dict(ChannelHandleMapCache(
-        updated_at=int(datetime.now().timestamp()),
-        handles=handles,
-    )))
+    handle_map_cache.set('_default', handles)
 
 
 def _channel_handle_to_url(handle: str) -> str:
@@ -604,19 +591,13 @@ def get_channel_data_innertube(channel_id: str) -> ChannelPageData:
 def get_channel_data(channel_id: str, nocache: bool = False) -> ChannelPageData:
     """Fetch channel page data from the innertube browse API, with caching."""
 
-    cached = cache.get_cache_data('channel', channel_id)
+    cached = data_cache.get(channel_id)
 
-    if isinstance(cached.get('data'), dict) and not nocache:
-        return cast(ChannelPageData, cached['data'])
+    if cached and not nocache:
+        return cached
 
     data = get_channel_data_innertube(channel_id)
 
-    to_cache = ChannelPageCache(
-        channel_id=channel_id,
-        fetched_at=int(datetime.now().timestamp()),
-        updated_at=int(datetime.now().timestamp()),
-        data=data,
-    )
-    cache.save_cache_data('channel', channel_id, dict(to_cache))
+    data_cache.set(channel_id, data)
 
     return data

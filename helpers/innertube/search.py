@@ -1,26 +1,29 @@
 import hashlib
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import TypedDict
 from . import client, FeedItem
 from .. import links
 from .utils import get_text, get_first_run, get_channel_from_byline, get_thumbnail_url
-from ..cache import save_cache_data, get_cache_data
-
-
-class SearchResultsCache(TypedDict):
-    hash: str
-    created_at: int
-    updated_at: int
-    search_query: str
-    pages: list['SearchResultsPage']
+from ..cache import CacheDataList, CacheManager
 
 
 class SearchResultsPage(TypedDict):
-    fetched_at: int
     search_query: str
+    fetched_at: int
     estimated_results: int
     continuation_token: str
     entries: list['FeedItem']
+
+
+cache = CacheManager('search_results', ttl=timedelta(minutes=30))
+
+def results_cache_item_gen(key: str, previous_item: SearchResultsPage | None) -> SearchResultsPage:
+    if not previous_item:
+        raise ValueError("Previous item is required for generating the next page of search results.")
+    
+    return get_search_results_innertube(previous_item.get('search_query'), previous_item.get('continuation_token'))
+
+results_cache = CacheDataList[SearchResultsPage](cache, 'results_pages', item_gen=results_cache_item_gen, depends_on_previous=True)
 
 
 def _channel_handle_from_browse_endpoint(browse_endpoint: dict) -> str:
@@ -487,8 +490,8 @@ def get_search_results_innertube(
             entries.append(entry)
 
     return {
-        'fetched_at': int(datetime.now().timestamp()),
         'search_query': search_query,
+        'fetched_at': int(datetime.now().timestamp()),
         'estimated_results': int(data.get('estimatedResults', '')),
         'continuation_token': _get_continuation_token(data),
         'entries': entries,
@@ -508,39 +511,11 @@ def get_search_results_page(
 ) -> SearchResultsPage | None:
     """Get a specific page of search results from YouTube using the innertube API."""
 
-    if page_number < 1:
-        raise ValueError("Page number must be greater than or equal to 1.")
-
     query_hash = search_query_hash(search_query)
-    cached = get_cache_data('search_results', query_hash)
-    created_at = int(cached.get('created_at', 0)) if cached else int(datetime.now().timestamp())
 
-    pages: list[SearchResultsPage] = cached.get('pages', []) if cached else []
+    if results_cache.is_empty(query_hash):
+        first_page = get_search_results_innertube(search_query)
+        results_cache.append(query_hash, first_page)
+        return first_page
 
-    if 1 <= page_number <= len(pages):
-        # Page already cached
-        return pages[page_number - 1]
-
-    # Page not cached already, fetch missing pages
-    missing_pages = page_number - len(pages)
-
-    for _ in range(missing_pages):
-        continuation_token = None
-        if pages:
-            continuation_token = pages[-1].get('continuation_token')
-
-        results_page = get_search_results_innertube(search_query, continuation_token)
-        pages.append(results_page)
-    
-    # Save the updated cache
-    new_cache: SearchResultsCache = {
-        'created_at': created_at,
-        'updated_at': int(datetime.now().timestamp()),
-        'hash': query_hash,
-        'search_query': search_query,
-        'pages': pages
-    }
-    save_cache_data('search_results', query_hash, dict(new_cache))
-
-    return pages[-1]  # Return the last page, which is the requested page
-
+    return results_cache.get_item_default(query_hash, page_number - 1)

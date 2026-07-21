@@ -1,9 +1,10 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import cast, TypedDict
 from typing_extensions import NotRequired
 from urllib.parse import parse_qs, unquote, urlparse
 from . import client, FeedItem
-from .. import links, cache
+from .. import links
+from ..cache import CacheManager, CacheData, CacheDataList
 from ..formats import format_duration
 from .search import parse_innertube_search_item
 from .utils import get_text, get_channel_from_byline
@@ -40,7 +41,6 @@ class WatchPageComment(TypedDict):
 
 class WatchPageComments(TypedDict):
     video_id: str
-    fetched_at: int
     comments: list[WatchPageComment]
     comments_token: str
 
@@ -73,29 +73,29 @@ class WatchPageVideo(TypedDict):
 
 class WatchPageData(TypedDict):
     video_id: str
-    fetched_at: int
     video: WatchPageVideo
     rydratings: RydRatings
-    related: list[FeedItem]
-    related_token: str
-    comments: list[WatchPageComment]
-    comments_token: str
 
 
 class WatchPageRelated(TypedDict):
     video_id: str
-    fetched_at: int
     related: list[FeedItem]
     related_token: str
 
 
-class WatchPageCache(TypedDict):
-    video_id: str
-    fetched_at: int
-    updated_at: int
-    data: WatchPageData
-    related: list[WatchPageRelated]
-    comments: list[WatchPageComments]
+cache = CacheManager('watch', ttl=timedelta(minutes=30))
+watch_cache = CacheData[WatchPageData](cache, 'watch_data')
+
+comments_cache = CacheDataList[WatchPageComments](
+    cache, name='comments_data', 
+    item_gen=lambda key, previous: get_watch_comments_innertube(key, previous['comments_token'] if previous else ''),
+    depends_on_previous=True
+)
+related_cache = CacheDataList[WatchPageRelated](
+    cache, name='related_data', 
+    item_gen=lambda key, previous: get_watch_related_innertube(key, previous['related_token'] if previous else ''),
+    depends_on_previous=True
+)
 
 
 COMMENTS_PANEL_TARGET_ID = 'engagement-panel-comments-section'
@@ -453,7 +453,7 @@ def _find_renderer(contents: list[dict], renderer_key: str) -> dict:
     return {}
 
 
-def _get_suggestion_result_items(response: dict) -> list[dict]:
+def _get_related_result_items(response: dict) -> list[dict]:
     if secondary_results := (
         response.get('contents', {})
         .get('twoColumnWatchNextResults', {})
@@ -473,7 +473,7 @@ def _get_suggestion_result_items(response: dict) -> list[dict]:
     return items
 
 
-def _get_suggestion_continuation_token(items: list[dict]) -> str:
+def _get_related_continuation_token(items: list[dict]) -> str:
     for item in items:
         if continuation := item.get('continuationItemRenderer'):
             return (
@@ -484,16 +484,16 @@ def _get_suggestion_continuation_token(items: list[dict]) -> str:
     return ''
 
 
-def parse_watch_suggestions(response: dict) -> tuple[list[FeedItem], str]:
+def parse_watch_related(response: dict) -> tuple[list[FeedItem], str]:
     """Parse watch page suggestions from an initial or continuation next response."""
 
-    items = _get_suggestion_result_items(response)
+    items = _get_related_result_items(response)
     suggestions: list[FeedItem] = []
     for item in items:
         if entry := parse_innertube_search_item(item):
             suggestions.append(entry)
 
-    return suggestions, _get_suggestion_continuation_token(items)
+    return suggestions, _get_related_continuation_token(items)
 
 
 def _parse_view_count(video_primary_info: dict) -> str:
@@ -529,10 +529,10 @@ def _parse_like_dislike_counts(video_actions: dict) -> tuple[str, str]:
     # Ignore values if not numeric (for videos with hidden ratings)
     if len(like_count) > 0 and not like_count[0].isdigit():
         like_count = ''
-    
+
     if len(dislike_count) > 0 and not dislike_count[0].isdigit():
         dislike_count = ''
-    
+
     return like_count, dislike_count
 
 
@@ -600,10 +600,10 @@ def parse_watch_page_video(
     )
 
 
-def get_watch_suggestions_innertube(
+def get_watch_related_innertube(
     video_id: str,
     continuation_token: str | None = None,
-) -> tuple[list[FeedItem], str]:
+) -> WatchPageRelated:
     """Fetch watch page suggestions from the innertube next API."""
 
     response = (
@@ -611,14 +611,23 @@ def get_watch_suggestions_innertube(
         if continuation_token
         else client.next(video_id)
     )
-    return parse_watch_suggestions(response)
+
+    feed, token = parse_watch_related(response)
+
+    return WatchPageRelated(
+        video_id=video_id,
+        related=feed,
+        related_token=token,
+    )
 
 
-def get_watch_data_innertube(video_id: str) -> WatchPageData:
+def get_watch_data_innertube(
+    video_id: str,
+) -> tuple[WatchPageData, WatchPageRelated, WatchPageComments]:
     """Fetch watch page data from the innertube next API."""
     response = client.next(video_id)
     player_response = client.player(video_id)
-    suggestions, suggestions_continuation_token = parse_watch_suggestions(response)
+    related, related_token = parse_watch_related(response)
     comments_enabled, _ = _parse_comments_info(response)
     comments: list[WatchPageComment] = []
     comments_token = ''
@@ -627,170 +636,75 @@ def get_watch_data_innertube(video_id: str) -> WatchPageData:
 
     rydratings = get_ratings(video_id)
 
-    return WatchPageData(
-        video_id=video_id,
-        fetched_at=int(datetime.now().timestamp()),
-        video=parse_watch_page_video(video_id, response, player_response),
-        related=suggestions,
-        related_token=suggestions_continuation_token,
-        comments=comments,
-        comments_token=comments_token,
-        rydratings=rydratings,
+    return (
+        WatchPageData(
+            video_id=video_id,
+            video=parse_watch_page_video(video_id, response, player_response),
+            rydratings=rydratings,
+        ),
+        WatchPageRelated(
+            video_id=video_id,
+            related=related,
+            related_token=related_token,
+        ),
+        WatchPageComments(
+            video_id=video_id,
+            comments=comments,
+            comments_token=comments_token,
+        ),
     )
 
 
-def get_watch_comments_continuation_innertube(
+def get_watch_comments_innertube(
     video_id: str,
-    continuation_token: str,
+    continuation_token: str | None = None,
 ) -> WatchPageComments:
-    """Fetch a continuation page of comments from the innertube next API."""
+    """Fetch a continuation page of comments from the innertube next API."""    
 
-    response = client.next(continuation=continuation_token)
+    response = (
+        client.next(video_id, continuation=continuation_token)
+        if continuation_token
+        else client.next(video_id)
+    )
     comments, comments_token = parse_watch_comments(response)
 
     return WatchPageComments(
         video_id=video_id,
-        fetched_at=int(datetime.now().timestamp()),
         comments=comments,
         comments_token=comments_token,
-    )
-
-
-def get_watch_suggestions_continuation_innertube(
-    video_id: str,
-    continuation_token: str,
-) -> WatchPageRelated:
-    """Fetch watch page suggestions continuation from the innertube next API."""
-
-    response = client.next(video_id, continuation=continuation_token)
-    related, related_token = parse_watch_suggestions(response)
-
-    return WatchPageRelated(
-        video_id=video_id,
-        fetched_at=int(datetime.now().timestamp()),
-        related=related,
-        related_token=related_token,
     )
 
 
 def get_watch_data(video_id: str, nocache: bool = False) -> WatchPageData:
     """Fetch watch page data from the innertube next API, with caching."""
 
-    cached = cache.get_cache_data('watch', video_id)
+    cached = watch_cache.get(video_id)
 
-    if  isinstance(cached.get('data'), dict) and not nocache:
-        return cast(WatchPageData, cached['data'])
+    if cached and not nocache:
+        return cached
 
-    data = get_watch_data_innertube(video_id)
-    
-    to_cache = WatchPageCache(
-        video_id=video_id,
-        fetched_at=int(datetime.now().timestamp()),
-        updated_at=int(datetime.now().timestamp()),
-        data=data,
-        related=[],
-        comments=[],
-    )
-    cache.save_cache_data('watch', video_id, dict(to_cache))
+    watch_data, related_data, comment_data = get_watch_data_innertube(video_id)
 
-    return data
+    watch_cache.set(video_id, watch_data)
+    related_cache.append(video_id, related_data)
+    comments_cache.append(video_id, comment_data)
+
+    return watch_data
 
 
 def get_watch_related(
     video_id: str,
-    index: int = -1,
+    page: int = 1,
 ) -> WatchPageRelated:
     """Fetch watch page related continuation from the innertube next API, with caching."""
 
-    cached = cache.get_cache_data('watch', video_id)
-
-    if not isinstance(cached.get('data'), dict):
-        raise ValueError(f"No cached watch data for video_id: {video_id}. Get watch data must be fetched first.")
-
-    cached = cast(WatchPageCache, cached)
-
-    # Negative index means counting from end of list
-    if index < 0:
-        index = len(cached['related']) + index
-    
-    # Check if already cached
-    if 0 <= index < len(cached['related']):
-        return cached['related'][index]
-
-    # Fetch missing continuations until we reach the requested index
-    missing = index + 1 - len(cached['related'])
-    if missing < 1:
-        missing = 1
-
-    for _ in range(missing):
-        continuation_token = (
-            cached['data']['related_token']
-            if not cached['related']
-            else cached['related'][-1]['related_token']
-        )
-        if not continuation_token:
-            break
-        continuation_data = get_watch_suggestions_continuation_innertube(video_id, continuation_token)
-        cached['related'].append(continuation_data)
-    
-    cached['updated_at'] = int(datetime.now().timestamp())
-    cache.save_cache_data('watch', video_id, dict(cached))
-
-    if index >= len(cached['related']):
-        raise ValueError(f"No related continuation at index {index}.")
-
-    return cached['related'][index]
+    return related_cache.get_item_default(video_id, page - 1)
 
 
 def get_watch_comments(
     video_id: str,
-    index: int = -1,
+    page: int = 1,
 ) -> WatchPageComments:
     """Fetch watch page comments continuation from the innertube next API, with caching."""
 
-    cached = cache.get_cache_data('watch', video_id)
-
-    if not isinstance(cached.get('data'), dict):
-        raise ValueError(
-            f"No cached watch data for video_id: {video_id}. Watch data must be fetched first."
-        )
-
-    cached = cast(WatchPageCache, cached)
-
-    if not cached['data']['video']['comments_enabled']:
-        return WatchPageComments(
-            video_id=video_id,
-            fetched_at=int(datetime.now().timestamp()),
-            comments=[],
-            comments_token='',
-        )
-
-    if index < 0:
-        index = len(cached['comments']) + index
-
-    if 0 <= index < len(cached['comments']):
-        return cached['comments'][index]
-
-    missing = index + 1 - len(cached['comments'])
-    if missing < 1:
-        missing = 1
-
-    for _ in range(missing):
-        continuation_token = (
-            cached['data']['comments_token']
-            if not cached['comments']
-            else cached['comments'][-1]['comments_token']
-        )
-        if not continuation_token:
-            break
-        continuation_data = get_watch_comments_continuation_innertube(video_id, continuation_token)
-        cached['comments'].append(continuation_data)
-
-    cached['updated_at'] = int(datetime.now().timestamp())
-    cache.save_cache_data('watch', video_id, dict(cached))
-
-    if index >= len(cached['comments']):
-        raise ValueError(f"No comments continuation at index {index}.")
-
-    return cached['comments'][index]
-    
+    return comments_cache.get_item_default(video_id, page - 1)
