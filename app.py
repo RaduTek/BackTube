@@ -5,6 +5,7 @@ from config import config
 from pages import home, search, watch, channel, get_preferred_template
 from helpers import player
 from helpers.formats import get_all_formatters
+from helpers.proxy import proxy_handler
 
 app = Flask(__name__)
 
@@ -57,3 +58,12 @@ def get_video_route():
 def media(filename):
     media_dir = os.path.join(config.cache_dir, 'media')
     return send_from_directory(media_dir, filename)
+
+@app.route("/proxy/<path:url>")
+def proxy_route(url):
+    return proxy_handler(base_route="/proxy/", use_cache=True)
+
+@app.route("/proxy_nocache/<path:url>")
+def proxy_nocache_route(url):
+    return proxy_handler(base_route="/proxy_nocache/", use_cache=False)
+
