@@ -1,5 +1,6 @@
 import json
 import os
+from pathlib import Path
 from datetime import datetime, timedelta
 from typing import IO, Any, Callable, Generic, TypeVar, TypedDict
 from config import config
@@ -34,15 +35,15 @@ class CacheObject(Generic[T]):
         self.default_gen = default_gen
         self.manager = manager.register(self)
 
-    def path(self, key: str) -> str:
+    def path(self, key: str) -> Path:
         return self.manager.abs_path(key, self.name, self.ext)
 
     def exists(self, key: str) -> bool:
-        return os.path.exists(self.path(key))
+        return self.path(key).exists()
 
     def open(self, key: str, mode: str = "r") -> IO[Any]:
         path = self.path(key)
-        os.makedirs(os.path.dirname(path), exist_ok=True)
+        path.parent.mkdir(parents=True, exist_ok=True)
         return open(path, mode, encoding=None if "b" in mode else "utf-8")
 
     def valid(self, key: str) -> bool:
@@ -311,7 +312,7 @@ class CacheManager:
         raw: bool
         ttl: timedelta | None
 
-    cache_dir: str
+    cache_dir: Path
     collection: str
     ttl: timedelta | None = None
     object_types: dict[str, CacheObject] = {}
@@ -323,20 +324,20 @@ class CacheManager:
         ttl: timedelta | None = None,
     ) -> None:
         self.collection = collection
-        self.cache_dir = cache_dir if cache_dir is not None else config.cache_dir
+        self.cache_dir = Path(cache_dir) if cache_dir is not None else Path(config.cache_dir)
         self.ttl = ttl
 
-    def rel_path(self, key: str, item: str, ext: str = "") -> str:
+    def rel_path(self, key: str, item: str, ext: str = "") -> Path:
         ext = ext if ext is not None else ".json"
 
         if len(item) == 0:
-            return f"{key}{ext}"
+            return Path(self.collection) / Path(f"{key}{ext}")
 
-        return os.path.join(self.collection, key, f"{item}{ext}")
+        return Path(self.collection) / Path(key) / Path(f"{item}{ext}")
 
-    def abs_path(self, key: str, item: str, ext: str = "") -> str:
+    def abs_path(self, key: str, item: str, ext: str = "") -> Path:
         rel_path = self.rel_path(key, item, ext)
-        return os.path.join(self.cache_dir, rel_path)
+        return self.cache_dir / rel_path
 
     def register(self, obj: CacheObject) -> "CacheManager":
         self.object_types[obj.name] = obj

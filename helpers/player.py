@@ -1,5 +1,5 @@
 import os
-from datetime import datetime, time
+from datetime import datetime
 from flask import request, redirect
 from typing import TypedDict
 from urllib.parse import urlencode, quote
@@ -124,9 +124,9 @@ def get_video():
     saved = saved_cache.get_default(video_id)
 
     formats = QUALITY_FORMAT_MAP[quality]
-    file = saved.get(quality, {}).get('file')
+    file_name = saved.get(quality, {}).get('file')
 
-    if not file:
+    if not file_name:
         available_formats = format_cache.get_default(video_id)
 
         missing_formats = [f for f in formats if f not in available_formats]
@@ -134,12 +134,12 @@ def get_video():
         if len(missing_formats) > 0:
             return f"Missing formats for quality {quality}: {', '.join([str(f) for f in missing_formats])}", 400
 
-        out_file = cache.rel_path(video_id, f"video_{quality}", ".mp4")
+        out_file_name = f"video_{quality}.mp4"
         out_file_full = cache.abs_path(video_id, f"video_{quality}", ".mp4")
-        download_video(video_id, '+'.join(str(f) for f in formats), out_file_full)
+        download_video(video_id, '+'.join(str(f) for f in formats), str(out_file_full))
 
         saved[quality] = {
-            'file': out_file,
+            'file': out_file_name,
             'type': 'video/mp4',
             'quality': quality,
             'itags': formats,
@@ -147,8 +147,10 @@ def get_video():
         }
         saved_cache.set(video_id, saved)
 
-        file = saved[quality]['file']
-    
+        file_name = saved[quality]['file']
+
+    file = cache.rel_path(video_id, file_name).as_posix()
+
     return redirect(f"/{file}", code=302)
 
 
