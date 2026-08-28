@@ -60,6 +60,7 @@ def watch_page():
     player = get_player_data(
         video_id,
         watch_data=data,
+        related_videos=related['related'],
         player_args=player_args,
     )
 

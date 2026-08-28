@@ -6,6 +6,7 @@ from urllib.parse import urlencode, quote
 from yt_dlp import YoutubeDL
 
 from . import formats
+from .innertube import FeedItem
 from .innertube.watch import WatchPageData
 from .cache import CacheData, CacheManager
 
@@ -79,6 +80,45 @@ def build_stream_map(formats: list[StreamFormat]) -> str:
         streams.append(stream)
 
     return ",".join(streams)
+
+
+def _duration_to_seconds(duration: str | None) -> int:
+    if not duration:
+        return 0
+    try:
+        return formats.duration_to_seconds(duration)
+    except (TypeError, ValueError):
+        return 0
+
+
+def build_related_video_map(videos: list[FeedItem]) -> str:
+    """Build the legacy player `rvs` argument used by the endscreen."""
+
+    related_videos: list[str] = []
+    for video in videos:
+        if video.get('type') != 'video' or not video.get('id'):
+            continue
+
+        view_count = video.get('viewcount_text', '')
+        if view_count.lower().endswith(' views'):
+            view_count = view_count[:-6].strip()
+
+        params: dict[str, str | int] = {
+            'view_count': view_count,
+            'author': video.get('channel_name', ''),
+            'length_seconds': _duration_to_seconds(
+                video.get('length_text', '')
+            ),
+            'id': video['id'],
+            'title': video.get('title', ''),
+        }
+        if not related_videos:
+            params['feature_type'] = 'fvw'
+            params['featured'] = 1
+
+        related_videos.append(urlencode(params))
+
+    return ','.join(related_videos)
 
 
 def download_video(video_id, format, out_file):
@@ -158,6 +198,7 @@ def get_player_data(
         video_id: str, 
         autoplay: bool = True,
         watch_data: WatchPageData | dict = {},
+        related_videos: list[FeedItem] | None = None,
         config_vars: dict | None = None,
         player_config: dict | None = None,
         player_args: dict | None = None,
@@ -170,9 +211,12 @@ def get_player_data(
     }
     config_vars_final.update(config_vars or {})
 
-    length_seconds = formats.duration_to_seconds(watch_data.get('video', {}).get('duration', "0:0"))
+    length_seconds = _duration_to_seconds(
+        watch_data.get('video', {}).get('duration', '0:0')
+    )
     url_encoded_fmt_stream_map = build_stream_map(get_video_available_stream_formats(video_id))
     timestamp = int(datetime.now().timestamp())
+    related_video_map = build_related_video_map(related_videos or [])
 
     player_config_final = {
         'assets': {
@@ -245,6 +289,9 @@ def get_player_data(
             'flash': False,
         }
     }
+    if related_video_map:
+        player_config_final['args']['rvs'] = related_video_map
+
     player_config_final.update(player_config or {})
     if player_args:
         player_config_final['args'].update(player_args)
