@@ -112,6 +112,7 @@
 {% block body_js %}
 <script src="//s.ytimg.com/yt/jsbin/www-channels3-vflVGvXBT.js"></script>
 <script>
+    yt.pubsub.subscribe('init', yt.www.channels3.channel.init);
     yt.pubsub.subscribe('init', yt.www.channels3.channel.initBloggerLayout);
 </script>
 {{ super() }}

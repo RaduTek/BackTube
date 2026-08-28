@@ -1,18 +1,21 @@
 import re
 from datetime import datetime
-from typing import cast, TypedDict
+from typing import cast, Literal, TypedDict
 from typing_extensions import NotRequired
 from innertube.errors import RequestError
 
 from . import client, FeedItem, FeedCollection
 from helpers import links
-from helpers.cache import CacheData, CacheManager
+from helpers.cache import CacheData, CacheDataList, CacheManager
 from .search import parse_innertube_search_item
 from .utils import get_text, get_thumbnail_url
 from .watch import _parse_channel_badges, _clean_tracked_url, _extract_tracked_url
 
 
 CHANNEL_ABOUT_PARAMS = 'EgVhYm91dPIGBgoCMgBKAA%3D%3D'
+CHANNEL_VIDEOS_PAGE_SIZE = 30
+
+ChannelVideosSort = Literal['p', 'dd', 'da']
 
 
 class ChannelSocial(TypedDict):
@@ -46,11 +49,56 @@ class ChannelPageData(TypedDict):
     feeds: list[FeedCollection]
 
 
+class ChannelVideosPage(TypedDict):
+    channel_id: str
+    fetched_at: int
+    sort: ChannelVideosSort
+    continuation_token: str
+    entries: list[FeedItem]
+
+
 _channel_handle_map: dict[str, str] | None = None
 
 cache = CacheManager(collection='channel')
 data_cache = CacheData[ChannelPageData](cache, 'page_data', ttl=None)
 handle_map_cache = CacheData[dict[str, str]](cache, 'handle_map', ttl=None)
+
+
+def _channel_videos_cache_item_gen(
+    sort: ChannelVideosSort,
+    channel_id: str,
+    previous_item: ChannelVideosPage | None,
+) -> ChannelVideosPage:
+    if previous_item and not previous_item['continuation_token']:
+        return ChannelVideosPage(
+            channel_id=channel_id,
+            fetched_at=int(datetime.now().timestamp()),
+            sort=sort,
+            continuation_token='',
+            entries=[],
+        )
+
+    return get_channel_videos_innertube(
+        channel_id,
+        sort=sort,
+        continuation_token=(
+            previous_item['continuation_token'] if previous_item else None
+        ),
+    )
+
+
+videos_caches: dict[ChannelVideosSort, CacheDataList[ChannelVideosPage]] = {
+    sort: CacheDataList[ChannelVideosPage](
+        cache,
+        f'videos_{sort}',
+        ttl=None,
+        item_gen=lambda key, previous, sort=sort: _channel_videos_cache_item_gen(
+            sort, key, previous
+        ),
+        depends_on_previous=True,
+    )
+    for sort in ('p', 'dd', 'da')
+}
 
 
 def _feed_id(title: str, index: int) -> str:
@@ -122,6 +170,96 @@ def _get_tab_sections(response: dict, tab_title: str | None = None) -> list[dict
                 fallback_sections = sections
 
     return fallback_sections
+
+
+def _get_rich_grid(response: dict, tab_title: str = 'Videos') -> dict:
+    for section in _get_tab_sections(response, tab_title):
+        if rich_grid := section.get('richGridRenderer'):
+            return rich_grid
+    return {}
+
+
+def _get_channel_video_sort_endpoint(
+    videos_response: dict,
+    sort: ChannelVideosSort,
+) -> tuple[str, str]:
+    labels: dict[ChannelVideosSort, str] = {
+        'p': 'Popular',
+        'dd': 'Latest',
+        'da': 'Oldest',
+    }
+    expected_label = labels[sort]
+    header = _get_rich_grid(videos_response).get('header', {})
+
+    chips = header.get('chipBarViewModel', {}).get('chips', [])
+    for chip in chips:
+        chip_view = chip.get('chipViewModel', {})
+        if chip_view.get('text') != expected_label:
+            continue
+        token = (
+            chip_view.get('tapCommand', {})
+            .get('innertubeCommand', {})
+            .get('continuationCommand', {})
+            .get('token', '')
+        )
+        return token, ''
+
+    legacy_chips = (
+        header.get('feedFilterChipBarRenderer', {})
+        .get('contents', [])
+    )
+    for chip in legacy_chips:
+        chip_renderer = chip.get('chipCloudChipRenderer', {})
+        if get_text(chip_renderer.get('text')) != expected_label:
+            continue
+        endpoint = chip_renderer.get('navigationEndpoint', {})
+        return (
+            endpoint.get('continuationCommand', {}).get('token', ''),
+            endpoint.get('browseEndpoint', {}).get('params', ''),
+        )
+
+    return '', ''
+
+
+def _get_channel_video_items(response: dict) -> list[dict]:
+    if rich_grid := _get_rich_grid(response):
+        return rich_grid.get('contents', [])
+
+    items: list[dict] = []
+    for response_key in (
+        'onResponseReceivedActions',
+        'onResponseReceivedCommands',
+        'onResponseReceivedEndpoints',
+    ):
+        for command in response.get(response_key, []):
+            for action_key in (
+                'appendContinuationItemsAction',
+                'reloadContinuationItemsCommand',
+            ):
+                if action := command.get(action_key):
+                    items.extend(action.get('continuationItems', []))
+    return items
+
+
+def _get_channel_video_continuation_token(items: list[dict]) -> str:
+    for item in items:
+        if continuation := item.get('continuationItemRenderer'):
+            return (
+                continuation.get('continuationEndpoint', {})
+                .get('continuationCommand', {})
+                .get('token', '')
+            )
+    return ''
+
+
+def _parse_channel_video_items(items: list[dict]) -> list[FeedItem]:
+    entries: list[FeedItem] = []
+    for item in items:
+        content = item.get('richItemRenderer', {}).get('content', item)
+        if entry := parse_innertube_search_item(content):
+            if entry['type'] == 'video':
+                entries.append(entry)
+    return entries
 
 
 def _parse_header_verification(page_header_view_model: dict) -> tuple[bool, bool]:
@@ -601,3 +739,69 @@ def get_channel_data(channel_id: str, nocache: bool = False) -> ChannelPageData:
     data_cache.set(channel_id, data)
 
     return data
+
+
+def get_channel_videos_innertube(
+    channel_id: str,
+    sort: ChannelVideosSort = 'dd',
+    continuation_token: str | None = None,
+) -> ChannelVideosPage:
+    """Fetch one sorted page of channel videos from the innertube browse API."""
+
+    if sort not in videos_caches:
+        raise ValueError(f'Unsupported channel video sort: {sort}')
+
+    if continuation_token:
+        videos_response = client.browse(continuation=continuation_token)
+    else:
+        channel_response = client.browse(browse_id=channel_id)
+        videos_params = _get_tab_params(channel_response, 'Videos')
+        if not videos_params:
+            return ChannelVideosPage(
+                channel_id=channel_id,
+                fetched_at=int(datetime.now().timestamp()),
+                sort=sort,
+                continuation_token='',
+                entries=[],
+            )
+
+        videos_response = client.browse(
+            browse_id=channel_id,
+            params=videos_params,
+        )
+        if sort != 'dd':
+            sort_token, sort_params = _get_channel_video_sort_endpoint(
+                videos_response,
+                sort,
+            )
+            if sort_token:
+                videos_response = client.browse(continuation=sort_token)
+            elif sort_params:
+                videos_response = client.browse(
+                    browse_id=channel_id,
+                    params=sort_params,
+                )
+
+    items = _get_channel_video_items(videos_response)
+    return ChannelVideosPage(
+        channel_id=channel_id,
+        fetched_at=int(datetime.now().timestamp()),
+        sort=sort,
+        continuation_token=_get_channel_video_continuation_token(items),
+        entries=_parse_channel_video_items(items),
+    )
+
+
+def get_channel_videos_page(
+    channel_id: str,
+    sort: ChannelVideosSort = 'dd',
+    page_number: int = 1,
+) -> ChannelVideosPage:
+    """Get a sorted channel video page, persisting each API page in the cache."""
+
+    if sort not in videos_caches:
+        raise ValueError(f'Unsupported channel video sort: {sort}')
+    if page_number < 1:
+        raise ValueError('Page number must be at least 1.')
+
+    return videos_caches[sort].get_item_default(channel_id, page_number - 1)
