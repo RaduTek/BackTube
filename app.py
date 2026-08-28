@@ -46,6 +46,13 @@ def related_ajax_route():
 
     return "Invalid request", 400
 
+@app.get("/watch_ajax")
+def watch_ajax_route():
+    if request.args.get('action_channel_videos', '') == '1':
+        return watch.channel_videos_ajax()
+
+    return "Invalid request", 400
+
 @app.post("/video_info_ajax")
 def playlist_video_info_ajax_route():
     return watch.playlist_video_info_ajax()

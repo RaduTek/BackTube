@@ -1,8 +1,9 @@
-from flask import request, render_template
+from flask import Response, request, render_template
 
 from . import get_preferred_template
 from helpers.pager import create_pager_props
 from helpers.player import get_player_data
+from helpers.innertube.channel import get_channel_data
 from helpers.innertube.playlist import (
     get_playlist_hud_data,
     get_playlist_video_info,
@@ -25,6 +26,18 @@ def _get_pager_for_comments(data: WatchPageData, page: int = 1):
     total = total_comments // per_page_count if total_comments >= 0 else page + window_size
 
     return create_pager_props(page, total, _get_all_comments_link, window_size=window_size)
+
+
+def _xml_ajax_response(html_content: str) -> Response:
+    cdata = html_content.replace(']]>', ']]]]><![CDATA[>')
+    body = (
+        '<?xml version="1.0" encoding="UTF-8"?>'
+        '<root>'
+        '<return_code>0</return_code>'
+        f'<html_content><![CDATA[{cdata}]]></html_content>'
+        '</root>'
+    )
+    return Response(body, content_type='text/xml; charset=utf-8')
 
 
 def watch_page():
@@ -88,6 +101,42 @@ def related_ajax():
             data=data,
         ) 
     }
+
+
+def channel_videos_ajax():
+    channel_id = request.args.get('user_id', '').strip()
+    current_video_id = request.args.get('video_id', '').strip()
+    if not channel_id:
+        return {'html_content': ''}, 400
+
+    data = get_channel_data(channel_id)
+    videos_feed = next(
+        (
+            feed
+            for feed in data['feeds']
+            if feed['feed_type'] == 'videos'
+        ),
+        None,
+    )
+    videos = [
+        video
+        for video in (videos_feed or {}).get('items', [])
+        if video['type'] == 'video'
+        and video['id'] != current_video_id
+    ][:30]
+    videos_per_slide = 5
+    video_slides = [
+        videos[index:index + videos_per_slide]
+        for index in range(0, len(videos), videos_per_slide)
+    ] or [[]]
+
+    return _xml_ajax_response(
+        render_template(
+            get_preferred_template('watch_ajax'),
+            channel=data['channel'],
+            video_slides=video_slides,
+        )
+    )
 
 
 def playlist_video_info_ajax():

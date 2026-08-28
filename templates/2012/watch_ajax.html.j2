@@ -1,0 +1,61 @@
+{% import '2012/_macros.html.j2' as macros with context %}
+
+<div
+    id="watch-channel-discoverbox"
+    class="yt-uix-slider yt-rounded"
+    data-slider-slides="{{ video_slides|length }}"
+    data-slider-slide-selected="0"
+>
+    <div class="yt-uix-slider-head">
+        <span class="yt-uix-slider-nums">
+            {% for slide in video_slides %}
+            <button
+                type="button"
+                class="yt-uix-slider-num {{ 'yt-uix-slider-num-current' if loop.first else '' }} yt-uix-button yt-uix-button-default"
+                onclick="return false;"
+                data-slider-num="{{ loop.index0 }}"
+                role="button"
+            >
+                <span class="yt-uix-button-content">&bull;</span>
+            </button>
+            {% endfor %}
+        </span>
+        <div class="yt-uix-slider-title">
+            <h2>
+                More from
+                <a href="{{ channel.user_url or channel.channel_url }}">{{ channel.channel_name }}</a>
+            </h2>
+        </div>
+    </div>
+
+    <button
+        class="yt-uix-button yt-uix-button-default yt-uix-slider-prev"
+        rel="prev"
+        onclick="return false;"
+        role="button"
+    >
+        <img class="yt-uix-slider-prev-arrow" src="//s.ytimg.com/yt/img/pixel-vfl3z5WfW.gif" alt="Previous">
+    </button>
+    <button
+        class="yt-uix-button yt-uix-button-default yt-uix-slider-next"
+        rel="next"
+        onclick="return false;"
+        role="button"
+    >
+        <img class="yt-uix-slider-next-arrow" src="//s.ytimg.com/yt/img/pixel-vfl3z5WfW.gif" alt="Next">
+    </button>
+
+    <div class="yt-uix-slider-body">
+        <div class="yt-uix-slider-slides">
+            {% for slide in video_slides %}
+            <ul class="yt-uix-slider-slide video-list">
+                {% for video in slide %}
+                    {{ macros.watch_sidebar_item(video) }}
+                {% else %}
+                <li class="video-list-item">No other videos found.</li>
+                {% endfor %}
+            </ul>
+            {% endfor %}
+        </div>
+    </div>
+</div>
