@@ -1,6 +1,7 @@
 import re
 from datetime import datetime
 from typing import cast, Literal, TypedDict
+from urllib.parse import urljoin, urlparse
 from typing_extensions import NotRequired
 from innertube.errors import RequestError
 
@@ -491,8 +492,13 @@ def _parse_channel_handle_from_url(owner_url: str) -> str:
 
 def _normalize_handle_cache_key(handle: str) -> str:
     handle = handle.strip()
-    if '/@' in handle:
-        handle = handle.rsplit('/@', 1)[-1]
+    match = re.search(
+        r'(?:youtube\.com/)?(?:@|user/|c/)?([^/?#]+)/?(?:[?#].*)?$',
+        handle,
+        flags=re.IGNORECASE,
+    )
+    if match:
+        handle = match.group(1)
     return handle.lstrip('@').strip('/').lower()
 
 
@@ -502,10 +508,13 @@ def _get_channel_handle_map() -> dict[str, str]:
     if _channel_handle_map is None:
         _channel_handle_map = handle_map_cache.get_default('_default', {})
 
-    return _channel_handle_map or {}
+    return _channel_handle_map
 
 
 def _save_channel_handle_map(handles: dict[str, str]) -> None:
+    global _channel_handle_map
+
+    _channel_handle_map = handles
     handle_map_cache.set('_default', handles)
 
 
@@ -529,6 +538,42 @@ def _channel_handle_to_url(handle: str) -> str:
     return f'https://www.youtube.com/@{handle}'
 
 
+def _get_resolved_channel_id(response: dict) -> str:
+    channel_id = (
+        response.get('endpoint', {})
+        .get('browseEndpoint', {})
+        .get('browseId', '')
+    )
+    return channel_id if channel_id.startswith('UC') else ''
+
+
+def _get_resolve_redirect_url(response: dict) -> str:
+    redirect_url = (
+        response.get('endpoint', {})
+        .get('urlEndpoint', {})
+        .get('url', '')
+    )
+    if not redirect_url:
+        return ''
+
+    redirect_url = urljoin('https://www.youtube.com', redirect_url)
+    hostname = (urlparse(redirect_url).hostname or '').lower()
+    if hostname != 'youtube.com' and not hostname.endswith('.youtube.com'):
+        return ''
+    return redirect_url
+
+
+def _resolve_channel_url(url: str) -> str:
+    visited: set[str] = set()
+    while url and url not in visited and len(visited) < 4:
+        visited.add(url)
+        response = client('navigation/resolve_url', body={'url': url})
+        if channel_id := _get_resolved_channel_id(response):
+            return channel_id
+        url = _get_resolve_redirect_url(response)
+    return ''
+
+
 def resolve_channel_handle(handle: str) -> str:
     """Resolve a @handle or channel vanity URL to a channel ID."""
 
@@ -541,20 +586,37 @@ def resolve_channel_handle(handle: str) -> str:
     if cached_channel_id := handle_map.get(cache_key):
         return cached_channel_id
 
-    url = _channel_handle_to_url(handle)
+    primary_url = _channel_handle_to_url(handle)
+    urls = [primary_url]
+    if not handle.startswith((
+        'http://',
+        'https://',
+        'youtube.com/',
+        'www.youtube.com/',
+        '/@',
+    )):
+        vanity_name = handle.lstrip('@').strip('/')
+        urls.extend([
+            f'https://www.youtube.com/user/{vanity_name}',
+            f'https://www.youtube.com/c/{vanity_name}',
+            f'https://www.youtube.com/{vanity_name}',
+        ])
 
-    try:
-        response = client('navigation/resolve_url', body={'url': url})
-    except RequestError as exc:
-        raise ValueError(f'Could not resolve channel handle: {handle}') from exc
+    channel_id = ''
+    last_error: RequestError | None = None
+    for url in dict.fromkeys(urls):
+        try:
+            channel_id = _resolve_channel_url(url)
+        except RequestError as exc:
+            last_error = exc
+            continue
+        if channel_id:
+            break
 
-    channel_id = (
-        response.get('endpoint', {})
-        .get('browseEndpoint', {})
-        .get('browseId', '')
-    )
     if not channel_id:
-        raise ValueError(f'Could not resolve channel handle: {handle}')
+        raise ValueError(
+            f'Could not resolve channel handle: {handle}'
+        ) from last_error
 
     handle_map[cache_key] = channel_id
     _save_channel_handle_map(handle_map)
