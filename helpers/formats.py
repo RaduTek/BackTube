@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from . import links
 
 def format_string_limit_words(string: str, limit: int = 10) -> str:
@@ -19,17 +21,55 @@ def format_number(number: int):
     return f"{number:,d}"
 
 
-def format_view_count(view_count):
+def format_view_count(view_count: int) -> str:
     """
     Format the view count to a more readable format.
     For example, 1500 becomes "1.5K", 2000000 becomes "2M", etc.
     """
-    if view_count >= 1_000_000:
-        return f"{view_count / 1_000_000:.1f}M"
-    elif view_count >= 1_000:
-        return f"{view_count / 1_000:.1f}K"
-    else:
-        return str(view_count)
+    for threshold, suffix in (
+        (1_000_000_000, 'B'),
+        (1_000_000, 'M'),
+        (1_000, 'K'),
+    ):
+        if abs(view_count) >= threshold:
+            number = f'{view_count / threshold:.1f}'.rstrip('0').rstrip('.')
+            return f'{number}{suffix}'
+    return str(view_count)
+
+
+def format_relative_date(
+    value: datetime | str,
+    now: datetime | None = None,
+) -> str:
+    if isinstance(value, str):
+        try:
+            value = datetime.fromisoformat(value)
+        except ValueError:
+            return ''
+
+    if now is None:
+        now = (
+            datetime.now(value.tzinfo)
+            if value.tzinfo
+            else datetime.now()
+        )
+
+    seconds = max(0, int((now - value).total_seconds()))
+    units = (
+        ('year', 365 * 24 * 60 * 60),
+        ('month', 30 * 24 * 60 * 60),
+        ('week', 7 * 24 * 60 * 60),
+        ('day', 24 * 60 * 60),
+        ('hour', 60 * 60),
+        ('minute', 60),
+        ('second', 1),
+    )
+    for name, unit_seconds in units:
+        amount = seconds // unit_seconds
+        if amount:
+            suffix = '' if amount == 1 else 's'
+            return f'{amount} {name}{suffix} ago'
+    return 'just now'
 
 
 def format_duration(duration):
@@ -106,6 +146,7 @@ def get_all_formatters():
         'format_string_limit_words': format_string_limit_words,
         'format_string_multiline': format_string_multiline,
         'format_view_count': format_view_count,
+        'format_relative_date': format_relative_date,
         'format_duration': format_duration,
         'format_number': format_number,
         'format_remove_prefix': format_remove_prefix,

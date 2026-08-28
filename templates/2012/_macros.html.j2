@@ -181,7 +181,19 @@
             <span class="stat attribution">by <span class="yt-user-name" dir="ltr">
                 {{- data.channel_name -}}
             </span></span>
+            {% if data.view_count is defined or data.published_at is defined %}
+            <span class="stat view-count">
+                {%- if data.view_count is defined -%}
+                    {{ format_view_count(data.view_count) }} views
+                {%- endif -%}
+                {%- if data.view_count is defined and data.published_at is defined %} &bull; {% endif -%}
+                {%- if data.published_at is defined -%}
+                    {{ format_relative_date(data.published_at) }}
+                {%- endif -%}
+            </span>
+            {% elif data.viewcount_text %}
             <span class="stat view-count">{{ data.viewcount_text }}</span>
+            {% endif %}
         </a>
     </li>
 {%- elif data.type == "playlist" -%}

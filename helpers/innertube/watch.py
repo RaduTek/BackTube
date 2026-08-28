@@ -1,3 +1,4 @@
+import re
 from datetime import datetime, timedelta
 from typing import cast, TypedDict
 from typing_extensions import NotRequired
@@ -484,6 +485,141 @@ def _get_related_continuation_token(items: list[dict]) -> str:
     return ''
 
 
+def _parse_related_view_count(text: str) -> int | None:
+    normalized = text.lower().replace(',', '').strip()
+    if 'no views' in normalized:
+        return 0
+
+    match = re.search(
+        r'(\d+(?:\.\d+)?)\s*(thousand|million|billion|[kmb])?',
+        normalized,
+    )
+    if not match:
+        return None
+
+    multipliers = {
+        'k': 1_000,
+        'thousand': 1_000,
+        'm': 1_000_000,
+        'million': 1_000_000,
+        'b': 1_000_000_000,
+        'billion': 1_000_000_000,
+    }
+    return int(
+        float(match.group(1))
+        * multipliers.get(match.group(2) or '', 1)
+    )
+
+
+def _looks_like_related_view_count(text: str) -> bool:
+    normalized = text.lower().strip()
+    return (
+        'view' in normalized
+        or 'watching' in normalized
+        or bool(re.fullmatch(r'\d[\d,.]*\s*[kmb]?', normalized))
+    )
+
+
+def _parse_related_published_at(
+    text: str,
+    now: datetime | None = None,
+) -> datetime | None:
+    normalized = text.lower().strip()
+    normalized = re.sub(r'^(streamed|premiered)\s+', '', normalized)
+    now = now or datetime.now()
+
+    if normalized == 'today':
+        return now
+    if normalized == 'yesterday':
+        return now - timedelta(days=1)
+
+    match = re.search(
+        r'(\d+)\s*'
+        r'(seconds?|secs?|s|minutes?|mins?|m|hours?|hrs?|h|'
+        r'days?|d|weeks?|wks?|w|months?|mos?|years?|yrs?|y)'
+        r'\s+ago',
+        normalized,
+    )
+    if match:
+        amount = int(match.group(1))
+        unit = match.group(2)
+        if unit.startswith(('second', 'sec')) or unit == 's':
+            return now - timedelta(seconds=amount)
+        if unit.startswith(('minute', 'min')) or unit == 'm':
+            return now - timedelta(minutes=amount)
+        if unit.startswith(('hour', 'hr')) or unit == 'h':
+            return now - timedelta(hours=amount)
+        if unit.startswith('day') or unit == 'd':
+            return now - timedelta(days=amount)
+        if unit.startswith(('week', 'wk')):
+            return now - timedelta(weeks=amount)
+        if unit.startswith(('month', 'mo')):
+            return now - timedelta(days=amount * 30)
+        if unit.startswith(('year', 'yr')) or unit == 'y':
+            return now - timedelta(days=amount * 365)
+
+    for date_format in ('%b %d, %Y', '%B %d, %Y', '%Y-%m-%d'):
+        try:
+            return datetime.strptime(text.strip(), date_format)
+        except ValueError:
+            continue
+    return None
+
+
+def _get_related_metadata_parts(item: dict) -> list[dict]:
+    lockup = item.get('lockupViewModel', {})
+    return [
+        part
+        for row in (
+            lockup.get('metadata', {})
+            .get('lockupMetadataViewModel', {})
+            .get('metadata', {})
+            .get('contentMetadataViewModel', {})
+            .get('metadataRows', [])
+        )
+        for part in row.get('metadataParts', [])
+    ]
+
+
+def _parse_related_video_metadata(item: dict, entry: FeedItem) -> None:
+    view_count: int | None = None
+    published_at: datetime | None = None
+
+    for part in _get_related_metadata_parts(item):
+        text = part.get('text', {})
+        content = text.get('content', '')
+        accessibility_label = (
+            text.get('accessibilityLabel', '')
+            or text.get('accessibility', {})
+            .get('accessibilityData', {})
+            .get('label', '')
+        )
+        for value in (accessibility_label, content):
+            if not value:
+                continue
+            if (
+                view_count is None
+                and _looks_like_related_view_count(value)
+            ):
+                view_count = _parse_related_view_count(value)
+            if published_at is None:
+                published_at = _parse_related_published_at(value)
+
+    if view_count is None:
+        view_count = _parse_related_view_count(
+            entry.get('viewcount_text', '')
+        )
+    if published_at is None:
+        published_at = _parse_related_published_at(
+            entry.get('published_text', '')
+        )
+
+    if view_count is not None:
+        entry['view_count'] = view_count
+    if published_at is not None:
+        entry['published_at'] = published_at
+
+
 def parse_watch_related(response: dict) -> tuple[list[FeedItem], str]:
     """Parse watch page suggestions from an initial or continuation next response."""
 
@@ -491,6 +627,8 @@ def parse_watch_related(response: dict) -> tuple[list[FeedItem], str]:
     suggestions: list[FeedItem] = []
     for item in items:
         if entry := parse_innertube_search_item(item):
+            if entry['type'] == 'video':
+                _parse_related_video_metadata(item, entry)
             suggestions.append(entry)
 
     return suggestions, _get_related_continuation_token(items)
@@ -686,6 +824,8 @@ def get_watch_data(video_id: str, nocache: bool = False) -> WatchPageData:
     watch_data, related_data, comment_data = get_watch_data_innertube(video_id)
 
     watch_cache.set(video_id, watch_data)
+    related_cache.clear(video_id)
+    comments_cache.clear(video_id)
     related_cache.append(video_id, related_data)
     comments_cache.append(video_id, comment_data)
 
@@ -698,7 +838,15 @@ def get_watch_related(
 ) -> WatchPageRelated:
     """Fetch watch page related continuation from the innertube next API, with caching."""
 
-    return related_cache.get_item_default(video_id, page - 1)
+    data = related_cache.get_item_default(video_id, page - 1)
+    for entry in data['related']:
+        published_at = entry.get('published_at')
+        if isinstance(published_at, str):
+            try:
+                entry['published_at'] = datetime.fromisoformat(published_at)
+            except ValueError:
+                entry.pop('published_at', None)
+    return data
 
 
 def get_watch_comments(

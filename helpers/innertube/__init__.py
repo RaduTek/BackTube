@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import TypedDict, Literal
 from typing_extensions import NotRequired
 
@@ -15,6 +16,8 @@ class FeedItem(TypedDict):
 
     published_text: NotRequired[str] # video
     viewcount_text: NotRequired[str] # video
+    published_at: NotRequired[datetime] # video
+    view_count: NotRequired[int] # video
     length_text: NotRequired[str] # video
     description: NotRequired[str] # video, channel
     like_count: NotRequired[str] # video

@@ -99,7 +99,12 @@ def build_related_video_map(videos: list[FeedItem]) -> str:
         if video.get('type') != 'video' or not video.get('id'):
             continue
 
-        view_count = video.get('viewcount_text', '')
+        parsed_view_count = video.get('view_count')
+        view_count = (
+            f'{parsed_view_count:,}'
+            if parsed_view_count is not None
+            else video.get('viewcount_text', '')
+        )
         if view_count.lower().endswith(' views'):
             view_count = view_count[:-6].strip()
 
