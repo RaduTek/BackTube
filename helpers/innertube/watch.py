@@ -8,7 +8,7 @@ from .. import links
 from ..cache import CacheManager, CacheData, CacheDataList
 from ..formats import format_duration
 from .search import parse_innertube_search_item
-from .utils import get_text, get_channel_from_byline
+from .utils import get_text, get_channel_from_byline, get_thumbnail_url
 from ..rydratings import get_ratings, RydRatings
 
 
@@ -55,6 +55,7 @@ class WatchPageVideo(TypedDict):
     channel_name: str
     channel_id: str
     channel_url: str
+    channel_thumbnail_url: str
     channel_is_verified: bool
     channel_is_creator: bool
     subscriber_count: str
@@ -723,6 +724,9 @@ def parse_watch_page_video(
         channel_name=channel_name,
         channel_id=channel_id,
         channel_url=links.channel_url(channel_id),
+        channel_thumbnail_url=get_thumbnail_url(
+            owner_renderer.get('thumbnail', {}).get('thumbnails', [])
+        ),
         channel_is_verified=channel_is_verified,
         channel_is_creator=channel_is_creator,
         subscriber_count=get_text(owner_renderer.get('subscriberCountText')),
@@ -818,7 +822,11 @@ def get_watch_data(video_id: str, nocache: bool = False) -> WatchPageData:
 
     cached = watch_cache.get(video_id)
 
-    if cached and not nocache:
+    if (
+        cached
+        and not nocache
+        and cached.get('video', {}).get('channel_thumbnail_url')
+    ):
         return cached
 
     watch_data, related_data, comment_data = get_watch_data_innertube(video_id)
