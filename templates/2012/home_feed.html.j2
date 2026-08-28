@@ -1,0 +1,70 @@
+{% import '2012/_macros.html.j2' as macros with context %}
+
+<div class="feed-header no-metadata">
+    <div class="feed-header-thumb">
+        <img class="feed-header-icon {{ feed_name }}" src="//s.ytimg.com/yt/img/pixel-vfl3z5WfW.gif" alt="">
+    </div>
+    <div class="feed-header-details">
+        <h2>{{ feed_display_name }}</h2>
+    </div>
+</div>
+
+<div class="feed-container" data-paging="" data-filter-type="" data-view-type="">
+    <div class="feed-page">
+        <ul class="context-data-container">
+            {% for video in videos %}
+            <li>
+                <div class="feed-item-container yt-uix-expander yt-uix-expander-collapsed">
+                    <div class="feed-item-outer">
+                        <div class="feed-item-main">
+                            <div class="feed-item-thumb">
+                                <a class="ux-thumb-wrap contains-addto yt-uix-sessionlink" href="{{ video.url }}&amp;feature=g-logo">
+                                    <span class="video-thumb ux-thumb ux-thumb-96">
+                                        <span class="clip">
+                                            <span class="clip-inner">
+                                                <img src="{{ video.thumbnail_url }}" alt="Thumbnail" width="96">
+                                                <span class="vertical-align"></span>
+                                            </span>
+                                        </span>
+                                    </span>
+                                    <span class="video-time">{{ video.length_text }}</span>
+                                    {{ macros.watch_later_button(video) }}
+                                </a>
+                            </div>
+
+                            <div class="feed-item-time">{{ format_relative_date(video.published_at) }}</div>
+                            <div class="feed-item-content">
+                                <h4>
+                                    <a class="title yt-uix-sessionlink" href="{{ video.url }}&amp;feature=g-logo" dir="ltr">
+                                        {{ video.title }}
+                                    </a>
+                                </h4>
+                                {% if video.description %}
+                                <div class="description" dir="ltr">
+                                    <p>{{ video.description }}</p>
+                                </div>
+                                {% endif %}
+                                <p class="metadata">
+                                    <a href="{{ video.channel_url }}" class="yt-user-name" dir="ltr">{{ video.channel_name }}</a>
+                                    <span class="bull">&bull;</span>
+                                    <span class="view-count">{{ format_number(video.view_count) }} views</span>
+                                </p>
+                                <div class="feed-item-actions-line">
+                                    <span class="feed-item-owner">
+                                        <a href="{{ video.channel_url }}" class="yt-user-name" dir="ltr">{{ video.channel_name }}</a>
+                                    </span>
+                                    uploaded in <strong>{{ video.category_name }}</strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </li>
+            {% else %}
+            <li>
+                <p class="feed-message">No videos are available in this category.</p>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>

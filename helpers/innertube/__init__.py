@@ -29,6 +29,9 @@ class FeedItem(TypedDict):
     channel_handle: NotRequired[str]
     channel_name: NotRequired[str]
     channel_url: NotRequired[str]
+
+    category: NotRequired[str] # curated video feeds
+    category_name: NotRequired[str] # curated video feeds
     
     playlist_id: NotRequired[str]
     playlist_items: NotRequired[list['FeedItem']]

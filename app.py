@@ -23,6 +23,13 @@ def formatters():
 def home_route():
     return home.home_page()
 
+@app.get("/guide_ajax")
+def guide_ajax_route():
+    if request.args.get('action_load_system_feed', '') == '1':
+        return home.guide_ajax()
+
+    return "Invalid request", 400
+
 @app.get("/results")
 def search_route():
     return search.results_page()

@@ -17,7 +17,7 @@
 {% else %}
     <a class="guide-item" data-feed-name="{{ data.feed_id }}" data-feed-type="{{ data.feed_type }}">
         <span class="thumb">
-            <img class="system-icon {{ data.feed_id }} {{ data.feed_id }}"
+            <img class="system-icon {{ data.feed_type }} {{ data.feed_id }}"
                 src="//s.ytimg.com/yt/img/pixel-vfl3z5WfW.gif" alt="">
         </span>
         <span class="display-name">{{ data.display_name }}</span>
@@ -86,22 +86,7 @@
 
     <div id="feed">
         <div id="feed-system-youtube" class="individual-feed" data-loaded="true" data-feed-name="youtube" data-feed-type="system">
-            <div class="feed-header no-metadata">
-                <div class="feed-header-thumb">
-                    <img class="feed-header-icon youtube" src="//s.ytimg.com/yt/img/pixel-vfl3z5WfW.gif" alt="">
-                </div>
-                <div class="feed-header-details">
-                    <h2>From YouTube</h2>
-                </div>
-            </div>
-
-            <div class="feed-container" data-filter-type="" data-view-type="">
-                <div class="feed-page">
-                    
-                    {# Feed items go here #}
-
-                </div>
-            </div>
+            {% include "2012/home_feed.html.j2" %}
         </div>
 
         <div id="feed-error" class="individual-feed hid">
@@ -126,4 +111,15 @@
     <div id="footer-ads"></div>
 </div>
 
+{% endblock %}
+
+{% block body_js %}
+{{ super() }}
+<script>
+    yt.setConfig('GUIDE_VERSION', 1);
+</script>
+<script src="//s.ytimg.com/yt/jsbin/www-guide-vflOW7GDf.js" data-loaded="true"></script>
+<script>
+    yt.www.guide.init();
+</script>
 {% endblock %}

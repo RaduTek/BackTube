@@ -1,7 +1,8 @@
-from flask import render_template
+from flask import render_template, request
 
 from . import get_preferred_template
 from helpers.flags import get_flag
+from helpers.homepage import get_homepage_categories, get_homepage_videos
 
 
 def _home_2012():
@@ -18,63 +19,19 @@ def _home_2012():
             'feed_type': 'system',
             'display_name': 'Popular',
         },
-        {
-            'feed_id': 'music',
-            'feed_type': 'system',
-            'display_name': 'Music',
-        },
-        {
-            'feed_id': 'entertainment',
-            'feed_type': 'chart',
-            'display_name': 'Entertainment',
-        },
-        {
-            'feed_id': 'sports',
-            'feed_type': 'system',
-            'display_name': 'Sports',
-        },
-        {
-            'feed_id': 'comedy',
-            'feed_type': 'system',
-            'display_name': 'Comedy',
-        },
-        {
-            'feed_id': 'film',
-            'feed_type': 'system',
-            'display_name': 'Film &amp; Animation',
-        },
-        {
-            'feed_id': 'gadgets',
-            'feed_type': 'system',
-            'display_name': 'Gaming',
-        },
     ]
-
-    user_feeds = [
-        {
-            'feed_id': 'abcdef0123',
-            'feed_type': 'user',
-            'display_name': 'User Feed 1',
-            'thumbnail_url': 'http://s.ytimg.com/yt/img/pixel-vfl3z5WfW.gif'
-        },
-        {
-            'feed_id': 'abcdef4567',
-            'feed_type': 'user',
-            'display_name': 'User Feed 2',
-            'thumbnail_url': 'http://s.ytimg.com/yt/img/pixel-vfl3z5WfW.gif'
-        },
-        {
-            'feed_id': 'abcdef8901',
-            'feed_type': 'user',
-            'display_name': 'User Feed 3',
-            'thumbnail_url': 'http://s.ytimg.com/yt/img/pixel-vfl3z5WfW.gif'
-        },
-    ]
+    system_feeds.extend({
+        **category,
+        'feed_type': 'system',
+    } for category in get_homepage_categories())
 
     return render_template(
         get_preferred_template('home'), 
         homepage=True,
-        feeds=system_feeds + user_feeds
+        feeds=system_feeds,
+        feed_name='youtube',
+        feed_display_name='From YouTube',
+        videos=get_homepage_videos(),
     )
 
 
@@ -86,3 +43,30 @@ def home_page():
             return _home_2012()
         case _:
             return "No available template"
+
+
+def guide_ajax():
+    feed_name = request.args.get('feed_name', 'trending').strip().lower()
+    display_names = {
+        'youtube': 'From YouTube',
+        'trending': 'Trending',
+        'popular': 'Popular',
+    }
+    display_names.update({
+        category['feed_id']: category['display_name']
+        for category in get_homepage_categories()
+    })
+    display_name = display_names.get(
+        feed_name,
+        feed_name.replace('-', ' ').title(),
+    )
+    feed_html = render_template(
+        get_preferred_template('home_feed'),
+        feed_name=feed_name,
+        feed_display_name=display_name,
+        videos=get_homepage_videos(feed_name),
+    )
+    return {
+        'paging': None,
+        'feed_html': feed_html,
+    }
