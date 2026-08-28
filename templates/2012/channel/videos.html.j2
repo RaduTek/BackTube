@@ -9,16 +9,29 @@
 
 <div class="channel-filtered-page-head">
     <h1 class="channel-section-heading">
+        {% if view == 'pl' %}
+        Playlists
+        <span class="item-count">({{ playlists_page.total_entries }})</span>
+        {% else %}
         Uploaded Videos
         <span class="item-count">({{ channel.video_count.split(' ')[0] }})</span>
+        {% endif %}
     </h1>
 
     <button type="button" class="video-sort-btn yt-uix-button yt-uix-button-default" onclick=";return false;"
         role="button" aria-pressed="false" aria-expanded="false" aria-haspopup="true" aria-activedescendant=""><span
-            class="yt-uix-button-content">{{ video_sort_label }} </span><img class="yt-uix-button-arrow"
+            class="yt-uix-button-content">{{ playlist_sort_label if view == 'pl' else video_sort_label }} </span><img class="yt-uix-button-arrow"
             src="//s.ytimg.com/yt/img/pixel-vfl3z5WfW.gif" alt="">
         <ul class="yt-uix-button-menu yt-uix-button-menu-default" role="menu" aria-haspopup="true"
             style="display: none;">
+            {% if view == 'pl' %}
+            <li role="menuitem"><span href="{{ base_url }}/videos?sort=pn&amp;view=pl"
+                    class=" yt-uix-button-menu-item"
+                    onclick=";window.location.href=this.getAttribute('href');return false;">Playlist name</span></li>
+            <li role="menuitem"><span href="{{ base_url }}/videos?sort=lad&amp;view=pl"
+                    class=" yt-uix-button-menu-item"
+                    onclick=";window.location.href=this.getAttribute('href');return false;">Last video added</span></li>
+            {% else %}
             <li role="menuitem"><span href="{{ base_url }}/videos?sort=p&amp;view=u"
                     class=" yt-uix-button-menu-item"
                     onclick=";window.location.href=this.getAttribute('href');return false;">Most popular</span></li>
@@ -30,6 +43,7 @@
                     class=" yt-uix-button-menu-item"
                     onclick=";window.location.href=this.getAttribute('href');return false;">Date added (newest -
                     oldest)</span></li>
+            {% endif %}
         </ul>
     </button>
 
@@ -45,12 +59,12 @@
 <div class="left-pane">
     <ul class="primary-filter-menu">
         <li>
-            <a class="filter-option selected-filter" href="{{ base_url }}/videos?view=u">
+            <a class="filter-option {{ 'selected-filter' if view != 'pl' else '' }}" href="{{ base_url }}/videos?view=u">
                 Uploaded Videos
             </a>
         </li>
         <li>
-            <a class="filter-option " href="{{ base_url }}/videos?view=pl">
+            <a class="filter-option {{ 'selected-filter' if view == 'pl' else '' }}" href="{{ base_url }}/videos?view=pl">
                 Playlists
             </a>
         </li>
@@ -58,6 +72,46 @@
 </div>
 
 <div class="channel-filtered-content">
+    {% if view == 'pl' %}
+    <ol class="playlists-wide">
+    {% for playlist in playlists_page.entries %}
+        <div class="tile playlist">
+            <a href="{{ playlist.url }}&amp;feature=plcp" class="tile-link-block playlist-metadata">
+                <span class="title playlist-title" dir="ltr">{{ playlist.title }}</span>
+                <span class="description" dir="ltr">{{ playlist.description }}</span>
+            </a>
+            <a class="tile-link-block play-all" href="{{ playlist.play_all_url }}&amp;feature=plcp">
+                <span class="playlist-thumb-strip playlist-thumb-strip-350">
+                    <span class="videos videos-{{ playlist.thumbnail_urls|length }} vertical-cutoff">
+                    {% for thumbnail_url in playlist.thumbnail_urls %}
+                        <span class="clip">
+                            <span class="centering-offset">
+                                <span class="centering">
+                                    <span class="ie7-vertical-align-hack">&nbsp;</span>
+                                    <img src="{{ thumbnail_url }}" alt="" class="thumb">
+                                </span>
+                            </span>
+                        </span>
+                    {% endfor %}
+                    </span>
+                    <span class="resting-overlay">
+                        <img src="//s.ytimg.com/yt/img/channels/play-icon-resting-vflXxuFB8.png" class="play-button" alt="Play all">
+                        <span class="video-count-box">{{ playlist.video_count }}</span>
+                    </span>
+                    <span class="hover-overlay">
+                        <span class="play-all-container">
+                            <strong>
+                                <img src="//s.ytimg.com/yt/img/channels/mini-play-all-vflZu1SBs.png" alt="">
+                                Play all
+                            </strong>
+                        </span>
+                    </span>
+                </span>
+            </a>
+        </div>
+    {% endfor %}
+    </ol>
+    {% else %}
     <ol class="channel-videos-list">
     {% for video in videos_page.entries %}
         <li class="video">
@@ -89,6 +143,7 @@
         </li>
     {% endfor %}
     </ol>
+    {% endif %}
 
     {% if pager.total > 1 %}
         {{ macros.create_pager(pager) }}

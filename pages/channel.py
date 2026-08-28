@@ -11,8 +11,10 @@ from helpers.innertube import FeedCollection
 from helpers.innertube.channel import (
     CHANNEL_VIDEOS_PAGE_SIZE,
     ChannelPageData,
+    ChannelPlaylistsSort,
     ChannelVideosSort,
     get_channel_data,
+    get_channel_playlists_page,
     get_channel_videos_page,
     resolve_channel_handle,
 )
@@ -25,6 +27,10 @@ CHANNEL_VIDEO_SORT_LABELS: dict[ChannelVideosSort, str] = {
     'p': 'Most popular',
     'dd': 'Date added (newest - oldest)',
     'da': 'Date added (oldest - newest)',
+}
+CHANNEL_PLAYLIST_SORT_LABELS: dict[ChannelPlaylistsSort, str] = {
+    'pn': 'Playlist name',
+    'lad': 'Last video added',
 }
 
 
@@ -148,17 +154,55 @@ def channel_feed_page(channel_id: str | None = None, user_id: str | None = None)
 def channel_videos_page(channel_id: str | None = None, user_id: str | None = None):
     channel_id, data, common_context = _get_channel_data(channel_id=channel_id, user_id=user_id)
 
+    try:
+        page_number = max(1, int(request.args.get('page', 1)))
+    except (TypeError, ValueError):
+        page_number = 1
+
+    if request.args.get('view') in {'pl', '1'}:
+        requested_sort = request.args.get('sort', 'pn')
+        playlist_sort = (
+            cast(ChannelPlaylistsSort, requested_sort)
+            if requested_sort in CHANNEL_PLAYLIST_SORT_LABELS
+            else 'pn'
+        )
+        try:
+            playlists_page = get_channel_playlists_page(
+                channel_id,
+                sort=playlist_sort,
+                page_number=page_number,
+            )
+        except IndexError:
+            raise NotFound("Channel playlists page not found")
+
+        def get_playlist_page_url(page: int) -> str:
+            page_param = f'&page={page}' if page > 1 else ''
+            return (
+                f"{common_context['base_url']}/videos"
+                f"?sort={playlist_sort}&view=pl{page_param}"
+            )
+
+        pager = create_pager_props(
+            page_number,
+            playlists_page['total_pages'],
+            get_playlist_page_url,
+        )
+        return render_template(
+            get_preferred_template('channel/videos'),
+            **common_context,
+            view='pl',
+            playlists_page=playlists_page,
+            playlist_sort=playlist_sort,
+            playlist_sort_label=CHANNEL_PLAYLIST_SORT_LABELS[playlist_sort],
+            pager=pager,
+        )
+
     requested_sort = request.args.get('sort', 'dd')
     video_sort = (
         cast(ChannelVideosSort, requested_sort)
         if requested_sort in CHANNEL_VIDEO_SORT_LABELS
         else 'dd'
     )
-
-    try:
-        page_number = max(1, int(request.args.get('page', 1)))
-    except (TypeError, ValueError):
-        page_number = 1
 
     total_videos = _parse_channel_video_count(data['channel']['video_count'])
     total_pages = (
@@ -190,6 +234,7 @@ def channel_videos_page(channel_id: str | None = None, user_id: str | None = Non
     return render_template(
         get_preferred_template('channel/videos'),
         **common_context,
+        view='u',
         videos_page=videos_page,
         video_sort=video_sort,
         video_sort_label=CHANNEL_VIDEO_SORT_LABELS[video_sort],

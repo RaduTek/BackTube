@@ -14,8 +14,10 @@ from .watch import _parse_channel_badges, _clean_tracked_url, _extract_tracked_u
 
 CHANNEL_ABOUT_PARAMS = 'EgVhYm91dPIGBgoCMgBKAA%3D%3D'
 CHANNEL_VIDEOS_PAGE_SIZE = 30
+CHANNEL_PLAYLISTS_PAGE_SIZE = 10
 
 ChannelVideosSort = Literal['p', 'dd', 'da']
+ChannelPlaylistsSort = Literal['pn', 'lad']
 
 
 class ChannelSocial(TypedDict):
@@ -55,6 +57,26 @@ class ChannelVideosPage(TypedDict):
     sort: ChannelVideosSort
     continuation_token: str
     entries: list[FeedItem]
+
+
+class ChannelPlaylist(TypedDict):
+    id: str
+    title: str
+    url: str
+    play_all_url: str
+    description: str
+    video_count: str
+    thumbnail_urls: list[str]
+
+
+class ChannelPlaylistsPage(TypedDict):
+    channel_id: str
+    fetched_at: int
+    sort: ChannelPlaylistsSort
+    page_number: int
+    total_pages: int
+    total_entries: int
+    entries: list[ChannelPlaylist]
 
 
 _channel_handle_map: dict[str, str] | None = None
@@ -98,6 +120,18 @@ videos_caches: dict[ChannelVideosSort, CacheDataList[ChannelVideosPage]] = {
         depends_on_previous=True,
     )
     for sort in ('p', 'dd', 'da')
+}
+playlists_caches: dict[
+    ChannelPlaylistsSort,
+    CacheDataList[ChannelPlaylistsPage],
+] = {
+    sort: CacheDataList[ChannelPlaylistsPage](
+        cache,
+        f'playlists_{sort}',
+        ttl=None,
+        depends_on_previous=False,
+    )
+    for sort in ('pn', 'lad')
 }
 
 
@@ -241,7 +275,7 @@ def _get_channel_video_items(response: dict) -> list[dict]:
     return items
 
 
-def _get_channel_video_continuation_token(items: list[dict]) -> str:
+def _get_continuation_token(items: list[dict]) -> str:
     for item in items:
         if continuation := item.get('continuationItemRenderer'):
             return (
@@ -259,6 +293,144 @@ def _parse_channel_video_items(items: list[dict]) -> list[FeedItem]:
         if entry := parse_innertube_search_item(content):
             if entry['type'] == 'video':
                 entries.append(entry)
+    return entries
+
+
+def _get_channel_playlist_sort_params(
+    playlists_response: dict,
+    sort: ChannelPlaylistsSort,
+) -> str:
+    if sort == 'pn':
+        return ''
+
+    for tab in _get_browse_tabs(playlists_response):
+        tab_renderer = tab.get('tabRenderer', {})
+        if not tab_renderer.get('selected'):
+            continue
+        submenu_items = (
+            tab_renderer.get('content', {})
+            .get('sectionListRenderer', {})
+            .get('subMenu', {})
+            .get('channelSubMenuRenderer', {})
+            .get('sortSetting', {})
+            .get('sortFilterSubMenuRenderer', {})
+            .get('subMenuItems', [])
+        )
+        for item in submenu_items:
+            endpoint = item.get('navigationEndpoint', {})
+            url = (
+                endpoint.get('commandMetadata', {})
+                .get('webCommandMetadata', {})
+                .get('url', '')
+            )
+            if 'sort=lad' in url or item.get('title') == 'Last video added':
+                return endpoint.get('browseEndpoint', {}).get('params', '')
+    return ''
+
+
+def _get_channel_playlist_items(response: dict) -> list[dict]:
+    items: list[dict] = []
+    for section in _get_tab_sections(response, 'Playlists'):
+        for content in section.get('itemSectionRenderer', {}).get('contents', []):
+            if grid := content.get('gridRenderer'):
+                items.extend(grid.get('items', []))
+
+    if items:
+        return items
+
+    for response_key in (
+        'onResponseReceivedActions',
+        'onResponseReceivedCommands',
+        'onResponseReceivedEndpoints',
+    ):
+        for command in response.get(response_key, []):
+            for action_key in (
+                'appendContinuationItemsAction',
+                'reloadContinuationItemsCommand',
+            ):
+                if action := command.get(action_key):
+                    items.extend(action.get('continuationItems', []))
+    return items
+
+
+def _parse_channel_playlist(item: dict) -> ChannelPlaylist | None:
+    parsed = parse_innertube_search_item(item)
+    if not parsed or parsed['type'] != 'playlist':
+        return None
+
+    lockup = item.get('lockupViewModel', {})
+    watch_endpoint = (
+        lockup.get('rendererContext', {})
+        .get('commandContext', {})
+        .get('onTap', {})
+        .get('innertubeCommand', {})
+        .get('watchEndpoint', {})
+    )
+    first_video_id = watch_endpoint.get('videoId', '')
+
+    thumbnail_urls = [
+        preview['thumbnail_url']
+        for preview in parsed.get('playlist_items', [])[:5]
+        if preview.get('thumbnail_url')
+    ]
+    if not thumbnail_urls and parsed.get('thumbnail_url'):
+        thumbnail_urls.append(parsed['thumbnail_url'])
+
+    playlist_id = parsed['id']
+    play_all_url = (
+        links.video_url(first_video_id, playlist_id)
+        if first_video_id
+        else parsed['url']
+    )
+    return ChannelPlaylist(
+        id=playlist_id,
+        title=parsed['title'],
+        url=parsed['url'],
+        play_all_url=play_all_url,
+        description=parsed.get('description', ''),
+        video_count=parsed.get('video_count', ''),
+        thumbnail_urls=thumbnail_urls,
+    )
+
+
+def _parse_legacy_channel_playlist(item: dict) -> ChannelPlaylist | None:
+    renderer = item.get('gridPlaylistRenderer', {})
+    playlist_id = renderer.get('playlistId', '')
+    if not playlist_id:
+        return None
+
+    watch_endpoint = (
+        renderer.get('navigationEndpoint', {})
+        .get('watchEndpoint', {})
+    )
+    first_video_id = watch_endpoint.get('videoId', '')
+    thumbnail_url = get_thumbnail_url(
+        renderer.get('thumbnail', {}).get('thumbnails', [])
+    )
+    return ChannelPlaylist(
+        id=playlist_id,
+        title=get_text(renderer.get('title')),
+        url=f'/playlist?list={playlist_id}',
+        play_all_url=(
+            links.video_url(first_video_id, playlist_id)
+            if first_video_id
+            else f'/playlist?list={playlist_id}'
+        ),
+        description=get_text(renderer.get('descriptionText')),
+        video_count=get_text(renderer.get('videoCountText')),
+        thumbnail_urls=[thumbnail_url] if thumbnail_url else [],
+    )
+
+
+def _parse_channel_playlist_items(items: list[dict]) -> list[ChannelPlaylist]:
+    entries: list[ChannelPlaylist] = []
+    for item in items:
+        playlist = (
+            _parse_channel_playlist(item)
+            or _parse_legacy_channel_playlist(item)
+        )
+        if playlist:
+            entries.append(playlist)
     return entries
 
 
@@ -787,7 +959,7 @@ def get_channel_videos_innertube(
         channel_id=channel_id,
         fetched_at=int(datetime.now().timestamp()),
         sort=sort,
-        continuation_token=_get_channel_video_continuation_token(items),
+        continuation_token=_get_continuation_token(items),
         entries=_parse_channel_video_items(items),
     )
 
@@ -805,3 +977,106 @@ def get_channel_videos_page(
         raise ValueError('Page number must be at least 1.')
 
     return videos_caches[sort].get_item_default(channel_id, page_number - 1)
+
+
+def get_channel_playlists_innertube(
+    channel_id: str,
+    sort: ChannelPlaylistsSort = 'pn',
+) -> list[ChannelPlaylist]:
+    """Fetch all channel playlists in the requested order from innertube."""
+
+    if sort not in playlists_caches:
+        raise ValueError(f'Unsupported channel playlist sort: {sort}')
+
+    channel_response = client.browse(browse_id=channel_id)
+    playlists_params = _get_tab_params(channel_response, 'Playlists')
+    if not playlists_params:
+        return []
+
+    playlists_response = client.browse(
+        browse_id=channel_id,
+        params=playlists_params,
+    )
+    if sort == 'lad':
+        sort_params = _get_channel_playlist_sort_params(
+            playlists_response,
+            sort,
+        )
+        if sort_params:
+            playlists_response = client.browse(
+                browse_id=channel_id,
+                params=sort_params,
+            )
+
+    entries: list[ChannelPlaylist] = []
+    seen_tokens: set[str] = set()
+    while True:
+        items = _get_channel_playlist_items(playlists_response)
+        entries.extend(_parse_channel_playlist_items(items))
+
+        continuation_token = _get_continuation_token(items)
+        if not continuation_token or continuation_token in seen_tokens:
+            break
+        seen_tokens.add(continuation_token)
+        playlists_response = client.browse(continuation=continuation_token)
+
+    if sort == 'pn':
+        entries.sort(key=lambda playlist: playlist['title'].casefold())
+
+    return entries
+
+
+def _populate_channel_playlists_cache(
+    channel_id: str,
+    sort: ChannelPlaylistsSort,
+) -> None:
+    entries = get_channel_playlists_innertube(channel_id, sort)
+    total_entries = len(entries)
+    total_pages = max(
+        1,
+        (
+            total_entries + CHANNEL_PLAYLISTS_PAGE_SIZE - 1
+        ) // CHANNEL_PLAYLISTS_PAGE_SIZE,
+    )
+
+    playlists_cache = playlists_caches[sort]
+    playlists_cache.clear(channel_id)
+    for page_index in range(total_pages):
+        start = page_index * CHANNEL_PLAYLISTS_PAGE_SIZE
+        end = start + CHANNEL_PLAYLISTS_PAGE_SIZE
+        playlists_cache.append(
+            channel_id,
+            ChannelPlaylistsPage(
+                channel_id=channel_id,
+                fetched_at=int(datetime.now().timestamp()),
+                sort=sort,
+                page_number=page_index + 1,
+                total_pages=total_pages,
+                total_entries=total_entries,
+                entries=entries[start:end],
+            ),
+        )
+
+
+def get_channel_playlists_page(
+    channel_id: str,
+    sort: ChannelPlaylistsSort = 'pn',
+    page_number: int = 1,
+) -> ChannelPlaylistsPage:
+    """Get a cached page of channel playlists in the requested order."""
+
+    if sort not in playlists_caches:
+        raise ValueError(f'Unsupported channel playlist sort: {sort}')
+    if page_number < 1:
+        raise ValueError('Page number must be at least 1.')
+
+    playlists_cache = playlists_caches[sort]
+    if playlists_cache.is_empty(channel_id):
+        _populate_channel_playlists_cache(channel_id, sort)
+
+    page = playlists_cache.get_item(channel_id, page_number - 1)
+    if page is None:
+        raise IndexError(
+            f'Playlist page {page_number} does not exist for channel {channel_id}.'
+        )
+    return page
