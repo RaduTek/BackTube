@@ -1,0 +1,194 @@
+{% import "2012/_macros.html.j2" as macros %}
+{% extends "2012/_root.html.j2" %}
+
+{% block title %}{{ data.playlist.title }} - YouTube{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="//s.ytimg.com/yt/cssbin/www-the-rest-vflNb6rAI.css">
+<link rel="stylesheet" href="//s.ytimg.com/yt/cssbin/www-playlist-vfl7RUL0i.css">
+<style>
+    #branded-page-body-container {
+        background-color: #fff;
+        background-image: none;
+    }
+</style>
+{% endblock %}
+
+{% block page_class %}playlist branded-page{% endblock %}
+
+{% block content %}
+{% set playlist = data.playlist %}
+<div id="branded-page-default-bg" class="ytg-base">
+    <div id="branded-page-body-container" class="ytg-base">
+        <div id="branded-page-header-container" class="ytg-wide">
+            <div id="branded-page-header" class="ytg-wide ytg-box">
+                {% if playlist.owner_thumbnail_url %}
+                <a class="profile-thumb" href="{{ playlist.owner_url }}">
+                    <span class="video-thumb ux-thumb ux-thumb-profile-77">
+                        <span class="clip">
+                            <span class="clip-inner">
+                                <img src="{{ playlist.owner_thumbnail_url }}" alt="{{ playlist.owner_name }}">
+                                <span class="vertical-align"></span>
+                            </span>
+                        </span>
+                    </span>
+                </a>
+                {% endif %}
+
+                <div class="ytg-box">
+                    <div class="playlist-info">
+                        <div class="header-right">
+                            <div class="header-stats ytg-box">
+                                <ul>
+                                    <li class="stat-entry first">
+                                        <span class="stat-value">{{ format_number(playlist.video_count) }}</span>
+                                        <span class="stat-name">videos</span>
+                                    </li>
+                                    {% if playlist.view_count_text %}
+                                    <li class="stat-entry">
+                                        <span class="stat-value">{{ format_remove_suffix(playlist.view_count_text) }}</span>
+                                        <span class="stat-name">views</span>
+                                    </li>
+                                    {% endif %}
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="playlist-reference">
+                            <h1 title="{{ playlist.title }}">{{ playlist.title }}</h1>
+                            {% if playlist.owner_name %}
+                            <p class="channel-author-attribution">
+                                by <a href="{{ playlist.owner_url }}">{{ playlist.owner_name }}</a>
+                            </p>
+                            {% endif %}
+                        </div>
+
+                        <div id="playlist-actions">
+                            <div id="play-all-button" class="music-onebox-playall">
+                                <a href="{{ playlist.play_all_url }}&amp;feature=plpp_play_all">
+                                    <img class="small-arrow" src="//s.ytimg.com/yt/img/pixel-vfl3z5WfW.gif" alt="">
+                                    Play All
+                                </a>
+                            </div>
+                            <button
+                                type="button"
+                                class="playlist-share yt-uix-button yt-uix-button-default yt-uix-tooltip"
+                                onclick="return false;"
+                                title="Share or embed this playlist"
+                                role="button"
+                            >
+                                <span class="yt-uix-button-content">Share</span>
+                            </button>
+                            <div id="playlist-likes-container">
+                                <span class="playlist-like-dislike yt-uix-button-group">
+                                    <button type="button" class="playlist-like start yt-uix-button yt-uix-button-default yt-uix-tooltip" onclick="return false;" title="I like this" role="button">
+                                        <img class="yt-uix-button-icon yt-uix-button-icon-playlist-like" src="//s.ytimg.com/yt/img/pixel-vfl3z5WfW.gif" alt="I like this">
+                                        <span class="yt-uix-button-content">Like</span>
+                                    </button><button type="button" class="playlist-dislike end yt-uix-button yt-uix-button-default yt-uix-tooltip yt-uix-button-empty" onclick="return false;" title="I dislike this" role="button">
+                                        <img class="yt-uix-button-icon yt-uix-button-icon-playlist-dislike" src="//s.ytimg.com/yt/img/pixel-vfl3z5WfW.gif" alt="I dislike this">
+                                    </button>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="branded-page-body">
+            <div id="playlist-pane-container">
+                <div class="primary-pane">
+                    <div class="playlist-landing">
+                        {% if playlist.description %}
+                        <div class="playlist-description truncate">{{ playlist.description }}</div>
+                        {% endif %}
+                        <ol>
+                        {% for video in data.entries %}
+                            <li class="playlist-video-item {{ 'odd' if loop.index is odd else 'even' }}">
+                                <a href="{{ video.url }}&amp;feature=plpp_video" class="tile-link-block video-tile">
+                                    <span class="playlist-video-item-base-content">
+                                        <span class="video-index">{{ video.index }}</span>
+                                        <span class="thumb-container">
+                                            <span class="ux-thumb-wrap">
+                                                <span class="video-thumb ux-thumb ux-thumb-114">
+                                                    <span class="clip">
+                                                        <span class="clip-inner">
+                                                            <img src="{{ video.thumbnail_url }}" alt="Thumbnail">
+                                                            <span class="vertical-align"></span>
+                                                        </span>
+                                                    </span>
+                                                </span>
+                                                {% if video.length_text %}
+                                                <span class="video-time">{{ video.length_text }}</span>
+                                                {% endif %}
+                                                {{ macros.watch_later_button(video) }}
+                                            </span>
+                                        </span>
+
+                                        <span class="video-info">
+                                            <span class="video-overview">
+                                                <span class="title video-title" dir="ltr">{{ video.title }}</span>
+                                                {% if video.channel_name %}
+                                                <span class="video-details">
+                                                    <span class="video-owner">
+                                                        by <span class="yt-user-name" dir="ltr">{{ video.channel_name }}</span>
+                                                    </span>
+                                                </span>
+                                                {% endif %}
+                                            </span>
+                                            {% if video.viewcount_text %}
+                                            <span class="video-view-count">{{ video.viewcount_text }}</span>
+                                            {% endif %}
+                                        </span>
+                                    </span>
+                                </a>
+                            </li>
+                        {% endfor %}
+                        </ol>
+
+                        {% if pager.total > 1 %}
+                        {{ macros.create_pager(pager) }}
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="secondary-pane">
+                    <div class="playlist-creator-info channel-module">
+                        <h2>About {{ playlist.owner_name }}</h2>
+                        {% if playlist.owner_thumbnail_url %}
+                        <a href="{{ playlist.owner_url }}" class="yt-user-photo">
+                            <img src="{{ playlist.owner_thumbnail_url }}" alt="{{ playlist.owner_name }}" width="88">
+                        </a>
+                        {% endif %}
+                        <div class="creator-links">
+                            <a href="{{ playlist.owner_url }}">View channel</a>
+                            <a href="{{ playlist.owner_url }}/videos?view=pl">View all playlists</a>
+                            <a href="{{ playlist.owner_url }}/videos?view=u">View all videos</a>
+                        </div>
+                        <div class="enable-fancy-subscribe-button">
+                            <button type="button" class="yt-subscription-button yt-subscription-button-js-default yt-uix-button yt-uix-button-default" onclick="return false;" role="button">
+                                <img class="yt-uix-button-icon yt-uix-button-icon-subscribe" src="//s.ytimg.com/yt/img/pixel-vfl3z5WfW.gif" alt="">
+                                <span class="yt-uix-button-content">
+                                    <span class="subscribe-label">Subscribe</span>
+                                    <span class="subscribed-label">Subscribed</span>
+                                    <span class="unsubscribe-label">Unsubscribe</span>
+                                </span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block body_js %}
+{{ super() }}
+<script src="//s.ytimg.com/yt/jsbin/www-playlist-vflz0IceO.js"></script>
+<script>
+    yt.pubsub.subscribe('init', function () {
+        yt.www.playlist.init();
+    });
+</script>
+{% endblock %}

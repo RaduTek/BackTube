@@ -3,6 +3,10 @@ from flask import request, render_template
 from . import get_preferred_template
 from helpers.pager import create_pager_props
 from helpers.player import get_player_data
+from helpers.innertube.playlist import (
+    get_playlist_hud_data,
+    get_playlist_video_info,
+)
 from helpers.innertube.watch import get_watch_comments, get_watch_data, get_watch_related, WatchPageData
 
 
@@ -25,6 +29,8 @@ def _get_pager_for_comments(data: WatchPageData, page: int = 1):
 
 def watch_page():
     video_id = request.args.get("v", '')
+    playlist_id = request.args.get('list', '').strip()
+    playlist_index = request.args.get('index', type=int)
     nocache = request.args.get('nocache', 'x') != 'x'
     
     data = get_watch_data(video_id, nocache=nocache)
@@ -32,7 +38,30 @@ def watch_page():
     comments = get_watch_comments(video_id, page=1)
     comments_pager = _get_pager_for_comments(data, page=1)
 
-    player = get_player_data(video_id, watch_data=data)
+    playlist_hud = None
+    if playlist_id:
+        try:
+            playlist_hud = get_playlist_hud_data(
+                playlist_id,
+                video_id,
+                requested_index=playlist_index,
+            )
+        except (IndexError, ValueError):
+            playlist_hud = None
+
+    player_args = None
+    if playlist_hud:
+        player_args = {
+            'list': playlist_id,
+            'playlist_id': playlist_id,
+            'index': str(playlist_hud['current_position'] - 1),
+        }
+
+    player = get_player_data(
+        video_id,
+        watch_data=data,
+        player_args=player_args,
+    )
 
     return render_template(
         get_preferred_template('watch'), 
@@ -42,6 +71,7 @@ def watch_page():
         comments=comments,
         comments_pager=comments_pager,
         player=player,
+        playlist_hud=playlist_hud,
     )
 
 
@@ -57,6 +87,15 @@ def related_ajax():
             data=data,
         ) 
     }
+
+
+def playlist_video_info_ajax():
+    video_ids = [
+        video_id
+        for video_id in request.form.get('video_ids', '').split(',')
+        if video_id
+    ][:300]
+    return {'data': get_playlist_video_info(video_ids)}
 
 
 def all_comments_page():

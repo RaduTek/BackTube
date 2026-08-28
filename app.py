@@ -2,7 +2,7 @@ import os
 from flask import Flask, render_template, request, send_from_directory
 
 from config import config
-from pages import home, search, watch, channel, get_preferred_template
+from pages import home, search, watch, channel, playlist, get_preferred_template
 from helpers import player
 from helpers.formats import get_all_formatters
 from helpers.proxy import proxy_handler
@@ -31,6 +31,10 @@ def search_route():
 def watch_route():
     return watch.watch_page()
 
+@app.get("/playlist")
+def playlist_route():
+    return playlist.playlist_page()
+
 @app.get("/all_comments")
 def all_comments_route():
     return watch.all_comments_page()
@@ -41,6 +45,10 @@ def related_ajax_route():
         return watch.related_ajax()
 
     return "Invalid request", 400
+
+@app.post("/video_info_ajax")
+def playlist_video_info_ajax_route():
+    return watch.playlist_video_info_ajax()
 
 @app.get("/share_ajax")
 def share_ajax_route():

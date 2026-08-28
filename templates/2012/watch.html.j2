@@ -3,6 +3,16 @@
 
 {% block title %}{{ data.video.title }} - YouTube{% endblock %}
 
+{% block extra_css %}
+{{ super() }}
+<style>
+.ux-thumb-106 {
+    width: 106px;
+    height: 60px;
+}
+</style>
+{% endblock %}
+
 {% block content %}
 <div id="watch-container" itemscope itemtype="http://schema.org/VideoObject">
     <link itemprop="url" href="http://www.youtube.com/watch?v={{ data.video.video_id }}">
@@ -744,7 +754,248 @@
 </div>
 {% endblock %}
 
+{% block page_overlays %}
+{% if playlist_hud %}
+<div
+    id="playlist-bar"
+    class="hid active autoplay-on shuffle-off"
+    data-list-id="{{ playlist_hud.list_id }}"
+    data-list-type="{{ playlist_hud.list_type }}"
+    data-index-offset="{{ playlist_hud.index_offset }}"
+    data-video-ids="{{ playlist_hud.video_ids|join(',') }}"
+    data-list-length="{{ playlist_hud.list_length }}"
+    data-masked="True"
+    data-video-url="/watch?v=&amp;feature=BFa&amp;list={{ playlist_hud.playlist_id }}"
+>
+    <div id="playlist-bar-bar-container">
+        <div id="playlist-bar-bar">
+            <div class="yt-alert yt-alert-naked yt-alert-success hid" id="playlist-bar-notifications">
+                <div class="yt-alert-icon">
+                    <img src="//s.ytimg.com/yt/img/pixel-vfl3z5WfW.gif" class="icon master-sprite" alt="Alert icon">
+                </div>
+                <div class="yt-alert-content" role="alert"></div>
+            </div>
+
+            <span id="playlist-bar-info">
+                <span class="playlist-bar-active playlist-bar-group">
+                    <button
+                        onclick="return false;"
+                        title="Previous video"
+                        type="button"
+                        id="playlist-bar-prev-button"
+                        class="yt-uix-tooltip yt-uix-tooltip-masked yt-uix-button yt-uix-button-default yt-uix-button-empty"
+                        role="button"
+                    >
+                        <span class="yt-uix-button-icon-wrapper">
+                            <img class="yt-uix-button-icon yt-uix-button-icon-playlist-bar-prev" src="//s.ytimg.com/yt/img/pixel-vfl3z5WfW.gif" alt="Previous video">
+                        </span>
+                    </button>
+                    <span class="playlist-bar-count">
+                        <span class="playing-index">{{ playlist_hud.current_position }}</span>
+                        /
+                        <span class="item-count">{{ playlist_hud.list_length }}</span>
+                    </span>
+                    <button
+                        type="button"
+                        id="playlist-bar-next-button"
+                        class="yt-uix-tooltip yt-uix-tooltip-masked yt-uix-button yt-uix-button-default yt-uix-button-empty"
+                        onclick="return false;"
+                        title="Next video"
+                        role="button"
+                    >
+                        <span class="yt-uix-button-icon-wrapper">
+                            <img class="yt-uix-button-icon yt-uix-button-icon-playlist-bar-next" src="//s.ytimg.com/yt/img/pixel-vfl3z5WfW.gif" alt="Next video">
+                        </span>
+                    </button>
+                </span>
+
+                <span class="playlist-bar-active playlist-bar-group">
+                    <button
+                        type="button"
+                        class="yt-uix-tooltip yt-uix-tooltip-masked yt-uix-button-toggled yt-uix-button yt-uix-button-default yt-uix-button-empty"
+                        onclick="return false;"
+                        id="playlist-bar-autoplay-button"
+                        data-button-toggle="true"
+                        title="Turn autoplay off"
+                        role="button"
+                    >
+                        <span class="yt-uix-button-icon-wrapper">
+                            <img class="yt-uix-button-icon yt-uix-button-icon-playlist-bar-autoplay" src="//s.ytimg.com/yt/img/pixel-vfl3z5WfW.gif" alt="">
+                        </span>
+                    </button>
+                    <button
+                        type="button"
+                        class="yt-uix-tooltip yt-uix-tooltip-masked yt-uix-button yt-uix-button-default yt-uix-button-empty"
+                        onclick="return false;"
+                        id="playlist-bar-shuffle-button"
+                        data-button-toggle="true"
+                        title="Shuffle playlist"
+                        role="button"
+                    >
+                        <span class="yt-uix-button-icon-wrapper">
+                            <img class="yt-uix-button-icon yt-uix-button-icon-playlist-bar-shuffle" src="//s.ytimg.com/yt/img/pixel-vfl3z5WfW.gif" alt="">
+                        </span>
+                    </button>
+                </span>
+
+                <span class="playlist-bar-passive playlist-bar-group">
+                    <button
+                        onclick="return false;"
+                        title="Play videos"
+                        type="button"
+                        id="playlist-bar-play-button"
+                        class="yt-uix-tooltip yt-uix-tooltip-masked yt-uix-button yt-uix-button-default yt-uix-button-empty"
+                        role="button"
+                    >
+                        <span class="yt-uix-button-icon-wrapper">
+                            <img class="yt-uix-button-icon yt-uix-button-icon-playlist-bar-play" src="//s.ytimg.com/yt/img/pixel-vfl3z5WfW.gif" alt="Play videos">
+                        </span>
+                    </button>
+                    <span class="playlist-bar-count">
+                        <span class="item-count">{{ playlist_hud.list_length }}</span>
+                    </span>
+                </span>
+
+                <span id="playlist-bar-title" class="yt-uix-button-group">
+                    <button
+                        href="/playlist?list={{ playlist_hud.playlist_id }}"
+                        onclick="window.location.href=this.getAttribute('href');return false;"
+                        title="More information about this playlist"
+                        type="button"
+                        class="yt-uix-tooltip yt-uix-tooltip-masked start playlist-title yt-uix-button yt-uix-button-default"
+                        role="button"
+                    >
+                        <span class="yt-uix-button-content">{{ playlist_hud.title }}</span>
+                    </button>
+                    {%- if playlist_hud.owner_name -%}
+                    <button
+                        href="{{ playlist_hud.owner_url }}"
+                        type="button"
+                        class="yt-uix-tooltip yt-uix-tooltip-masked end yt-uix-button yt-uix-button-default"
+                        onclick="window.location.href=this.getAttribute('href');return false;"
+                        role="button"
+                    >
+                        <span class="yt-uix-button-content">
+                            {% if playlist_hud.owner_thumbnail_url %}
+                            <span class="video-thumb ux-thumb ux-thumb-profile-24">
+                                <span class="clip">
+                                    <span class="clip-inner">
+                                        <img src="{{ playlist_hud.owner_thumbnail_url }}" alt="{{ playlist_hud.owner_name }}" width="23">
+                                        <span class="vertical-align"></span>
+                                    </span>
+                                </span>
+                            </span>
+                            {% endif %}
+                            <span class="yt-user-name" dir="ltr">{{ playlist_hud.owner_name }}</span>
+                        </span>
+                    </button>
+                    {% endif %}
+                </span>
+            </span>
+
+            <a id="playlist-bar-lists-back" href="#">Return to active list</a>
+
+            <span id="playlist-bar-controls">
+                <span class="playlist-bar-group">
+                    <button type="button" class="yt-uix-tooltip yt-uix-tooltip-masked yt-uix-button yt-uix-button-text yt-uix-button-empty" onclick="return false;" id="playlist-bar-toggle-button" role="button">
+                        <span class="yt-uix-button-icon-wrapper">
+                            <img class="yt-uix-button-icon yt-uix-button-icon-playlist-bar-toggle" src="//s.ytimg.com/yt/img/pixel-vfl3z5WfW.gif" alt="">
+                        </span>
+                    </button>
+                </span>
+                <span class="playlist-bar-group">
+                    <button type="button" class="yt-uix-tooltip yt-uix-tooltip-masked yt-uix-button-reverse flip yt-uix-button yt-uix-button-text" onclick="return false;" data-button-menu-id="playlist-bar-options-menu" data-button-has-sibling-menu="true" role="button">
+                        <span class="yt-uix-button-content">Options</span>
+                        <img class="yt-uix-button-arrow" src="//s.ytimg.com/yt/img/pixel-vfl3z5WfW.gif" alt="">
+                    </button>
+                </span>
+            </span>
+        </div>
+    </div>
+
+    <div id="playlist-bar-tray-container">
+        <div id="playlist-bar-tray" class="yt-uix-slider yt-uix-slider-fluid">
+            <button class="yt-uix-button playlist-bar-tray-button yt-uix-button-default yt-uix-slider-prev" onclick="return false;">
+                <img class="yt-uix-slider-prev-arrow" src="//s.ytimg.com/yt/img/pixel-vfl3z5WfW.gif" alt="Previous video">
+            </button>
+            <button class="yt-uix-button playlist-bar-tray-button yt-uix-button-default yt-uix-slider-next" onclick="return false;">
+                <img class="yt-uix-slider-next-arrow" src="//s.ytimg.com/yt/img/pixel-vfl3z5WfW.gif" alt="Next video">
+            </button>
+            <div class="yt-uix-slider-body">
+                <div id="playlist-bar-tray-content" class="yt-uix-slider-slide">
+                    <ol class="video-list">
+                    </ol>
+                    <ol id="playlist-bar-help">
+                        <li class="empty playlist-bar-help-message">Your queue is empty.</li>
+                    </ol>
+                </div>
+                <div class="yt-uix-slider-shade-left"></div>
+                <div class="yt-uix-slider-shade-right"></div>
+            </div>
+        </div>
+        <div id="playlist-bar-save"></div>
+        <div id="playlist-bar-lists" class="dark-lolz"></div>
+        <div id="playlist-bar-loading">
+            <img src="//s.ytimg.com/yt/img/pixel-vfl3z5WfW.gif" alt="Loading...">
+            <span id="playlist-bar-loading-message">Loading...</span>
+            <span id="playlist-bar-saving-message" class="hid">Saving...</span>
+        </div>
+        <div id="playlist-bar-template" style="display: none;" data-video-thumb-url="//i4.ytimg.com/vi/__video_encrypted_id__/default.jpg"><!--<li class="playlist-bar-item yt-uix-slider-slide-unit __classes__" data-video-id="__video_encrypted_id__"><a href="__video_url__" title="__video_title__" class="yt-uix-sessionlink"><span class="video-thumb ux-thumb ux-thumb-106"><span class="clip"><span class="clip-inner"><img src="__video_thumb_url__" alt="__video_title__" width="106"><span class="vertical-align"></span></span></span></span><span class="screen"></span><span class="count"><strong>__list_position__</strong></span><span class="play"><img src="//s.ytimg.com/yt/img/pixel-vfl3z5WfW.gif"></span><span class="yt-uix-button yt-uix-button-default delete"><img class="yt-uix-button-icon-playlist-bar-delete" src="//s.ytimg.com/yt/img/pixel-vfl3z5WfW.gif" alt="Delete"></span><span class="now-playing">Now playing</span><span dir="ltr" class="title"><span>__video_title__ <span class="uploader">by __video_display_name__</span></span></span><span class="dragger"></span></a></li>--></div>
+        <div id="playlist-bar-next-up-template" style="display: none;"><!--<div class="playlist-bar-next-thumb"><span class="video-thumb ux-thumb ux-thumb-74"><span class="yt-thumb-clip"><span class="yt-thumb-clip-inner"><img src="//i4.ytimg.com/vi/__video_encrypted_id__/default.jpg" alt="Thumbnail" width="74"><span class="vertical-align"></span></span></span></span></div>--></div>
+    </div>
+
+    <div id="playlist-bar-options-menu" class="hid active">
+        <ul class="playlist-bar-passive-menu">
+            <li><span class="yt-uix-button-menu-item" data-action="show-active">Return to: {{ playlist_hud.title }}</span></li>
+        </ul>
+        <div id="playlist-bar-extras-menu">
+            <ul>
+                <li>
+                    <span class="yt-uix-button-menu-item" onclick="window.location.href='/playlist?list={{ playlist_hud.playlist_id }}'">
+                        More information about this playlist
+                    </span>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
 {% block body_js %}
 {{ macros.player_js(player) }}
 {{ super() }}
+{% if playlist_hud %}
+<script>
+yt.setMsg({
+    'LIST_CLEARED': 'List cleared',
+    'PLAYLIST_VIDEO_DELETED': 'Video deleted.',
+    'ERROR_OCCURRED': 'Sorry, an error occurred.',
+    'NEXT_VIDEO_TOOLTIP': 'Next video:<br> “${next_video_title}”',
+    'NEXT_VIDEO_NOTHUMB_TOOLTIP': 'Next video',
+    'SHOW_PLAYLIST_TOOLTIP': 'Show playlist',
+    'HIDE_PLAYLIST_TOOLTIP': 'Hide playlist',
+    'AUTOPLAY_ON_TOOLTIP': 'Turn autoplay off',
+    'AUTOPLAY_OFF_TOOLTIP': 'Turn autoplay on',
+    'SHUFFLE_ON_TOOLTIP': 'Turn shuffle off',
+    'SHUFFLE_OFF_TOOLTIP': 'Turn shuffle on'
+});
+yt.setConfig({
+    'PLAYLIST_BAR_PLAYING_INDEX': {{ playlist_hud.playing_index }},
+    'LIST_AUTO_PLAY_ON': true,
+    'LIST_AUTO_PLAY_VALUE': 1,
+    'SHUFFLE_VALUE': 0,
+    'SHUFFLE_ENABLED': false,
+    'PLAY_ALL_MAX': {{ playlist_hud.list_length }},
+    'LIST_COPY_ON_EDIT_ENABLED': false
+});
+yt.www.lists.init();
+(function () {
+    var counts = document.querySelectorAll('#playlist-bar .item-count');
+    for (var i = 0; i < counts.length; i++) {
+        counts[i].innerHTML = '{{ playlist_hud.list_length }}';
+    }
+})();
+</script>
+{% endif %}
 {% endblock %}
