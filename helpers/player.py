@@ -113,6 +113,10 @@ def _resolve_format_id(
             '(default)' in str(format_info.get('format_note', '')).lower(),
         ),
     )
+    logger.debug(
+        f"Resolved audio format {requested_id} to original-language track "
+        f"{original['format_id']} (language: {original.get('language') or 'unknown'})"
+    )
     return str(original['format_id'])
 
 
@@ -255,8 +259,10 @@ def get_video():
         out_file_name = f"video_{quality}.mp4"
         out_file_full = cache.abs_path(video_id, f"video_{quality}", ".mp4")
         
-        logger.info(f"Downloading video {video_id} in quality {quality}...")
-        download_video(video_id, '+'.join(selected_formats), str(out_file_full))
+        format_string = '+'.join(selected_formats)
+
+        logger.info(f"Downloading video {video_id} in quality {quality} ({format_string})...")
+        download_video(video_id, format_string, str(out_file_full))
 
         saved[quality] = {
             'file': out_file_name,
