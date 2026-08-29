@@ -9,6 +9,7 @@ from . import formats
 from .innertube import FeedItem
 from .innertube.watch import WatchPageData
 from .cache import CacheData, CacheManager
+from logger import logger
 
 
 QUALITY_TAGS = ['hd1080', 'hd720', 'highres', 'large', 'medium', 'small', 'light']
@@ -38,11 +39,9 @@ class PlayerConfig(TypedDict):
 cache = CacheManager('media')
 
 def ytdlinfo_generator(video_id: str) -> dict:
-    ytdl = YoutubeDL({
-        'quiet': True,
-        'no_warnings': True,
-    })
+    ytdl = YoutubeDL()
 
+    logger.info(f"Getting info for video_id: {video_id} with yt_dlp")
     info = ytdl.extract_info(f"https://youtube.com/watch?v={video_id}", download=False)
     return dict(info)
 
@@ -164,23 +163,32 @@ def get_video():
         return "Missing video ID", 400
 
     if quality not in QUALITY_TAGS:
-        return f'Unknown quality: "{quality}"', 400
+        logger.warning(f"Unknown quality: {quality}, accepted values: {QUALITY_TAGS}")
+        return f'Unknown quality: "{quality}", accepted values: {QUALITY_TAGS}', 400
 
     saved = saved_cache.get_default(video_id)
 
     formats = QUALITY_FORMAT_MAP[quality]
+    logger.debug(f"Quality tag {quality} mapped to formats {formats}")
     file_name = saved.get(quality, {}).get('file')
 
-    if not file_name:
+    if file_name:
+        logger.info(f"Video {video_id} in quality {quality} available in cache ({file_name})")
+    else:
         available_formats = format_cache.get_default(video_id)
 
         missing_formats = [f for f in formats if f not in available_formats]
 
+        logger.debug(f"Available formats for video {video_id}: {available_formats}, Missing formats: {missing_formats}")
+
         if len(missing_formats) > 0:
-            return f"Missing formats for quality {quality}: {', '.join([str(f) for f in missing_formats])}", 400
+            logger.warning(f"Missing formats for quality {quality}: {missing_formats}")
+            return f"Missing formats for quality {quality}: {missing_formats}", 400
 
         out_file_name = f"video_{quality}.mp4"
         out_file_full = cache.abs_path(video_id, f"video_{quality}", ".mp4")
+        
+        logger.info(f"Downloading video {video_id} in quality {quality}...")
         download_video(video_id, '+'.join(str(f) for f in formats), str(out_file_full))
 
         saved[quality] = {
@@ -193,6 +201,8 @@ def get_video():
         saved_cache.set(video_id, saved)
 
         file_name = saved[quality]['file']
+
+        logger.info(f"Downloaded video {video_id} in quality {quality} ({file_name})")
 
     file = cache.rel_path(video_id, file_name).as_posix()
 

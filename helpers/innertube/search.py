@@ -1,11 +1,13 @@
 import hashlib
 from datetime import datetime, timedelta
 from typing import TypedDict
+
 from . import client, FeedItem
 from .. import links
 from .utils import get_text, get_first_run, get_channel_from_byline, get_thumbnail_url
 from ..cache import CacheDataList, CacheManager
 
+from logger import logger
 
 class SearchResultsPage(TypedDict):
     search_query: str
@@ -482,6 +484,10 @@ def get_search_results_innertube(
 ) -> SearchResultsPage:
     """Get search results from YouTube using the innertube API."""
 
+    logger.debug(f"Get search results for query \"{search_query}\" from innertube...")
+    if continuation_token:
+        logger.debug(f"Using continuation token {continuation_token}")
+
     data = client.search(search_query, continuation=continuation_token)
 
     entries: list[FeedItem] = []
@@ -512,6 +518,8 @@ def get_search_results_page(
     """Get a specific page of search results from YouTube using the innertube API."""
 
     query_hash = search_query_hash(search_query)
+
+    logger.debug(f"Retrieving search results page {page_number} for query {search_query} hash {query_hash}")
 
     if results_cache.is_empty(query_hash):
         first_page = get_search_results_innertube(search_query)

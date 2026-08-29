@@ -7,7 +7,7 @@ from helpers import player
 from helpers.formats import get_all_formatters
 from helpers.proxy import proxy_handler
 
-app = Flask(__name__)
+app = Flask('backtube')
 
 app.register_blueprint(channel.bp)
 
