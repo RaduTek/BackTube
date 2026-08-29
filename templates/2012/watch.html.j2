@@ -72,10 +72,10 @@
                         <img
                             src="{{ data.video.channel_thumbnail_url }}"
                             alt="User Image"
+                            class="yt-uix-button-icon"
                             height="25"
-                            style="margin-left: -6px; margin-right: 4px;"
-                        >
-                        <span class="yt-uix-button-content">{{ data.video.channel_name }}</span>
+                            style="margin-left: -6px"
+                        /><span class="yt-uix-button-content">{{ data.video.channel_name }}</span>
                     </button><div class="yt-subscription-button-hovercard yt-uix-hovercard"
                         data-card-class="watch-subscription-card">
                         <button
@@ -88,8 +88,8 @@
                             data-position="topright" data-subscription-feature="watch"
                             data-subscription-type="" role="button">
                             <img class="yt-uix-button-icon yt-uix-button-icon-subscribe"
-                                src="//s.ytimg.com/yt/img/pixel-vfl3z5WfW.gif" alt="" />
-                            <span class="yt-uix-button-content">
+                                src="//s.ytimg.com/yt/img/pixel-vfl3z5WfW.gif" alt="" 
+                            /><span class="yt-uix-button-content">
                                 <span class="subscribe-label">Subscribe</span>
                                 <span class="subscribed-label">Subscribed</span>
                                 <span class="unsubscribe-label">
@@ -801,9 +801,7 @@
                         </span>
                     </button>
                     <span class="playlist-bar-count">
-                        <span class="playing-index">{{ playlist_hud.current_position }}</span>
-                        /
-                        <span class="item-count">{{ playlist_hud.list_length }}</span>
+                        <span class="playing-index">{{ playlist_hud.current_position }}</span> / <span class="item-count">{{ playlist_hud.list_length }}</span>
                     </span>
                     <button
                         type="button"
@@ -872,7 +870,7 @@
                         onclick="window.location.href=this.getAttribute('href');return false;"
                         title="More information about this playlist"
                         type="button"
-                        class="yt-uix-tooltip yt-uix-tooltip-masked start playlist-title yt-uix-button yt-uix-button-default"
+                        class="yt-uix-tooltip yt-uix-tooltip-masked start {% if not playlist_hud.owner_name %}end{% endif %} playlist-title yt-uix-button yt-uix-button-default"
                         role="button"
                     >
                         <span class="yt-uix-button-content">{{ playlist_hud.title }}</span>
@@ -885,17 +883,18 @@
                         onclick="window.location.href=this.getAttribute('href');return false;"
                         role="button"
                     >
-                        <span class="yt-uix-button-content">
-                            {% if playlist_hud.owner_thumbnail_url %}
-                            <span class="video-thumb ux-thumb ux-thumb-profile-24">
-                                <span class="clip">
-                                    <span class="clip-inner">
-                                        <img src="{{ playlist_hud.owner_thumbnail_url }}" alt="{{ playlist_hud.owner_name }}" width="23">
-                                        <span class="vertical-align"></span>
-                                    </span>
+                        {% if playlist_hud.owner_thumbnail_url %}
+                        <span class="yt-uix-button-icon video-thumb ux-thumb ux-thumb-profile-24" style="margin-top: -2px">
+                            <span class="clip">
+                                <span class="clip-inner">
+                                    <img src="{{ playlist_hud.owner_thumbnail_url }}"
+                                        alt="{{ playlist_hud.owner_name }}" width="24"
+                                    /><span class="vertical-align"></span>
                                 </span>
                             </span>
-                            {% endif %}
+                        </span>
+                        {% endif %}
+                        <span class="yt-uix-button-content">
                             <span class="yt-user-name" dir="ltr">{{ playlist_hud.owner_name }}</span>
                         </span>
                     </button>
