@@ -65,6 +65,57 @@ format_cache = CacheData[list[str]](cache, 'formats', default_gen=format_generat
 saved_cache = CacheData[dict](cache, 'saved', ttl=None, default_gen=lambda key: {}, inherit_expiration_time=True)
 
 
+def _resolve_format_id(
+        requested_id: str,
+        available_ids: list[str],
+        info: dict,
+    ) -> str | None:
+    """Resolve an itag to its original-audio variant, when necessary."""
+
+    if requested_id in available_ids:
+        return requested_id
+
+    variant_prefix = f'{requested_id}-'
+    variant_ids = {
+        format_id
+        for format_id in available_ids
+        if format_id.startswith(variant_prefix)
+        and format_id[len(variant_prefix):].isdigit()
+    }
+    if not variant_ids:
+        return None
+
+    original_variants = []
+    for format_info in info.get('formats', []) or []:
+        format_id = str(format_info.get('format_id', ''))
+        if format_id not in variant_ids:
+            continue
+
+        format_note = str(format_info.get('format_note', '')).lower()
+        language_preference = format_info.get('language_preference')
+        is_preferred_language = (
+            isinstance(language_preference, (int, float))
+            and language_preference >= 0
+        )
+
+        if is_preferred_language or 'original' in format_note:
+            original_variants.append(format_info)
+
+    if not original_variants:
+        return None
+
+    original = max(
+        original_variants,
+        key=lambda format_info: (
+            format_info.get('language_preference')
+            if isinstance(format_info.get('language_preference'), (int, float))
+            else -1,
+            '(default)' in str(format_info.get('format_note', '')).lower(),
+        ),
+    )
+    return str(original['format_id'])
+
+
 def build_stream_map(formats: list[StreamFormat]) -> str:
     streams = []
 
@@ -137,12 +188,16 @@ def download_video(video_id, format, out_file):
 
 
 def get_video_available_stream_formats(video_id: str) -> list[StreamFormat]:
-    formats = format_cache.get_default(video_id)
+    available_formats = format_cache.get_default(video_id)
+    info = ytdlinfo_cache.get_default(video_id)
 
     stream_formats = []
 
     for quality, itags in QUALITY_FORMAT_MAP.items():
-        if not all(itag in formats for itag in itags):
+        if not all(
+            _resolve_format_id(itag, available_formats, info)
+            for itag in itags
+        ):
             continue
 
         stream_formats.append({
@@ -168,16 +223,28 @@ def get_video():
 
     saved = saved_cache.get_default(video_id)
 
-    formats = QUALITY_FORMAT_MAP[quality]
-    logger.debug(f"Quality tag {quality} mapped to formats {formats}")
+    requested_formats = QUALITY_FORMAT_MAP[quality]
+    logger.debug(f"Quality tag {quality} mapped to formats {requested_formats}")
     file_name = saved.get(quality, {}).get('file')
 
     if file_name:
         logger.info(f"Video {video_id} in quality {quality} available in cache ({file_name})")
     else:
         available_formats = format_cache.get_default(video_id)
+        info = ytdlinfo_cache.get_default(video_id)
 
-        missing_formats = [f for f in formats if f not in available_formats]
+        selected_formats = []
+        missing_formats = []
+        for requested_format in requested_formats:
+            selected_format = _resolve_format_id(
+                requested_format,
+                available_formats,
+                info,
+            )
+            if selected_format:
+                selected_formats.append(selected_format)
+            else:
+                missing_formats.append(requested_format)
 
         logger.debug(f"Available formats for video {video_id}: {available_formats}, Missing formats: {missing_formats}")
 
@@ -189,13 +256,13 @@ def get_video():
         out_file_full = cache.abs_path(video_id, f"video_{quality}", ".mp4")
         
         logger.info(f"Downloading video {video_id} in quality {quality}...")
-        download_video(video_id, '+'.join(str(f) for f in formats), str(out_file_full))
+        download_video(video_id, '+'.join(selected_formats), str(out_file_full))
 
         saved[quality] = {
             'file': out_file_name,
             'type': 'video/mp4',
             'quality': quality,
-            'itags': formats,
+            'itags': selected_formats,
             'saved_at': int(datetime.now().timestamp())
         }
         saved_cache.set(video_id, saved)
