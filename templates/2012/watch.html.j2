@@ -17,6 +17,8 @@
 </style>
 {% endblock %}
 
+{% block page_class %}watch{% endblock %}
+
 {% block content %}
 <div id="watch-container" itemscope itemtype="http://schema.org/VideoObject">
     <link itemprop="url" href="http://www.youtube.com/watch?v={{ data.video.video_id }}">
