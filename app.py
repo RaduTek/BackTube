@@ -2,7 +2,7 @@ import os
 from flask import Flask, render_template, request, send_from_directory
 
 from config import config
-from pages import home, search, watch, channel, playlist, get_preferred_template
+from pages import api, home, search, watch, channel, playlist, get_preferred_template
 from helpers import player
 from helpers.formats import get_all_formatters
 from helpers.proxy import proxy_handler
@@ -33,6 +33,10 @@ def guide_ajax_route():
 @app.get("/results")
 def search_route():
     return search.results_page()
+
+@app.get("/feeds/api/videos", strict_slashes=False)
+def api_videos_route():
+    return api.videos_feed()
 
 @app.get("/watch")
 def watch_route():
