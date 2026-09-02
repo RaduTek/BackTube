@@ -1,9 +1,9 @@
-import re
 from datetime import datetime
 from typing import TypedDict
 
 from helpers import links
 from helpers.cache import CacheData, CacheDataList, CacheManager
+from helpers.parsers import parse_count
 
 from . import client
 from .search import parse_innertube_search_item
@@ -98,11 +98,6 @@ pages_cache = CacheDataList[PlaylistPageData](
     item_gen=_playlist_cache_item_gen,
     depends_on_previous=True,
 )
-
-
-def _parse_count(text: str) -> int:
-    digits = re.sub(r'\D', '', text)
-    return int(digits) if digits else 0
 
 
 def _channel_url_from_endpoint(endpoint: dict) -> str:
@@ -224,7 +219,7 @@ def _parse_playlist_metadata(
         playlist_id=playlist_id,
         title=title,
         description=get_text(primary.get('description')),
-        video_count=_parse_count(video_count_text),
+        video_count=parse_count(video_count_text),
         video_count_text=video_count_text,
         view_count_text=view_count_text,
         first_video_id=first_video_id,
@@ -347,7 +342,7 @@ def _parse_legacy_playlist_video(
     if not video_id:
         return None
 
-    index = _parse_count(get_text(renderer.get('index'))) or fallback_index
+    index = parse_count(get_text(renderer.get('index'))) or fallback_index
     owner_run = get_first_run(renderer.get('shortBylineText'))
     owner_endpoint = owner_run.get('navigationEndpoint', {})
     return PlaylistVideo(

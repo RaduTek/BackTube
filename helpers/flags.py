@@ -2,6 +2,7 @@ from typing import TypedDict
 from flask import request
 
 from utils import is_boolean_string
+from .parsers import parse_int
 
 
 COOKIE_PREFIX = 'backtube_'
@@ -54,8 +55,4 @@ def get_flag_bool(key: str, default: bool = False) -> bool:
 def get_flag_int(key: str, default: int = 0) -> int:
     """Return the integer value of a specific flag."""
 
-    value = get_flag(key, str(default))
-    try:
-        return int(value)
-    except ValueError:
-        return default
+    return parse_int(get_flag(key, str(default)), default)

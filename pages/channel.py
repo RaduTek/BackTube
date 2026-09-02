@@ -1,5 +1,4 @@
 import math
-import re
 from typing import cast
 
 from flask import Blueprint, render_template, request
@@ -19,6 +18,7 @@ from helpers.innertube.channel import (
     resolve_channel_handle,
 )
 from helpers.pager import create_pager_props
+from helpers.parsers import parse_count, parse_int
 
 
 bp = Blueprint('channel', __name__)
@@ -65,11 +65,6 @@ def find_feed(feeds: list[FeedCollection], key: str, value: str) -> FeedCollecti
         if feed.get(key) == value:
             return feed
     return None
-
-
-def _parse_channel_video_count(video_count_text: str) -> int:
-    digits = re.sub(r'\D', '', video_count_text)
-    return int(digits) if digits else 0
 
 
 def _get_channel_data(channel_id: str | None = None, user_id: str | None = None) -> tuple[str, ChannelPageData, dict]:
@@ -138,7 +133,11 @@ def channel_feed_page(channel_id: str | None = None, user_id: str | None = None)
     ]
 
     default_feed = next((i for i in range(len(feeds)) if len(feeds[i]['items']) > 0), 0) + 1
-    feed_index = int(request.args.get('filter', default_feed)) - 1
+    feed_index = parse_int(
+        request.args.get('filter'),
+        default_feed,
+        minimum=1,
+    ) - 1
 
     return render_template(
         get_preferred_template('channel/feed'),
@@ -154,10 +153,7 @@ def channel_feed_page(channel_id: str | None = None, user_id: str | None = None)
 def channel_videos_page(channel_id: str | None = None, user_id: str | None = None):
     channel_id, data, common_context = _get_channel_data(channel_id=channel_id, user_id=user_id)
 
-    try:
-        page_number = max(1, int(request.args.get('page', 1)))
-    except (TypeError, ValueError):
-        page_number = 1
+    page_number = parse_int(request.args.get('page'), 1, minimum=1)
 
     if request.args.get('view') in {'pl', '1'}:
         requested_sort = request.args.get('sort', 'pn')
@@ -204,7 +200,7 @@ def channel_videos_page(channel_id: str | None = None, user_id: str | None = Non
         else 'dd'
     )
 
-    total_videos = _parse_channel_video_count(data['channel']['video_count'])
+    total_videos = parse_count(data['channel']['video_count'])
     total_pages = (
         math.ceil(total_videos / CHANNEL_VIDEOS_PAGE_SIZE)
         if total_videos

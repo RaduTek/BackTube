@@ -5,6 +5,7 @@ from werkzeug.exceptions import NotFound
 
 from helpers.innertube.playlist import get_playlist_page
 from helpers.pager import create_pager_props
+from helpers.parsers import parse_int
 
 from . import get_preferred_template
 
@@ -14,10 +15,7 @@ def playlist_page():
     if not playlist_id:
         raise NotFound("Playlist not found")
 
-    try:
-        page_number = max(1, int(request.args.get('page', 1)))
-    except (TypeError, ValueError):
-        page_number = 1
+    page_number = parse_int(request.args.get('page'), 1, minimum=1)
 
     try:
         first_page = get_playlist_page(playlist_id)

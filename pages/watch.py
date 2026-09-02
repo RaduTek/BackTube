@@ -2,6 +2,7 @@ from flask import Response, request, render_template
 
 from . import get_preferred_template
 from helpers.pager import create_pager_props
+from helpers.parsers import parse_count
 from helpers.player import get_player_data
 from helpers.innertube.channel import get_channel_data
 from helpers.innertube.playlist import (
@@ -15,7 +16,10 @@ def _get_pager_for_comments(data: WatchPageData, page: int = 1):
     video = data['video']
     video_id = video['video_id']
 
-    total_comments = int(video['comments_count_text']) if video['comments_count_text'].isdecimal() else -1
+    total_comments = parse_count(
+        video['comments_count_text'],
+        default=-1,
+    )
 
     per_page_count = 20
     window_size = 7

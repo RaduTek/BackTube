@@ -1,4 +1,3 @@
-import re
 from datetime import datetime, timedelta
 from typing import cast, TypedDict
 from typing_extensions import NotRequired
@@ -7,6 +6,11 @@ from . import client, FeedItem
 from .. import links
 from ..cache import CacheManager, CacheData, CacheDataList
 from ..formats import format_duration
+from ..parsers import (
+    looks_like_view_count,
+    parse_count,
+    parse_published_at,
+)
 from .search import parse_innertube_search_item
 from .utils import get_text, get_channel_from_byline, get_thumbnail_url
 from ..rydratings import get_ratings, RydRatings
@@ -486,87 +490,6 @@ def _get_related_continuation_token(items: list[dict]) -> str:
     return ''
 
 
-def _parse_related_view_count(text: str) -> int | None:
-    normalized = text.lower().replace(',', '').strip()
-    if 'no views' in normalized:
-        return 0
-
-    match = re.search(
-        r'(\d+(?:\.\d+)?)\s*(thousand|million|billion|[kmb])?',
-        normalized,
-    )
-    if not match:
-        return None
-
-    multipliers = {
-        'k': 1_000,
-        'thousand': 1_000,
-        'm': 1_000_000,
-        'million': 1_000_000,
-        'b': 1_000_000_000,
-        'billion': 1_000_000_000,
-    }
-    return int(
-        float(match.group(1))
-        * multipliers.get(match.group(2) or '', 1)
-    )
-
-
-def _looks_like_related_view_count(text: str) -> bool:
-    normalized = text.lower().strip()
-    return (
-        'view' in normalized
-        or 'watching' in normalized
-        or bool(re.fullmatch(r'\d[\d,.]*\s*[kmb]?', normalized))
-    )
-
-
-def _parse_related_published_at(
-    text: str,
-    now: datetime | None = None,
-) -> datetime | None:
-    normalized = text.lower().strip()
-    normalized = re.sub(r'^(streamed|premiered)\s+', '', normalized)
-    now = now or datetime.now()
-
-    if normalized == 'today':
-        return now
-    if normalized == 'yesterday':
-        return now - timedelta(days=1)
-
-    match = re.search(
-        r'(\d+)\s*'
-        r'(seconds?|secs?|s|minutes?|mins?|m|hours?|hrs?|h|'
-        r'days?|d|weeks?|wks?|w|months?|mos?|years?|yrs?|y)'
-        r'\s+ago',
-        normalized,
-    )
-    if match:
-        amount = int(match.group(1))
-        unit = match.group(2)
-        if unit.startswith(('second', 'sec')) or unit == 's':
-            return now - timedelta(seconds=amount)
-        if unit.startswith(('minute', 'min')) or unit == 'm':
-            return now - timedelta(minutes=amount)
-        if unit.startswith(('hour', 'hr')) or unit == 'h':
-            return now - timedelta(hours=amount)
-        if unit.startswith('day') or unit == 'd':
-            return now - timedelta(days=amount)
-        if unit.startswith(('week', 'wk')):
-            return now - timedelta(weeks=amount)
-        if unit.startswith(('month', 'mo')):
-            return now - timedelta(days=amount * 30)
-        if unit.startswith(('year', 'yr')) or unit == 'y':
-            return now - timedelta(days=amount * 365)
-
-    for date_format in ('%b %d, %Y', '%B %d, %Y', '%Y-%m-%d'):
-        try:
-            return datetime.strptime(text.strip(), date_format)
-        except ValueError:
-            continue
-    return None
-
-
 def _get_related_metadata_parts(item: dict) -> list[dict]:
     lockup = item.get('lockupViewModel', {})
     return [
@@ -600,18 +523,19 @@ def _parse_related_video_metadata(item: dict, entry: FeedItem) -> None:
                 continue
             if (
                 view_count is None
-                and _looks_like_related_view_count(value)
+                and looks_like_view_count(value)
             ):
-                view_count = _parse_related_view_count(value)
+                view_count = parse_count(value, default=None)
             if published_at is None:
-                published_at = _parse_related_published_at(value)
+                published_at = parse_published_at(value)
 
     if view_count is None:
-        view_count = _parse_related_view_count(
-            entry.get('viewcount_text', '')
+        view_count = parse_count(
+            entry.get('viewcount_text', ''),
+            default=None,
         )
     if published_at is None:
-        published_at = _parse_related_published_at(
+        published_at = parse_published_at(
             entry.get('published_text', '')
         )
 

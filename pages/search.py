@@ -3,6 +3,7 @@ from flask import request, render_template
 
 from . import get_preferred_template
 from helpers.pager import create_pager_props
+from helpers.parsers import parse_int
 from helpers.innertube.search import get_search_results_page
 
 
@@ -10,7 +11,7 @@ def results_page():
     search_query = request.args.get('search_query', '')
     search_query_url = quote_plus(search_query)
 
-    search_page = int(request.args.get('page', 1))
+    search_page = parse_int(request.args.get('page'), 1, minimum=1)
 
     search_results = get_search_results_page(search_query, page_number=search_page)
 

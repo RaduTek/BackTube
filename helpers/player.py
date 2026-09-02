@@ -5,10 +5,10 @@ from typing import TypedDict
 from urllib.parse import urlencode, quote
 from yt_dlp import YoutubeDL
 
-from . import formats
 from .innertube import FeedItem
 from .innertube.watch import WatchPageData
 from .cache import CacheData, CacheManager
+from .parsers import parse_duration_seconds
 from logger import logger
 
 
@@ -136,15 +136,6 @@ def build_stream_map(formats: list[StreamFormat]) -> str:
     return ",".join(streams)
 
 
-def _duration_to_seconds(duration: str | None) -> int:
-    if not duration:
-        return 0
-    try:
-        return formats.duration_to_seconds(duration)
-    except (TypeError, ValueError):
-        return 0
-
-
 def build_related_video_map(videos: list[FeedItem]) -> str:
     """Build the legacy player `rvs` argument used by the endscreen."""
 
@@ -165,7 +156,7 @@ def build_related_video_map(videos: list[FeedItem]) -> str:
         params: dict[str, str | int] = {
             'view_count': view_count,
             'author': video.get('channel_name', ''),
-            'length_seconds': _duration_to_seconds(
+            'length_seconds': parse_duration_seconds(
                 video.get('length_text', '')
             ),
             'id': video['id'],
@@ -299,7 +290,7 @@ def get_player_data(
     }
     config_vars_final.update(config_vars or {})
 
-    length_seconds = _duration_to_seconds(
+    length_seconds = parse_duration_seconds(
         watch_data.get('video', {}).get('duration', '0:0')
     )
     url_encoded_fmt_stream_map = build_stream_map(get_video_available_stream_formats(video_id))
