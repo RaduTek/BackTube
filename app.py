@@ -100,15 +100,15 @@ def media(filename):
     media_dir = os.path.join(config.cache_dir, 'media')
     return send_from_directory(media_dir, filename)
 
-@app.route("/proxy/<path:url>")
+@app.route("/proxy/<path:url>", merge_slashes=False)
 def proxy_route(url):
     return proxy_handler(base_route="/proxy/", use_cache=True)
 
-@app.route("/proxy_nocache/<path:url>")
+@app.route("/proxy_nocache/<path:url>", merge_slashes=False)
 def proxy_nocache_route(url):
     return proxy_handler(base_route="/proxy_nocache/", use_cache=False)
 
-@app.route("/proxy_wa/<date>/<path:url>")
+@app.route("/proxy_wa/<date>/<path:url>", merge_slashes=False)
 def proxy_wa_route(date, url):
     return proxy_handler(
         base_route=f"/proxy_wa/{date}/",
