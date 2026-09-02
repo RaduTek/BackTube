@@ -1,8 +1,9 @@
-<!doctype html>
+{% autoescape true -%}
+<!DOCTYPE html>
 <html>
 
 <head>
-    <title>404 Not Found</title>
+    <title>{{ error_code|default(404) }} {{ error_name|default('Not Found') }}</title>
     <base target="_top" />
     <link rel="stylesheet" href="http://s.ytimg.com/yt/cssbin/www-core-vflDwxflm.css" />
 </head>
@@ -12,8 +13,14 @@
         <div id="error-page-content">
             <img id="error-page-illustration" src="//s.ytimg.com/yt/img/image-404-vfl1vwmey.png" alt="" />
             <p>
+                {%- if error_message %}
+                {{ error_message }}
+                {%- elif error_code|default(404) == 404 %}
                 We're sorry, the page you requested cannot be found. Try searching for
                 something else.
+                {%- else %}
+                We're sorry, something went wrong. Please try again later.
+                {%- endif %}
             </p>
             <div id="masthead">
                 <a id="logo-container" href="/" title="YouTube home">
@@ -45,3 +52,4 @@
 </body>
 
 </html>
+{%- endautoescape %}

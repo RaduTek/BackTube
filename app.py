@@ -1,5 +1,6 @@
 import os
 from flask import Flask, render_template, request, send_from_directory
+from werkzeug.exceptions import HTTPException
 
 from config import config
 from pages import api, home, search, watch, channel, playlist, get_preferred_template
@@ -11,9 +12,23 @@ app = Flask('backtube')
 
 app.register_blueprint(channel.bp)
 
-@app.errorhandler(404)
-def page_not_found(e):
-    return render_template(get_preferred_template('404')), 404
+
+def _custom_error_message(error: HTTPException) -> str:
+    description = (error.description or '').strip()
+    default_description = getattr(type(error), 'description', '')
+    if not description or description == default_description:
+        return ''
+    return description
+
+
+@app.errorhandler(HTTPException)
+def http_error(error: HTTPException):
+    return render_template(
+        get_preferred_template('404'),
+        error_code=error.code or 500,
+        error_name=error.name or 'Error',
+        error_message=_custom_error_message(error),
+    ), error.code or 500
 
 @app.context_processor
 def formatters():
@@ -92,4 +107,12 @@ def proxy_route(url):
 @app.route("/proxy_nocache/<path:url>")
 def proxy_nocache_route(url):
     return proxy_handler(base_route="/proxy_nocache/", use_cache=False)
+
+@app.route("/proxy_wa/<date>/<path:url>")
+def proxy_wa_route(date, url):
+    return proxy_handler(
+        base_route=f"/proxy_wa/{date}/",
+        use_cache=True,
+        archive_date=date,
+    )
 
