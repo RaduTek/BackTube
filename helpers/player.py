@@ -8,7 +8,7 @@ from yt_dlp import YoutubeDL
 from .innertube import FeedItem
 from .innertube.watch import WatchPageData
 from .cache import CacheData, CacheManager
-from .parsers import parse_duration_seconds
+from .parsers import parse_duration_seconds, truthy
 from logger import logger
 
 
@@ -23,6 +23,9 @@ QUALITY_FORMAT_MAP: dict[str, list[str]] = {
     'small': ['133', '139'],
     'light': ['160', '139'],
 }
+QUALITY_FALLBACK_ORDER = [
+    tag for tag in QUALITY_TAGS if tag in QUALITY_FORMAT_MAP
+]
 
 
 class StreamFormat(TypedDict):
@@ -120,6 +123,35 @@ def _resolve_format_id(
     return str(original['format_id'])
 
 
+def _qualities_to_try(quality: str, fallback: bool) -> list[str]:
+    if quality not in QUALITY_FORMAT_MAP:
+        return []
+    start = QUALITY_FALLBACK_ORDER.index(quality)
+    if fallback:
+        return QUALITY_FALLBACK_ORDER[start:]
+    return [quality]
+
+
+def _select_formats_for_quality(
+    quality: str,
+    available_formats: list[str],
+    info: dict,
+) -> tuple[list[str], list[str]]:
+    selected_formats: list[str] = []
+    missing_formats: list[str] = []
+    for requested_format in QUALITY_FORMAT_MAP[quality]:
+        selected_format = _resolve_format_id(
+            requested_format,
+            available_formats,
+            info,
+        )
+        if selected_format:
+            selected_formats.append(selected_format)
+        else:
+            missing_formats.append(requested_format)
+    return selected_formats, missing_formats
+
+
 def build_stream_map(formats: list[StreamFormat]) -> str:
     streams = []
 
@@ -208,6 +240,7 @@ def get_video_available_stream_formats(video_id: str) -> list[StreamFormat]:
 def get_video():
     video_id = request.args.get('v')
     quality = request.args.get('q', 'medium').strip()
+    fallback = truthy(request.args.get('fallback'))
 
     if not video_id:
         return "Missing video ID", 400
@@ -216,61 +249,83 @@ def get_video():
         logger.warning(f"Unknown quality: {quality}, accepted values: {QUALITY_TAGS}")
         return f'Unknown quality: "{quality}", accepted values: {QUALITY_TAGS}', 400
 
+    qualities = _qualities_to_try(quality, fallback)
+    if not qualities:
+        logger.warning(f"Unknown quality: {quality}, accepted values: {QUALITY_TAGS}")
+        return f'Unknown quality: "{quality}", accepted values: {QUALITY_TAGS}', 400
+
     saved = saved_cache.get_default(video_id)
+    available_formats = None
+    info = None
+    last_missing: list[str] = []
 
-    requested_formats = QUALITY_FORMAT_MAP[quality]
-    logger.debug(f"Quality tag {quality} mapped to formats {requested_formats}")
-    file_name = saved.get(quality, {}).get('file')
-
-    if file_name:
-        logger.info(f"Video {video_id} in quality {quality} available in cache ({file_name})")
-    else:
-        available_formats = format_cache.get_default(video_id)
-        info = ytdlinfo_cache.get_default(video_id)
-
-        selected_formats = []
-        missing_formats = []
-        for requested_format in requested_formats:
-            selected_format = _resolve_format_id(
-                requested_format,
-                available_formats,
-                info,
-            )
-            if selected_format:
-                selected_formats.append(selected_format)
+    for candidate in qualities:
+        file_name = saved.get(candidate, {}).get('file')
+        if file_name:
+            if candidate != quality:
+                logger.info(
+                    f"Video {video_id} falling back from {quality} to cached {candidate} ({file_name})"
+                )
             else:
-                missing_formats.append(requested_format)
+                logger.info(
+                    f"Video {video_id} in quality {quality} available in cache ({file_name})"
+                )
+            file = cache.rel_path(video_id, file_name).as_posix()
+            return redirect(f"/{file}", code=302)
 
-        logger.debug(f"Available formats for video {video_id}: {available_formats}, Missing formats: {missing_formats}")
+        if available_formats is None:
+            available_formats = format_cache.get_default(video_id)
+            info = ytdlinfo_cache.get_default(video_id)
 
-        if len(missing_formats) > 0:
-            logger.warning(f"Missing formats for quality {quality}: {missing_formats}")
-            return f"Missing formats for quality {quality}: {missing_formats}", 400
+        requested_formats = QUALITY_FORMAT_MAP[candidate]
+        logger.debug(f"Quality tag {candidate} mapped to formats {requested_formats}")
+        selected_formats, missing_formats = _select_formats_for_quality(
+            candidate,
+            available_formats,
+            info or {},
+        )
+        logger.debug(
+            f"Available formats for video {video_id}: {available_formats}, "
+            f"Missing formats: {missing_formats}"
+        )
+        last_missing = missing_formats
 
-        out_file_name = f"video_{quality}.mp4"
-        out_file_full = cache.abs_path(video_id, f"video_{quality}", ".mp4")
-        
+        if missing_formats:
+            logger.warning(
+                f"Missing formats for quality {candidate}: {missing_formats}"
+            )
+            continue
+
+        out_file_name = f"video_{candidate}.mp4"
+        out_file_full = cache.abs_path(video_id, f"video_{candidate}", ".mp4")
         format_string = '+'.join(selected_formats)
 
-        logger.info(f"Downloading video {video_id} in quality {quality} ({format_string})...")
+        if candidate != quality:
+            logger.info(
+                f"Falling back from {quality} to {candidate} for video {video_id}"
+            )
+        logger.info(
+            f"Downloading video {video_id} in quality {candidate} ({format_string})..."
+        )
         download_video(video_id, format_string, str(out_file_full))
 
-        saved[quality] = {
+        saved[candidate] = {
             'file': out_file_name,
             'type': 'video/mp4',
-            'quality': quality,
+            'quality': candidate,
             'itags': selected_formats,
-            'saved_at': int(datetime.now().timestamp())
+            'saved_at': int(datetime.now().timestamp()),
         }
         saved_cache.set(video_id, saved)
 
-        file_name = saved[quality]['file']
+        logger.info(
+            f"Downloaded video {video_id} in quality {candidate} ({out_file_name})"
+        )
+        file = cache.rel_path(video_id, out_file_name).as_posix()
+        return redirect(f"/{file}", code=302)
 
-        logger.info(f"Downloaded video {video_id} in quality {quality} ({file_name})")
-
-    file = cache.rel_path(video_id, file_name).as_posix()
-
-    return redirect(f"/{file}", code=302)
+    logger.warning(f"Missing formats for quality {quality}: {last_missing}")
+    return f"Missing formats for quality {quality}: {last_missing}", 400
 
 
 def get_player_data(
