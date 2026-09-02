@@ -6,6 +6,7 @@ from utils import is_boolean_string
 
 @dataclass(frozen=True, slots=True)
 class Config:
+    version: str = '1.0.0'
     debug: bool = is_boolean_string(os.getenv('BACKTUBE_DEBUG', 'False'))
     cache_dir: str = os.getenv('BACKTUBE_CACHE_DIR', 'cache')
     enable_proxy: bool = is_boolean_string(os.getenv('BACKTUBE_ENABLE_PROXY', 'True'))

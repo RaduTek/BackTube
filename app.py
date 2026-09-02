@@ -1,5 +1,5 @@
 import os
-from flask import Flask, render_template, request, send_from_directory
+from flask import Flask, render_template, request, Response, send_from_directory
 from werkzeug.exceptions import HTTPException
 
 from config import config
@@ -38,6 +38,10 @@ def formatters():
 @app.get("/")
 def home_route():
     return home.home_page()
+
+@app.route("/backtube_test")
+def backtube_test():
+    return Response(f"BackTube v{config.version}", status=200, content_type="text/plain")
 
 @app.get("/guide_ajax")
 def guide_ajax_route():
