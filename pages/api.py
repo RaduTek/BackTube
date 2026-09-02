@@ -4,9 +4,11 @@ from flask import Response, render_template, request
 
 from helpers.innertube.search import get_search_results_page
 from helpers.parsers import (
+    datetime_to_iso8601,
     parse_count,
     parse_duration_seconds,
     parse_int,
+    parse_published_at,
     timestamp_to_iso8601,
 )
 
@@ -67,6 +69,10 @@ def videos_feed() -> Response:
         video['view_count'] = parse_count(
             entry.get('viewcount_text', '')
         )
+        published_at = entry.get('published_at') or parse_published_at(
+            entry.get('published_text', '')
+        )
+        video['published'] = datetime_to_iso8601(published_at)
         videos.append(video)
 
     videos = videos[page_offset:page_offset + max_results]

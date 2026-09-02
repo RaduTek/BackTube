@@ -139,9 +139,19 @@ def parse_published_at(
     return None
 
 
-def timestamp_to_iso8601(timestamp: int | float) -> str:
+def datetime_to_iso8601(value: datetime | None) -> str:
+    if value is None:
+        return ''
+    if value.tzinfo is None:
+        value = value.astimezone()
     return (
-        datetime.fromtimestamp(timestamp, timezone.utc)
+        value.astimezone(timezone.utc)
         .isoformat(timespec='milliseconds')
         .replace('+00:00', 'Z')
+    )
+
+
+def timestamp_to_iso8601(timestamp: int | float) -> str:
+    return datetime_to_iso8601(
+        datetime.fromtimestamp(timestamp, timezone.utc)
     )
