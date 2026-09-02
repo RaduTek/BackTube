@@ -22,6 +22,7 @@ class FeedItem(TypedDict):
     view_count: NotRequired[int] # video
     length_text: NotRequired[str] # video
     description: NotRequired[str] # video, channel
+    description_formatted: NotRequired[str] # video (search results)
     like_count: NotRequired[str] # video
     rydratings: NotRequired[RydRatings] # video
     comment_count: NotRequired[str] # video

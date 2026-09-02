@@ -206,11 +206,11 @@ def _prefer_channel_url(channel_id: str, channel_handle: str = '') -> str:
     return links.channel_url(channel_id)
 
 
-def _video_description(video_renderer: dict) -> str:
+def _video_description(video_renderer: dict, bold: bool = False) -> str:
     snippets = video_renderer.get('detailedMetadataSnippets') or []
     if not snippets:
         return ''
-    return get_text(snippets[0].get('snippetText'), bold=True)
+    return get_text(snippets[0].get('snippetText'), bold=bold)
 
 
 def _get_search_result_items(data: dict) -> list[dict]:
@@ -367,6 +367,7 @@ def parse_innertube_video_renderer(video_renderer: dict) -> FeedItem:
 
         published_text=get_text(video_renderer.get('publishedTimeText')),
         description=_video_description(video_renderer),
+        description_formatted=_video_description(video_renderer, bold=True),
         length_text=get_text(video_renderer.get('lengthText')),
         viewcount_text=get_text(video_renderer.get('viewCountText')),
     )

@@ -147,7 +147,7 @@
                             id="video-description-{{ item.id }}"
                             class="description"
                         >
-                            {{ item.description }}
+                            {{ item.description_formatted or item.description | safe }}
                         </p>
 
                         <p class="facets">
@@ -323,7 +323,7 @@
                             id="channel-description-{{ item.id }}"
                             class="description channel-description"
                         >
-                            {{ item.description }}
+                            {{ item.description_formatted or item.description | safe }}
                         </p>
                         {% endif %}
 
