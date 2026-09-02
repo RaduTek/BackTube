@@ -26,10 +26,13 @@
   <openSearch:startIndex>{{ start_index }}</openSearch:startIndex>
   <openSearch:itemsPerPage>{{ max_results }}</openSearch:itemsPerPage>
   {%- for video in videos %}
+  
   <entry>
     <id>{{ base_url }}/feeds/api/videos/{{ video.id }}</id>
     <youTubeId id="{{ video.id }}">{{ video.id }}</youTubeId>
+    {% if video.published -%}
     <published>{{ video.published }}</published>
+    {%- endif -%}
     <updated>{{ updated }}</updated>
     <category scheme="http://schemas.google.com/g/2005#kind"
               term="http://gdata.youtube.com/schemas/2007#video"/>
