@@ -73,158 +73,22 @@
         </div>
 
         <div class="clear"></div>
-        <div id="toolbelt-top" class="hid">
+        <div id="toolbelt-top" class="{{ '' if search_filters_active else 'hid' }}">
             <div id="toolbelt-container">
-                <div class="search-option-box search-option-box-first">
-                    <div class="search-option-label">Result type:</div>
-                    <div class="search-option">All</div>
-
+                {% for group in search_filter_groups %}
+                <div class="search-option-box{{ ' search-option-box-first' if loop.first else '' }}">
+                    <div class="search-option-label">{{ group.label }}:</div>
+                    {% for option in group.options %}
                     <div class="search-option">
-                        <a href="/results?search_type=videos&amp;search_query=Ernie+%26+Bert&amp;uni=3">
-                            Videos
-                        </a>
+                        {% if option.selected %}
+                        {{ option.label }}
+                        {% else %}
+                        <a href="{{ option.url }}">{{ option.label }}</a>
+                        {% endif %}
                     </div>
-
-                    <div class="search-option">
-                        <a href="/results?search_type=search_users&amp;search_query=Ernie+%26+Bert&amp;uni=3">
-                            Channels
-                        </a>
-                    </div>
-
-                    <div class="search-option">
-                        <a href="/results?search_type=search_playlists&amp;search_query=Ernie+%26+Bert&amp;uni=3">
-                            Playlists
-                        </a>
-                    </div>
+                    {% endfor %}
                 </div>
-
-                <div class="search-option-box">
-                    <div class="search-option-label">Sort by:</div>
-                    <div class="search-option">Relevance</div>
-
-                    <div class="search-option">
-                        <a href="/results?search_type=videos&amp;search_query=Ernie+%26+Bert&amp;search=tag&amp;search_sort=video_date_uploaded&amp;uni=3">
-                            Upload date
-                        </a>
-                    </div>
-
-                    <div class="search-option">
-                        <a href="/results?search_type=videos&amp;search_query=Ernie+%26+Bert&amp;search=tag&amp;search_sort=video_view_count&amp;uni=3">
-                            View count
-                        </a>
-                    </div>
-
-                    <div class="search-option">
-                        <a href="/results?search_type=videos&amp;search_query=Ernie+%26+Bert&amp;search=tag&amp;search_sort=video_avg_rating&amp;uni=3">
-                            Rating
-                        </a>
-                    </div>
-                </div>
-
-                <div class="search-option-box">
-                    <div class="search-option-label">Upload date:</div>
-                    <div class="search-option">Anytime</div>
-
-                    <div class="search-option">
-                        <a href="/results?uploaded=d&amp;search_type=videos&amp;search=tag&amp;uni=3&amp;search_query=Ernie+%26+Bert">
-                            Today
-                        </a>
-                    </div>
-
-                    <div class="search-option">
-                        <a href="/results?uploaded=w&amp;search_type=videos&amp;search=tag&amp;uni=3&amp;search_query=Ernie+%26+Bert">
-                            This week
-                        </a>
-                    </div>
-
-                    <div class="search-option">
-                        <a href="/results?uploaded=m&amp;search_type=videos&amp;search=tag&amp;uni=3&amp;search_query=Ernie+%26+Bert">
-                            This month
-                        </a>
-                    </div>
-                </div>
-
-                <div class="search-option-box">
-                    <div class="search-option-label">Categories:</div>
-                    <div class="search-option">All</div>
-                    <div class="search-option">
-                        <a href=" /results?search_type=videos&amp;search_category=27&amp;search=tag&amp;uni=3&amp;search_query=Ernie+%26+Bert">
-                            Education
-                        </a>
-                    </div>
-                    <div class="search-option">
-                        <a href=" /results?search_type=videos&amp;search_category=22&amp;search=tag&amp;uni=3&amp;search_query=Ernie+%26+Bert">
-                            People &amp; Blogs
-                        </a>
-                    </div>
-                    <div class="search-option">
-                        <a href=" /results?search_type=videos&amp;search_category=10&amp;search=tag&amp;uni=3&amp;search_query=Ernie+%26+Bert">
-                            Music
-                        </a>
-                    </div>
-                    <div class="search-option">
-                        <a href=" /results?search_type=videos&amp;search_category=17&amp;search=tag&amp;uni=3&amp;search_query=Ernie+%26+Bert">
-                            Sports
-                        </a>
-                    </div>
-                    <div class="search-option">
-                        <a href=" /results?search_type=videos&amp;search_category=23&amp;search=tag&amp;uni=3&amp;search_query=Ernie+%26+Bert">
-                            Comedy
-                        </a>
-                    </div>
-                </div>
-
-                <div class="search-option-box">
-                    <div class="search-option-label">Duration:</div>
-                    <div class="search-option">All</div>
-
-                    <div class="search-option">
-                        <a href="/results?search_type=videos&amp;search_query=Ernie+%26+Bert&amp;search=tag&amp;search_duration=short&amp;uni=3">
-                            Short (~4 minutes)
-                        </a>
-                    </div>
-
-                    <div class="search-option">
-                        <a href="/results?search_type=videos&amp;search_query=Ernie+%26+Bert&amp;search=tag&amp;search_duration=long&amp;uni=3">
-                            Long (20~ minutes)
-                        </a>
-                    </div>
-                </div>
-
-                <div class="search-option-box">
-                    <div class="search-option-label">Features:</div>
-                    <div class="search-option">All</div>
-
-                    <div class="search-option">
-                        <a href="/results?search_type=videos&amp;closed_captions=1&amp;search=tag&amp;uni=3&amp;search_query=Ernie+%26+Bert">
-                            Closed captions
-                        </a>
-                    </div>
-
-                    <div class="search-option">
-                        <a href="/results?search_type=videos&amp;search_query=Ernie+%26+Bert&amp;search=tag&amp;high_definition=1&amp;uni=3">
-                            HD (high definition)
-                        </a>
-                    </div>
-
-                    <div class="search-option">
-                        <a href="/results?search_type=videos&amp;partner=1&amp;search=tag&amp;uni=3&amp;search_query=Ernie+%26+Bert">
-                            Partner videos
-                        </a>
-                    </div>
-
-                    <div class="search-option">
-                        <a href="/results?search_type=videos&amp;search_query=Ernie+%26+Bert&amp;search=tag&amp;rental=1&amp;uni=3">
-                            Rental
-                        </a>
-                    </div>
-
-                    <div class="search-option">
-                        <a href="/results?search_type=videos&amp;search_query=Ernie+%26+Bert&amp;search=tag&amp;uni=3&amp;webm=1">
-                            WebM
-                        </a>
-                    </div>
-                </div>
+                {% endfor %}
 
                 <div class="clear"></div>
             </div>

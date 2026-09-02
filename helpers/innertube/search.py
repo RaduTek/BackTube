@@ -1,3 +1,4 @@
+import base64
 import hashlib
 from datetime import datetime, timedelta
 from typing import TypedDict
@@ -16,6 +17,145 @@ class SearchResultsPage(TypedDict):
     estimated_results: int
     continuation_token: str
     entries: list['FeedItem']
+
+
+class SearchFilters(TypedDict, total=False):
+    search_type: str
+    search_sort: str
+    uploaded: str
+    search_duration: str
+    search_category: str
+    closed_captions: bool
+    high_definition: bool
+    partner: bool
+    rental: bool
+    webm: bool
+    creative_commons: bool
+    three_d: bool
+
+
+SEARCH_TYPE_PROTO = {
+    'videos': 1,
+    'search_videos': 1,
+    'search_users': 2,
+    'search_playlists': 3,
+}
+SEARCH_SORT_PROTO = {
+    'video_avg_rating': 1,
+    'video_date_uploaded': 2,
+    'video_view_count': 3,
+}
+SEARCH_UPLOADED_PROTO = {
+    'h': 1,
+    'd': 2,
+    'w': 3,
+    'm': 4,
+    'y': 5,
+}
+SEARCH_DURATION_PROTO = {
+    'short': 1,
+    'long': 2,
+    'medium': 3,
+}
+CATEGORY_QUERY_TERMS = {
+    '1': 'Film Animation',
+    '2': 'Autos Vehicles',
+    '10': 'Music',
+    '15': 'Pets Animals',
+    '17': 'Sports',
+    '19': 'Travel Events',
+    '20': 'Gaming',
+    '22': 'People Blogs',
+    '23': 'Comedy',
+    '24': 'Entertainment',
+    '25': 'News Politics',
+    '26': 'Howto Style',
+    '27': 'Education',
+    '28': 'Science Technology',
+    '29': 'Nonprofits Activism',
+}
+
+
+def _encode_varint(value: int) -> bytes:
+    parts = bytearray()
+    while value > 0x7F:
+        parts.append((value & 0x7F) | 0x80)
+        value >>= 7
+    parts.append(value)
+    return bytes(parts)
+
+
+def _encode_key(field: int, wire_type: int) -> bytes:
+    return _encode_varint((field << 3) | wire_type)
+
+
+def _encode_varint_field(field: int, value: int) -> bytes:
+    return _encode_key(field, 0) + _encode_varint(value)
+
+
+def _encode_bool_field(field: int, value: bool) -> bytes:
+    if not value:
+        return b''
+    return _encode_varint_field(field, 1)
+
+
+def _encode_message_field(field: int, payload: bytes) -> bytes:
+    if not payload:
+        return b''
+    return _encode_key(field, 2) + _encode_varint(len(payload)) + payload
+
+
+def encode_search_params(filters: SearchFilters | None = None) -> str:
+    """Encode YouTube Innertube search filters as a protobuf `params` string."""
+
+    filters = filters or {}
+    filter_bytes = b''.join((
+        _encode_varint_field(1, SEARCH_UPLOADED_PROTO[uploaded])
+        if (uploaded := filters.get('uploaded', '')) in SEARCH_UPLOADED_PROTO
+        else b'',
+        _encode_varint_field(2, SEARCH_TYPE_PROTO[search_type])
+        if (search_type := filters.get('search_type', '')) in SEARCH_TYPE_PROTO
+        else b'',
+        _encode_varint_field(3, SEARCH_DURATION_PROTO[duration])
+        if (duration := filters.get('search_duration', '')) in SEARCH_DURATION_PROTO
+        else b'',
+        _encode_bool_field(4, bool(filters.get('high_definition'))),
+        _encode_bool_field(5, bool(filters.get('closed_captions'))),
+        _encode_bool_field(6, bool(filters.get('creative_commons'))),
+        _encode_bool_field(7, bool(filters.get('three_d'))),
+        _encode_bool_field(9, bool(filters.get('rental'))),
+    ))
+
+    payload = b''.join((
+        _encode_varint_field(1, SEARCH_SORT_PROTO[sort])
+        if (sort := filters.get('search_sort', '')) in SEARCH_SORT_PROTO
+        else b'',
+        _encode_message_field(2, filter_bytes),
+    ))
+    if not payload:
+        return ''
+
+    return base64.b64encode(payload).decode('ascii')
+
+
+def apply_category_query(query: str, category: str | None = None) -> str:
+    """Append a category keyword when Innertube has no category filter."""
+
+    term = CATEGORY_QUERY_TERMS.get((category or '').strip(), '')
+    if not term:
+        raw = (category or '').strip()
+        if '}' in raw:
+            raw = raw.rsplit('}', 1)[-1]
+        lowered = raw.lower().replace('&', ' ')
+        for category_id, label in CATEGORY_QUERY_TERMS.items():
+            if lowered in {label.lower(), category_id}:
+                term = label
+                break
+        if not term and raw and not raw.isdigit():
+            term = raw
+    if term and term.lower() not in query.lower():
+        return f'{query} {term}'.strip()
+    return query
 
 
 cache = CacheManager('search_results', ttl=timedelta(minutes=30))
@@ -491,6 +631,8 @@ def get_search_results_innertube(
     """Get search results from YouTube using the innertube API."""
 
     logger.debug(f"Get search results for query \"{search_query}\" from innertube...")
+    if search_params:
+        logger.debug(f"Using search params {search_params}")
     if continuation_token:
         logger.debug(f"Using continuation token {continuation_token}")
 
@@ -509,7 +651,7 @@ def get_search_results_innertube(
         'search_query': search_query,
         'search_params': search_params or '',
         'fetched_at': int(datetime.now().timestamp()),
-        'estimated_results': int(data.get('estimatedResults', '')),
+        'estimated_results': int(data.get('estimatedResults') or 0),
         'continuation_token': _get_continuation_token(data),
         'entries': entries,
     }

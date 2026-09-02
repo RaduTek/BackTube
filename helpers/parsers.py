@@ -3,6 +3,10 @@ from datetime import datetime, timedelta, timezone
 from typing import overload
 
 
+def truthy(value: str | None) -> bool:
+    return (value or '').strip().lower() in {'1', 'true', 'yes'}
+
+
 def parse_int(
     value: str | int | None,
     default: int = 0,
