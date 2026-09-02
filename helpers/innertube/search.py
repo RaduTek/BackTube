@@ -7,6 +7,7 @@ from . import client, FeedItem
 from .. import links
 from .utils import get_text, get_first_run, get_channel_from_byline, get_thumbnail_url
 from ..cache import CacheDataList, CacheManager
+from ..rydratings import get_ratings_for_videos
 
 from logger import logger
 
@@ -669,6 +670,28 @@ def search_query_hash(
     return hashlib.md5(search_query.encode('utf-8')).hexdigest()
 
 
+def _attach_ryd_ratings(page: SearchResultsPage | None) -> SearchResultsPage | None:
+    if not page:
+        return page
+
+    entries = page.get('entries') or []
+    video_ids = [
+        entry['id']
+        for entry in entries
+        if entry.get('type') == 'video' and entry.get('id')
+    ]
+    if not video_ids:
+        return page
+
+    ratings = get_ratings_for_videos(video_ids)
+    for entry in entries:
+        if entry.get('type') != 'video':
+            continue
+        if ryd := ratings.get(entry.get('id', '')):
+            entry['rydratings'] = ryd
+    return page
+
+
 def get_search_results_page(
     search_query: str,
     page_number: int = 1,
@@ -686,6 +709,8 @@ def get_search_results_page(
             search_params=search_params,
         )
         results_cache.append(query_hash, first_page)
-        return first_page
+        return _attach_ryd_ratings(first_page)
 
-    return results_cache.get_item_default(query_hash, page_number - 1)
+    return _attach_ryd_ratings(
+        results_cache.get_item_default(query_hash, page_number - 1)
+    )

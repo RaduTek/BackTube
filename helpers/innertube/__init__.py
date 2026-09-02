@@ -4,6 +4,8 @@ from typing_extensions import NotRequired
 
 from innertube.clients import InnerTube
 
+from ..rydratings import RydRatings
+
 client = InnerTube("WEB")
 
 
@@ -21,6 +23,7 @@ class FeedItem(TypedDict):
     length_text: NotRequired[str] # video
     description: NotRequired[str] # video, channel
     like_count: NotRequired[str] # video
+    rydratings: NotRequired[RydRatings] # video
     comment_count: NotRequired[str] # video
     duration_text: NotRequired[str] # video
     published_date_text: NotRequired[str] # video

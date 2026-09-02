@@ -59,9 +59,11 @@
       <yt:duration seconds="{{ video.duration_seconds }}"/>
       <yt:videoid id="{{ video.id }}">{{ video.id }}</yt:videoid>
     </media:group>
-    <gd:rating average="5" max="5" min="1" numRaters="0"
+    {%- set ryd = video.rydratings|default({}, true) %}
+    <gd:rating average="{{ '%.2f'|format(ryd.rating|default(0, true)) }}" max="5" min="1" numRaters="{{ (ryd.likes|default(0, true)) + (ryd.dislikes|default(0, true)) }}"
                rel="http://schemas.google.com/g/2005#overall"/>
     <yt:statistics favoriteCount="0" viewCount="{{ video.view_count }}"/>
+    <yt:rating numLikes="{{ ryd.likes|default(0, true) }}" numDislikes="{{ ryd.dislikes|default(0, true) }}"/>
   </entry>
   {%- endfor %}
 </feed>

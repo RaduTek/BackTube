@@ -80,7 +80,7 @@ class WatchPageVideo(TypedDict):
 class WatchPageData(TypedDict):
     video_id: str
     video: WatchPageVideo
-    rydratings: RydRatings
+    rydratings: NotRequired[RydRatings]
 
 
 class WatchPageRelated(TypedDict):
@@ -700,13 +700,10 @@ def get_watch_data_innertube(
     if comments_enabled:
         comments, comments_token = _fetch_initial_comments(response)
 
-    rydratings = get_ratings(video_id)
-
     return (
         WatchPageData(
             video_id=video_id,
             video=parse_watch_page_video(video_id, response, player_response),
-            rydratings=rydratings,
         ),
         WatchPageRelated(
             video_id=video_id,
@@ -751,6 +748,7 @@ def get_watch_data(video_id: str, nocache: bool = False) -> WatchPageData:
         and not nocache
         and cached.get('video', {}).get('channel_thumbnail_url')
     ):
+        cached['rydratings'] = get_ratings(video_id)
         return cached
 
     watch_data, related_data, comment_data = get_watch_data_innertube(video_id)
@@ -761,6 +759,7 @@ def get_watch_data(video_id: str, nocache: bool = False) -> WatchPageData:
     related_cache.append(video_id, related_data)
     comments_cache.append(video_id, comment_data)
 
+    watch_data['rydratings'] = get_ratings(video_id, nocache=nocache)
     return watch_data
 
 

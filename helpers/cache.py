@@ -56,22 +56,17 @@ class CacheObject(Generic[T]):
         raise NotImplementedError("Subclasses must implement the set method.")
 
     def get_default(self, key: str, default: T | None = None) -> T:
-        used_gen = False
+        value = self.get(key)
+        if value is not None:
+            return value
+
         if default is None:
             if self.default_gen is None:
                 raise ValueError("No default value provided.")
             default = self.default_gen(key)
-            used_gen = True
+            self.set(key, default)
 
-        value = self.get(key)
-
-        if value is None:
-            if used_gen:
-                self.set(key, default)
-
-            return default
-
-        return value
+        return default
 
 
 class CacheDataContainer(TypedDict, Generic[T]):
