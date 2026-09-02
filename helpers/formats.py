@@ -134,4 +134,5 @@ def get_all_formatters():
         'format_remove_suffix': format_remove_suffix,
         'get_domain': get_domain,
         'video_thumbnail_url': links.video_thumbnail_url,
+        'http_url': links.http_url,
     }

@@ -48,7 +48,7 @@
       <media:content url="{{ base_url }}/get_video?v={{ video.id }}&amp;q=medium"
                      type="video/mp4" medium="video" expression="full"
                      duration="{{ video.duration_seconds }}" yt:format="18"/>
-      <media:thumbnail url="{{ video.thumbnail_url }}"
+      <media:thumbnail url="{{ http_url(video.thumbnail_url) }}"
                        height="360" width="480" time="00:00:00.000"/>
       <yt:duration seconds='{{ video.duration_seconds }}'/>
       <yt:videoid id='{{ video.id }}'>{{ video.id }}</yt:videoid>

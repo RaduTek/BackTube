@@ -19,6 +19,17 @@ def video_thumbnail_url(video_id: str, hq: bool = False) -> str:
     return f'//i.ytimg.com/vi/{video_id}/default.jpg'
 
 
+def http_url(url: str) -> str:
+    """Return an absolute HTTP URL for XML/API consumers."""
+    if not url:
+        return ''
+    if url.startswith('//'):
+        return f'http:{url}'
+    if url.startswith('https://'):
+        return f'http://{url[len("https://"):]}'
+    return url
+
+
 def user_url(user_id: str) -> str:
     if not user_id or len(user_id) == 0:
         return ''
