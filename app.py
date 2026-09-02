@@ -4,14 +4,15 @@ from werkzeug.exceptions import HTTPException
 
 from config import config
 from pages import api, home, search, watch, channel, playlist, get_preferred_template
+from pages.backtube import backtube_pages
 from helpers import player
 from helpers.formats import get_all_formatters
 from helpers.proxy import proxy_handler
 
 app = Flask('backtube')
 
+app.register_blueprint(backtube_pages)
 app.register_blueprint(channel.bp)
-
 
 def _custom_error_message(error: HTTPException) -> str:
     description = (error.description or '').strip()
