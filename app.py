@@ -1,5 +1,6 @@
 import os
 from flask import Flask, render_template, request, Response, send_from_directory
+from jinja2 import select_autoescape
 from werkzeug.exceptions import HTTPException
 
 from config import config
@@ -10,6 +11,17 @@ from helpers.formats import get_all_formatters
 from helpers.proxy import proxy_handler
 
 app = Flask('backtube')
+app.jinja_env.autoescape = select_autoescape(
+    enabled_extensions=(
+        'html',
+        'htm',
+        'xml',
+        'xhtml',
+        'svg',
+        'html.j2',
+        'xml.j2',
+    )
+)
 
 app.register_blueprint(backtube_pages)
 app.register_blueprint(api.bp)

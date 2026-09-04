@@ -1,5 +1,4 @@
 {%- import 'api/_macros.xml.j2' as gdata with context -%}
-{%- autoescape true -%}
 {%- call gdata.atom_document(root='feed') -%}
 {{ gdata.feed_meta(
   feed_id=feed_id,
@@ -19,4 +18,3 @@
 {%- endif %}
 {%- endfor %}
 {%- endcall %}
-{%- endautoescape %}
