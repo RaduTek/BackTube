@@ -11,7 +11,7 @@ from ..parsers import (
     parse_count,
     parse_published_at,
 )
-from .search import parse_innertube_search_item
+from .search import _channel_handle_from_browse_endpoint, parse_innertube_search_item
 from .utils import get_text, get_channel_from_byline, get_thumbnail_url
 from ..rydratings import get_ratings, RydRatings
 
@@ -32,6 +32,7 @@ class WatchPageComment(TypedDict):
     id: str
     text: str
     author_name: str
+    author_handle: str
     author_channel_id: str
     author_channel_url: str
     author_avatar_url: str
@@ -291,6 +292,33 @@ def _build_comment_entity_map(response: dict) -> dict[str, dict]:
     return entities
 
 
+def _author_handle_from_text(value: str) -> str:
+    value = (value or '').strip()
+    if value.startswith('@'):
+        return value.removeprefix('@')
+    return ''
+
+
+def _parse_comment_author_handle(
+    *,
+    browse_endpoint: dict | None = None,
+    command: dict | None = None,
+    author_text: str = '',
+) -> str:
+    if browse_endpoint:
+        if handle := _channel_handle_from_browse_endpoint(browse_endpoint):
+            return handle
+    if command:
+        for candidate in (
+            command.get('browseEndpoint', {}),
+            command.get('innertubeCommand', {}).get('browseEndpoint', {}),
+            command.get('channelCommand', {}).get('innertubeCommand', {}).get('browseEndpoint', {}),
+        ):
+            if handle := _channel_handle_from_browse_endpoint(candidate):
+                return handle
+    return _author_handle_from_text(author_text)
+
+
 def _parse_comment_renderer(
     comment_renderer: dict,
     replies_renderer: dict | None = None,
@@ -298,7 +326,8 @@ def _parse_comment_renderer(
     is_pinned: bool = False,
     pinned_text: str = '',
 ) -> WatchPageComment:
-    author_channel_id = comment_renderer.get('authorEndpoint', {}).get(
+    author_endpoint = comment_renderer.get('authorEndpoint', {})
+    author_channel_id = author_endpoint.get(
         'browseEndpoint', {}
     ).get('browseId', '')
     if not author_channel_id:
@@ -312,10 +341,19 @@ def _parse_comment_renderer(
             .get('text', {})
         )
 
+    author_text = get_text(comment_renderer.get('authorText'))
+    author_handle = _parse_comment_author_handle(
+        browse_endpoint=author_endpoint.get('browseEndpoint', {}),
+        command=author_endpoint,
+        author_text=author_text,
+    )
+    author_name = author_text.removeprefix('@')
+
     comment: WatchPageComment = {
         'id': comment_renderer.get('commentId', ''),
         'text': get_text(comment_renderer.get('contentText')),
-        'author_name': get_text(comment_renderer.get('authorText')).removeprefix('@'),
+        'author_name': author_name,
+        'author_handle': author_handle,
         'author_channel_id': author_channel_id,
         'author_channel_url': links.channel_url(author_channel_id),
         'author_avatar_url': get_text(comment_renderer.get('authorThumbnail', {})),
@@ -348,11 +386,17 @@ def _parse_comment_view_model(
     toolbar = payload.get('toolbar', {})
     channel_id = author.get('channelId', '')
     pinned_text = view_model.get('pinnedText', '')
+    display_name = author.get('displayName', '')
+    author_handle = _parse_comment_author_handle(
+        command=author,
+        author_text=display_name,
+    )
 
     comment: WatchPageComment = {
         'id': properties.get('commentId', view_model.get('commentId', '')),
         'text': properties.get('content', {}).get('content', ''),
-        'author_name': author.get('displayName', '').removeprefix('@'),
+        'author_name': display_name.removeprefix('@'),
+        'author_handle': author_handle,
         'author_channel_id': channel_id,
         'author_channel_url': links.channel_url(channel_id),
         'author_avatar_url': author.get('avatarThumbnailUrl', ''),

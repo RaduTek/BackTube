@@ -1,0 +1,6 @@
+{%- import 'api/_macros.xml.j2' as gdata with context -%}
+{%- autoescape true -%}
+{%- call gdata.atom_document(root='entry') -%}
+{{ gdata.video_entry_body(video, base_url, updated or video.published) }}
+{%- endcall %}
+{%- endautoescape %}

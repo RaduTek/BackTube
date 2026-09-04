@@ -12,6 +12,7 @@ from helpers.proxy import proxy_handler
 app = Flask('backtube')
 
 app.register_blueprint(backtube_pages)
+app.register_blueprint(api.bp)
 app.register_blueprint(channel.bp)
 
 def _custom_error_message(error: HTTPException) -> str:
@@ -53,10 +54,6 @@ def guide_ajax_route():
 @app.get("/results")
 def search_route():
     return search.results_page()
-
-@app.get("/feeds/api/videos", strict_slashes=False)
-def api_videos_route():
-    return api.videos_feed()
 
 @app.get("/watch")
 def watch_route():

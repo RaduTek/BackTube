@@ -1,0 +1,22 @@
+{%- import 'api/_macros.xml.j2' as gdata with context -%}
+{%- autoescape true -%}
+{%- call gdata.atom_document(root='feed') -%}
+{{ gdata.feed_meta(
+  feed_id=feed_id,
+  title=title,
+  updated=updated,
+  kind=kind|default('video'),
+  links=links,
+  total_results=total_results,
+  start_index=start_index,
+  items_per_page=max_results
+) }}
+{%- for item in entries %}
+{%- if entry_kind == 'comment' %}
+{{ gdata.comment_entry(item, base_url) }}
+{%- else %}
+{{ gdata.video_entry(item, base_url, updated) }}
+{%- endif %}
+{%- endfor %}
+{%- endcall %}
+{%- endautoescape %}

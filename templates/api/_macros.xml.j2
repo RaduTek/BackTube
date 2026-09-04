@@ -1,0 +1,232 @@
+{%- macro xmlns_attrs(namespaces=None) -%}
+{%- set namespaces = namespaces or [
+  ['', 'http://www.w3.org/2005/Atom'],
+  ['media', 'http://search.yahoo.com/mrss/'],
+  ['openSearch', 'http://a9.com/-/spec/opensearchrss/1.0/'],
+  ['gd', 'http://schemas.google.com/g/2005'],
+  ['yt', 'http://gdata.youtube.com/schemas/2007'],
+] -%}
+{%- for ns in namespaces %}
+{%- if ns[0] %} xmlns:{{ ns[0] }}="{{ ns[1] }}"{% else %} xmlns="{{ ns[1] }}"{% endif -%}
+{%- endfor -%}
+{%- endmacro %}
+
+{% macro atom_document(root='feed', namespaces=None) -%}
+<?xml version="1.0" encoding="UTF-8"?>
+<{{ root }}{{ xmlns_attrs(namespaces) }}>
+{{ caller() }}
+</{{ root }}>
+{%- endmacro %}
+
+{% macro atom_link(rel, href, type=None) -%}
+{%- if href %}
+  <link rel="{{ rel }}"{% if type %} type="{{ type }}"{% endif %} href="{{ href }}"/>
+{%- endif %}
+{%- endmacro %}
+
+{% macro kind_category(kind='video') -%}
+  <category scheme="http://schemas.google.com/g/2005#kind"
+            term="http://gdata.youtube.com/schemas/2007#{{ kind }}"/>
+{%- endmacro %}
+
+{% macro feed_meta(
+  feed_id,
+  title,
+  updated,
+  kind='video',
+  logo='http://www.youtube.com/img/pic_youtubelogo_123x63.gif',
+  author_name='YouTube',
+  author_uri='http://www.youtube.com/',
+  generator='YouTube data API',
+  generator_version='2.0',
+  generator_uri='http://gdata.youtube.com/',
+  links=None,
+  total_results=0,
+  start_index=1,
+  items_per_page=20
+) -%}
+  <id>{{ feed_id }}</id>
+  <updated>{{ updated }}</updated>
+  {{ kind_category(kind) }}
+  <title type="text">{{ title }}</title>
+  {%- if logo %}
+  <logo>{{ logo }}</logo>
+  {%- endif %}
+  {%- for link in links or [] %}
+  {{ atom_link(link.rel, link.href, link.get('type')) }}
+  {%- endfor %}
+  <author>
+    <name>{{ author_name }}</name>
+    {%- if author_uri %}
+    <uri>{{ author_uri }}</uri>
+    {%- endif %}
+  </author>
+  <generator version="{{ generator_version }}" uri="{{ generator_uri }}">{{ generator }}</generator>
+  <openSearch:totalResults>{{ total_results }}</openSearch:totalResults>
+  <openSearch:startIndex>{{ start_index }}</openSearch:startIndex>
+  <openSearch:itemsPerPage>{{ items_per_page }}</openSearch:itemsPerPage>
+{%- endmacro %}
+
+{% macro video_author(video, base_url) -%}
+{%- set handle = video.channel_handle or video.channel_id or video.channel_name -%}
+    <author>
+      <name>{{ handle }}</name>
+      {%- if video.channel_name %}
+      <displayName>{{ video.channel_name }}</displayName>
+      {%- endif %}
+      {%- if handle %}
+      <uri>{{ base_url }}/feeds/api/users/{{ handle }}</uri>
+      {%- endif %}
+      {%- if video.channel_id %}
+      <yt:userId>{{ video.channel_id }}</yt:userId>
+      {%- endif %}
+    </author>
+{%- endmacro %}
+
+{% macro video_media_group(video, base_url) -%}
+{%- set duration = video.duration_seconds|default(0, true) -%}
+{%- set contents = video.media_contents or [{'quality': 'medium', 'type': 'video/mp4', 'yt_format': 18, 'is_default': true}] -%}
+{%- set thumbs = video.thumbnails or [] -%}
+    <media:group>
+      <media:title type="plain">{{ video.title }}</media:title>
+      <media:description type="plain">{{ video.description }}</media:description>
+      {%- if video.category %}
+      <media:category label="{{ video.category_name or video.category }}"
+                      scheme="http://gdata.youtube.com/schemas/2007/categories.cat">{{ video.category }}</media:category>
+      {%- endif %}
+      {%- if video.keywords %}
+      <media:keywords>{{ video.keywords if video.keywords is string else video.keywords|join(', ') }}</media:keywords>
+      {%- endif %}
+      <media:player url="{{ base_url }}/watch?v={{ video.id }}"/>
+      {%- for content in contents %}
+      <media:content url="{{ content.url or (base_url ~ '/get_video?v=' ~ video.id ~ '&q=' ~ content.quality) }}"
+                     type="{{ content.type|default('video/mp4') }}"
+                     medium="video"
+                     expression="full"
+                     duration="{{ duration }}"
+                     yt:format="{{ content.yt_format|default(18) }}"
+                     {%- if content.is_default %} isDefault="true"{% endif %}/>
+      {%- endfor %}
+      {%- if thumbs %}
+      {%- for thumb in thumbs %}
+      <media:thumbnail url="{{ http_url(thumb.url) }}"
+                       {%- if thumb.name %} yt:name="{{ thumb.name }}"{% endif %}
+                       height="{{ thumb.height|default(360) }}"
+                       width="{{ thumb.width|default(480) }}"
+                       time="{{ thumb.time|default('00:00:00.000') }}"/>
+      {%- endfor %}
+      {%- elif video.thumbnail_url %}
+      <media:thumbnail url="{{ http_url(video.thumbnail_url) }}"
+                       height="360" width="480" time="00:00:00.000"/>
+      {%- endif %}
+      <yt:duration seconds="{{ duration }}"/>
+      {%- if video.published %}
+      <yt:uploaded>{{ video.published }}</yt:uploaded>
+      {%- endif %}
+      {%- if video.channel_id %}
+      <yt:uploaderId>{{ video.channel_id }}</yt:uploaderId>
+      {%- endif %}
+      <yt:videoid id="{{ video.id }}">{{ video.id }}</yt:videoid>
+      {%- if video.channel_name %}
+      <media:credit role="uploader"
+                    scheme="urn:youtube"
+                    yt:display="{{ video.channel_name }}">{{ video.channel_handle or video.channel_id or video.channel_name }}</media:credit>
+      {%- endif %}
+    </media:group>
+{%- endmacro %}
+
+{% macro video_entry_body(video, base_url, updated='') -%}
+{%- set ryd = video.rydratings|default({}, true) -%}
+{%- set likes = ryd.likes if ryd.likes is defined else video.like_count|default(0, true) -%}
+{%- set dislikes = ryd.dislikes if ryd.dislikes is defined else video.dislike_count|default(0, true) -%}
+{%- set rating = ryd.rating if ryd.rating is defined else 0 -%}
+{%- set comment_count = video.comment_count|default(0, true) -%}
+    <id>{{ base_url }}/feeds/api/videos/{{ video.id }}</id>
+    <youTubeId id="{{ video.id }}">{{ video.id }}</youTubeId>
+    {%- if video.published %}
+    <published>{{ video.published }}</published>
+    {%- endif %}
+    {%- if updated or video.published %}
+    <updated>{{ updated or video.published }}</updated>
+    {%- endif %}
+    {{ kind_category('video') }}
+    {%- if video.category %}
+    <category scheme="http://gdata.youtube.com/schemas/2007/categories.cat"
+              label="{{ video.category_name or video.category }}"
+              term="{{ video.category }}">{{ video.category }}</category>
+    {%- endif %}
+    <title type="text">{{ video.title }}</title>
+    <content type="text">{{ video.description }}</content>
+    <link rel="alternate" type="text/html"
+          href="{{ base_url }}/watch?v={{ video.id }}"/>
+    <link rel="self" type="application/atom+xml"
+          href="{{ base_url }}/feeds/api/videos/{{ video.id }}"/>
+    <link rel="http://gdata.youtube.com/schemas/2007#video.related"
+          type="application/atom+xml"
+          href="{{ base_url }}/feeds/api/videos/{{ video.id }}/related"/>
+    <link rel="http://gdata.youtube.com/schemas/2007#video.responses"
+          type="application/atom+xml"
+          href="{{ base_url }}/feeds/api/videos/{{ video.id }}/responses"/>
+    {%- for link in video.links or [] %}
+    {{ atom_link(link.rel, link.href, link.get('type')) }}
+    {%- endfor %}
+    {{ video_author(video, base_url) }}
+    <gd:comments>
+      <gd:feedLink href="{{ base_url }}/feeds/api/videos/{{ video.id }}/comments"
+                   countHint="{{ comment_count }}"/>
+    </gd:comments>
+    {{ video_media_group(video, base_url) }}
+    <gd:rating average="{{ '%.2f'|format(rating|float) }}"
+               max="5" min="1"
+               numRaters="{{ likes + dislikes }}"
+               rel="http://schemas.google.com/g/2005#overall"/>
+    <yt:statistics favoriteCount="0" viewCount="{{ video.view_count|default(0, true) }}"/>
+    <yt:rating numLikes="{{ likes }}" numDislikes="{{ dislikes }}"/>
+{%- endmacro %}
+
+{% macro video_entry(video, base_url, updated='') -%}
+  <entry>
+{{ video_entry_body(video, base_url, updated) }}
+  </entry>
+{%- endmacro %}
+
+{% macro comment_entry(comment, base_url) -%}
+{%- set comment_id = comment.id or 'c' -%}
+{%- set video_id = comment.video_id -%}
+{%- set author_handle = comment.author_handle or comment.author_name -%}
+{%- set author_ref = author_handle or comment.author_channel_id -%}
+  <entry>
+    <id>{{ base_url }}/feeds/api/videos/{{ video_id }}/comments/{{ comment_id }}</id>
+    {%- if comment.published %}
+    <published>{{ comment.published }}</published>
+    {%- endif %}
+    <updated>{{ comment.updated or comment.published }}</updated>
+    {{ kind_category('comment') }}
+    <title type="text">{{ comment.title or (comment.text|truncate(80, true, '...')) }}</title>
+    <content type="text">{{ comment.text }}</content>
+    <link rel="related" type="application/atom+xml"
+          href="{{ base_url }}/feeds/api/videos/{{ video_id }}"/>
+    <link rel="alternate" type="text/html"
+          href="{{ base_url }}/watch?v={{ video_id }}"/>
+    <link rel="self" type="application/atom+xml"
+          href="{{ base_url }}/feeds/api/videos/{{ video_id }}/comments/{{ comment_id }}"/>
+    <author>
+      <name>{{ author_handle }}</name>
+      {%- if comment.author_name %}
+      <displayName>{{ comment.author_name }}</displayName>
+      {%- endif %}
+      {%- if author_ref %}
+      <uri>{{ base_url }}/feeds/api/users/{{ author_ref }}</uri>
+      {%- endif %}
+      {%- if comment.author_channel_id %}
+      <yt:userId>{{ comment.author_channel_id }}</yt:userId>
+      {%- endif %}
+    </author>
+    {%- if comment.like_count is defined and comment.like_count != '' %}
+    <yt:rating numLikes="{{ comment.like_count }}"/>
+    {%- endif %}
+    {%- if comment.reply_count is defined and comment.reply_count != '' %}
+    <yt:replyCount>{{ comment.reply_count }}</yt:replyCount>
+    {%- endif %}
+  </entry>
+{%- endmacro %}
