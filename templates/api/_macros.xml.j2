@@ -43,7 +43,9 @@
   links=None,
   total_results=0,
   start_index=1,
-  items_per_page=20
+  items_per_page=20,
+  author_display_name='',
+  author_user_id=''
 ) -%}
   <id>{{ feed_id }}</id>
   <updated>{{ updated }}</updated>
@@ -57,8 +59,14 @@
   {%- endfor %}
   <author>
     <name>{{ author_name }}</name>
+    {%- if author_display_name %}
+    <displayName>{{ author_display_name }}</displayName>
+    {%- endif %}
     {%- if author_uri %}
     <uri>{{ author_uri }}</uri>
+    {%- endif %}
+    {%- if author_user_id %}
+    <yt:userId>{{ author_user_id }}</yt:userId>
     {%- endif %}
   </author>
   <generator version="{{ generator_version }}" uri="{{ generator_uri }}">{{ generator }}</generator>
@@ -228,5 +236,125 @@
     {%- if comment.reply_count is defined and comment.reply_count != '' %}
     <yt:replyCount>{{ comment.reply_count }}</yt:replyCount>
     {%- endif %}
+  </entry>
+{%- endmacro %}
+
+{% macro user_entry_body(user, base_url) -%}
+{%- set handle = user.channel_handle or user.channel_id -%}
+  <id>{{ base_url }}/feeds/api/users/{{ handle }}</id>
+  {%- if user.published %}
+  <published>{{ user.published }}</published>
+  {%- endif %}
+  <updated>{{ user.updated }}</updated>
+  {{ kind_category('userProfile') }}
+  <category scheme="http://gdata.youtube.com/schemas/2007/channeltypes.cat"
+            term=""/>
+  <title type="text">{{ user.channel_name }} Channel</title>
+  <content type="text">{{ user.description }}</content>
+  <link rel="self" type="application/atom+xml"
+        href="{{ base_url }}/feeds/api/users/{{ handle }}"/>
+  <link rel="alternate" type="text/html"
+        href="{{ base_url }}{{ user.channel_url }}"/>
+  <author>
+    <name>{{ handle }}</name>
+    <displayName>{{ user.channel_name }}</displayName>
+    <uri>{{ base_url }}/feeds/api/users/{{ handle }}</uri>
+    <yt:userId>{{ user.channel_id }}</yt:userId>
+  </author>
+  <yt:description>{{ user.description }}</yt:description>
+  <gd:feedLink rel="http://gdata.youtube.com/schemas/2007#user.uploads"
+               href="{{ base_url }}/feeds/api/users/{{ handle }}/uploads"
+               countHint="{{ user.video_count }}"/>
+  <gd:feedLink rel="http://gdata.youtube.com/schemas/2007#user.playlists"
+               href="{{ base_url }}/feeds/api/users/{{ handle }}/playlists"/>
+  <gd:feedLink rel="http://gdata.youtube.com/schemas/2007#user.favorites"
+               href="{{ base_url }}/feeds/api/users/{{ handle }}/favorites"/>
+  <yt:statistics subscriberCount="{{ user.subscriber_count }}"
+                 videoWatchCount="0"
+                 viewCount="{{ user.view_count }}"
+                 totalUploadViews="{{ user.view_count }}"/>
+  {%- if user.thumbnail_url %}
+  <media:thumbnail url="{{ http_url(user.thumbnail_url) }}"/>
+  {%- endif %}
+  <yt:username>{{ handle }}</yt:username>
+  <yt:channelId>{{ user.channel_id }}</yt:channelId>
+  {%- if user.country %}
+  <yt:location>{{ user.country }}</yt:location>
+  {%- endif %}
+{%- endmacro %}
+
+{% macro playlist_entry(playlist, base_url) -%}
+{%- set handle = playlist.channel_handle or playlist.channel_id -%}
+  <entry>
+    <id>{{ base_url }}/feeds/api/users/{{ handle }}/playlists/{{ playlist.id }}</id>
+    <playlistId>{{ playlist.id }}</playlistId>
+    <yt:playlistId>{{ playlist.id }}</yt:playlistId>
+    <updated>{{ playlist.updated }}</updated>
+    {{ kind_category('playlistLink') }}
+    <title type="text">{{ playlist.title }}</title>
+    <content type="text"
+             src="{{ base_url }}/feeds/api/users/{{ handle }}/playlists/{{ playlist.id }}">{{ playlist.description }}</content>
+    <link rel="related" type="application/atom+xml"
+          href="{{ base_url }}/feeds/api/users/{{ handle }}"/>
+    <link rel="alternate" type="text/html"
+          href="{{ base_url }}/playlist?list={{ playlist.id }}"/>
+    <link rel="self" type="application/atom+xml"
+          href="{{ base_url }}/feeds/api/users/{{ handle }}/playlists/{{ playlist.id }}"/>
+    <author>
+      <name>{{ handle }}</name>
+      <displayName>{{ playlist.channel_name }}</displayName>
+      <uri>{{ base_url }}/feeds/api/users/{{ handle }}</uri>
+      <yt:userId>{{ playlist.channel_id }}</yt:userId>
+    </author>
+    <gd:feedLink rel="http://gdata.youtube.com/schemas/2007#playlist"
+                 href="{{ base_url }}/feeds/api/users/{{ handle }}/playlists/{{ playlist.id }}"
+                 countHint="{{ playlist.video_count }}"/>
+    <yt:description>{{ playlist.description }}</yt:description>
+    <yt:countHint>{{ playlist.video_count }}</yt:countHint>
+    <summary>{{ playlist.description }}</summary>
+    {%- if playlist.thumbnail_url %}
+    <media:group>
+      <media:thumbnail url="{{ http_url(playlist.thumbnail_url) }}"/>
+    </media:group>
+    {%- endif %}
+  </entry>
+{%- endmacro %}
+
+{% macro playlist_feed_meta(playlist, base_url) -%}
+  <summary>{{ playlist.description }}</summary>
+  <content type="application/atom+xml;type=feed"
+           src="{{ base_url }}/feeds/api/users/{{ playlist.channel_handle or playlist.channel_id }}/playlists/{{ playlist.id }}"/>
+  <yt:countHint>{{ playlist.video_count }}</yt:countHint>
+  <yt:playlistId>{{ playlist.id }}</yt:playlistId>
+  <playlistId>{{ playlist.id }}</playlistId>
+  {%- if playlist.thumbnail_url %}
+  <media:group>
+    <media:thumbnail url="{{ http_url(playlist.thumbnail_url) }}"/>
+  </media:group>
+  {%- endif %}
+{%- endmacro %}
+
+{% macro event_entry(event, base_url) -%}
+  <entry>
+    <id>{{ base_url }}/feeds/api/events/{{ event.type }}/{{ event.video.id }}</id>
+    <updated>{{ event.updated }}</updated>
+    {{ kind_category('userEvent') }}
+    <category scheme="http://gdata.youtube.com/schemas/2007/userevents.cat"
+              term="{{ event.type }}"/>
+    <title type="text">{{ event.title }}</title>
+    <yt:videoid>{{ event.video.id }}</yt:videoid>
+    <yt:username>{{ event.author_handle }}</yt:username>
+    <yt:groupId>0</yt:groupId>
+    <author>
+      <name>{{ event.author_handle }}</name>
+      <displayName>{{ event.author_name }}</displayName>
+      <uri>{{ base_url }}/feeds/api/users/{{ event.author_handle }}</uri>
+      <yt:userId>{{ event.author_channel_id }}</yt:userId>
+    </author>
+    <link rel="http://gdata.youtube.com/schemas/2007#video"
+          type="application/atom+xml"
+          href="{{ base_url }}/feeds/api/videos/{{ event.video.id }}">
+{{ video_entry(event.video, base_url, event.updated) }}
+    </link>
   </entry>
 {%- endmacro %}

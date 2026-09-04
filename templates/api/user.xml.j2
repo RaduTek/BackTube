@@ -1,0 +1,4 @@
+{%- import 'api/_macros.xml.j2' as gdata with context -%}
+{%- call gdata.atom_document(root='entry') -%}
+{{ gdata.user_entry_body(user, base_url) }}
+{%- endcall %}

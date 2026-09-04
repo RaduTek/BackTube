@@ -8,11 +8,22 @@
   links=links,
   total_results=total_results,
   start_index=start_index,
-  items_per_page=max_results
+  items_per_page=max_results,
+  author_name=author_name|default('YouTube'),
+  author_display_name=author_display_name|default(''),
+  author_uri=author_uri|default('http://www.youtube.com/'),
+  author_user_id=author_user_id|default('')
 ) }}
+{%- if playlist is defined and playlist %}
+{{ gdata.playlist_feed_meta(playlist, base_url) }}
+{%- endif %}
 {%- for item in entries %}
 {%- if entry_kind == 'comment' %}
 {{ gdata.comment_entry(item, base_url) }}
+{%- elif entry_kind == 'playlist' %}
+{{ gdata.playlist_entry(item, base_url) }}
+{%- elif entry_kind == 'event' %}
+{{ gdata.event_entry(item, base_url) }}
 {%- else %}
 {{ gdata.video_entry(item, base_url, updated) }}
 {%- endif %}
