@@ -114,6 +114,23 @@ def media(filename):
     media_dir = os.path.join(config.cache_dir, 'media')
     return send_from_directory(media_dir, filename)
 
+
+@app.get("/schemas/<path:filename>")
+def schemas(filename):
+    return send_from_directory(
+        os.path.join(app.root_path, 'static', 'schemas'),
+        filename,
+    )
+
+
+@app.get("/site_assets/<path:filename>")
+def site_assets(filename):
+    return send_from_directory(
+        os.path.join(app.root_path, 'static', 'site_assets'),
+        filename,
+    )
+
+
 @app.route("/proxy/<path:url>", merge_slashes=False)
 def proxy_route(url):
     return proxy_handler(base_route="/proxy/", use_cache=True)
