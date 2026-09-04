@@ -6,7 +6,6 @@ from flask import Blueprint, Response, abort, redirect, render_template, request
 
 from helpers.innertube import FeedItem
 from helpers.innertube.channel import (
-    CHANNEL_PLAYLISTS_PAGE_SIZE,
     CHANNEL_VIDEOS_PAGE_SIZE,
     ChannelPageData,
     ChannelPlaylist,
@@ -30,7 +29,6 @@ from helpers.innertube.search import (
     encode_search_params,
     get_search_results_page,
 )
-from helpers.innertube.standardfeeds import get_recently_featured
 from helpers.innertube.watch import (
     WatchPageComment,
     WatchPageData,
@@ -49,12 +47,15 @@ from helpers.parsers import (
     truthy,
 )
 from helpers.rydratings import get_ratings_for_videos
+from helpers.standardfeeds import get_standard_feed
 
 
 bp = Blueprint('api', __name__)
 
 SEARCH_PAGE_SIZE = 20
 MAX_RESULTS = 20
+STANDARD_FEED_PAGE_SIZE = 25
+STANDARD_FEED_MAX_RESULTS = 100
 EVENT_RESULTS = 7
 ATOM_CONTENT_TYPE = 'application/atom+xml; charset=utf-8'
 
@@ -144,7 +145,10 @@ def _base_url() -> str:
     return request.url_root.rstrip('/')
 
 
-def _pagination() -> tuple[int, int]:
+def _pagination(
+    page_size: int = SEARCH_PAGE_SIZE,
+    maximum: int = MAX_RESULTS,
+) -> tuple[int, int]:
     start_index = parse_int(
         request.args.get('start-index'),
         1,
@@ -152,12 +156,11 @@ def _pagination() -> tuple[int, int]:
     )
     max_results = parse_int(
         request.args.get('max-results'),
-        SEARCH_PAGE_SIZE,
+        page_size,
         minimum=1,
-        maximum=MAX_RESULTS,
+        maximum=maximum,
     )
     return start_index, max_results
-
 
 def _page_from_start_index(start_index: int, page_size: int = SEARCH_PAGE_SIZE) -> tuple[int, int]:
     return ((start_index - 1) // page_size) + 1, (start_index - 1) % page_size
@@ -820,12 +823,28 @@ def video_entry(video_id: str) -> Response:
 
 
 @bp.get(
-    "/feeds/api/standardfeeds/recently_featured",
+    "/feeds/api/standardfeeds/<feed_name>",
     strict_slashes=False,
 )
-def recently_featured_feed() -> Response:
-    start_index, max_results = _pagination()
-    data = get_recently_featured()
+@bp.get(
+    "/feeds/api/standardfeeds/<region>/<feed_name>",
+    strict_slashes=False,
+)
+def standard_feed(
+    feed_name: str,
+    region: str | None = None,
+) -> Response:
+    data = get_standard_feed(
+        feed_name,
+        user_agent=request.user_agent.string,
+    )
+    if data is None:
+        abort(404)
+
+    start_index, max_results = _pagination(
+        STANDARD_FEED_PAGE_SIZE,
+        STANDARD_FEED_MAX_RESULTS,
+    )
     raw_entries = [
         entry
         for entry in data['entries']
@@ -841,8 +860,8 @@ def recently_featured_feed() -> Response:
     updated = timestamp_to_iso8601(data['fetched_at'])
     base_url = _base_url()
     return _video_feed_response(
-        feed_id=f'{base_url}/feeds/api/standardfeeds/recently_featured',
-        title='Recently Featured',
+        feed_id=request.base_url,
+        title=data['title'],
         entries=entries,
         total_results=total_results,
         start_index=start_index,
