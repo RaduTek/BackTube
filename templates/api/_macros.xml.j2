@@ -135,6 +135,9 @@
       <yt:uploaderId>{{ video.channel_id }}</yt:uploaderId>
       {%- endif %}
       <yt:videoid id="{{ video.id }}">{{ video.id }}</yt:videoid>
+      {%- if video.playlist_position %}
+      <yt:position>{{ video.playlist_position }}</yt:position>
+      {%- endif %}
       {%- if video.channel_name %}
       <media:credit role="uploader"
                     scheme="urn:youtube"
@@ -323,15 +326,17 @@
 {% macro playlist_feed_meta(playlist, base_url) -%}
   <summary>{{ playlist.description }}</summary>
   <content type="application/atom+xml;type=feed"
-           src="{{ base_url }}/feeds/api/users/{{ playlist.channel_handle or playlist.channel_id }}/playlists/{{ playlist.id }}"/>
+           src="{{ playlist.feed_url or (base_url ~ '/feeds/api/users/' ~ (playlist.channel_handle or playlist.channel_id) ~ '/playlists/' ~ playlist.id) }}"/>
   <yt:countHint>{{ playlist.video_count }}</yt:countHint>
   <yt:playlistId>{{ playlist.id }}</yt:playlistId>
   <playlistId>{{ playlist.id }}</playlistId>
-  {%- if playlist.thumbnail_url %}
   <media:group>
+    <media:title type="plain">{{ playlist.title }}</media:title>
+    <media:description type="plain">{{ playlist.description }}</media:description>
+    {%- if playlist.thumbnail_url %}
     <media:thumbnail url="{{ http_url(playlist.thumbnail_url) }}"/>
+    {%- endif %}
   </media:group>
-  {%- endif %}
 {%- endmacro %}
 
 {% macro event_entry(event, base_url) -%}

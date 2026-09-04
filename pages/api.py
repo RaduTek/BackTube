@@ -431,11 +431,23 @@ def _gdata_playlist(
 
 def _gdata_playlist_metadata(
     playlist_page: PlaylistPageData,
-    channel_data: ChannelPageData,
+    channel_data: ChannelPageData | None = None,
+    *,
+    feed_url: str = '',
 ) -> dict:
     metadata = playlist_page['playlist']
-    channel = channel_data['channel']
     first_video_id = metadata.get('first_video_id') or ''
+    channel = channel_data['channel'] if channel_data else {}
+    channel_id = (
+        channel.get('channel_id')
+        or metadata.get('owner_channel_id')
+        or ''
+    )
+    channel_handle = (
+        _channel_handle(channel_data)
+        if channel_data
+        else channel_id
+    )
     return {
         'id': metadata['playlist_id'],
         'title': metadata.get('title') or '',
@@ -446,10 +458,15 @@ def _gdata_playlist_metadata(
             if first_video_id
             else ''
         ),
-        'channel_id': channel['channel_id'],
-        'channel_handle': _channel_handle(channel_data),
-        'channel_name': channel['channel_name'],
+        'channel_id': channel_id,
+        'channel_handle': channel_handle,
+        'channel_name': (
+            channel.get('channel_name')
+            or metadata.get('owner_name')
+            or channel_handle
+        ),
         'updated': timestamp_to_iso8601(playlist_page['fetched_at']),
+        'feed_url': feed_url,
     }
 
 
@@ -468,7 +485,9 @@ def _gdata_video_from_playlist_entry(entry: PlaylistVideo) -> dict:
         'channel_handle': '',
         'channel_url': entry.get('channel_url') or '',
     }
-    return _gdata_video_from_feed_item(feed_item)
+    video = _gdata_video_from_feed_item(feed_item)
+    video['playlist_position'] = entry.get('index', 0)
+    return video
 
 
 def _video_feed_response(
@@ -483,13 +502,16 @@ def _video_feed_response(
     alternate_url: str = '',
     next_url: str = '',
     author_data: ChannelPageData | None = None,
+    author: dict | None = None,
     playlist: dict | None = None,
+    feed_kind: str = '',
+    extra_links: list[dict] | None = None,
 ) -> Response:
     base_url = _base_url()
     context: dict = {
         'feed_id': feed_id,
         'title': title,
-        'kind': 'playlistLink' if playlist else 'video',
+        'kind': feed_kind or ('playlistLink' if playlist else 'video'),
         'entry_kind': 'video',
         'entries': entries,
         'total_results': total_results,
@@ -500,6 +522,7 @@ def _video_feed_response(
             self_url=request.url,
             alternate_url=alternate_url,
             next_url=next_url,
+            extra=extra_links,
         ),
         'playlist': playlist,
     }
@@ -511,6 +534,13 @@ def _video_feed_response(
             'author_display_name': channel['channel_name'],
             'author_uri': f'{base_url}/feeds/api/users/{handle}',
             'author_user_id': channel['channel_id'],
+        })
+    elif author:
+        context.update({
+            'author_name': author.get('handle') or author.get('channel_id'),
+            'author_display_name': author.get('name') or '',
+            'author_uri': author.get('uri') or '',
+            'author_user_id': author.get('channel_id') or '',
         })
     return _atom_response('api/feed.xml.j2', **context)
 
@@ -820,6 +850,73 @@ def recently_featured_feed() -> Response:
         updated=updated,
         alternate_url=base_url,
         next_url=_next_url(start_index, max_results, total_results),
+    )
+
+
+@bp.get("/feeds/api/playlists/<playlist_id>", strict_slashes=False)
+def playlist_feed(playlist_id: str) -> Response:
+    start_index, max_results = _pagination()
+    try:
+        videos, has_more, playlist_page = _playlist_video_window(
+            playlist_id,
+            start_index,
+            max_results,
+        )
+    except ValueError:
+        abort(404)
+
+    base_url = _base_url()
+    feed_id = f'{base_url}/feeds/api/playlists/{playlist_id}'
+    playlist = _gdata_playlist_metadata(
+        playlist_page,
+        feed_url=feed_id,
+    )
+    total_results = playlist['video_count']
+    if not total_results:
+        total_results = start_index - 1 + len(videos)
+        if has_more:
+            total_results += 1
+
+    owner_handle = (
+        playlist.get('channel_handle')
+        or playlist.get('channel_id')
+        or playlist.get('channel_name')
+        or ''
+    )
+    return _video_feed_response(
+        feed_id=feed_id,
+        title=playlist['title'],
+        entries=videos,
+        total_results=total_results,
+        start_index=start_index,
+        max_results=max_results,
+        updated=playlist['updated'],
+        alternate_url=f'{base_url}/playlist?list={playlist_id}',
+        next_url=_next_url(start_index, max_results, total_results),
+        author={
+            'handle': owner_handle,
+            'name': playlist.get('channel_name') or owner_handle,
+            'channel_id': playlist.get('channel_id') or '',
+            'uri': (
+                f'{base_url}/feeds/api/users/{owner_handle}'
+                if owner_handle
+                else ''
+            ),
+        },
+        playlist=playlist,
+        feed_kind='playlist',
+        extra_links=[
+            {
+                'rel': 'http://schemas.google.com/g/2005#feed',
+                'type': 'application/atom+xml',
+                'href': feed_id,
+            },
+            {
+                'rel': 'http://schemas.google.com/g/2005#batch',
+                'type': 'application/atom+xml',
+                'href': f'{feed_id}/batch',
+            },
+        ],
     )
 
 
