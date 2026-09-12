@@ -2,8 +2,10 @@ from datetime import datetime, timedelta
 from typing import cast, TypedDict
 from typing_extensions import NotRequired
 from urllib.parse import parse_qs, unquote, urlparse
+
 from . import client, FeedItem
 from .. import links
+from ..debug import debug_dump
 from ..cache import CacheManager, CacheData, CacheDataList
 from ..formats import format_duration
 from ..parsers import (
@@ -76,6 +78,8 @@ class WatchPageVideo(TypedDict):
 
     featured_music: list[FeaturedMusic]
     featured_socials: list[FeaturedSocial]
+
+    tags: list[str]
 
 
 class WatchPageData(TypedDict):
@@ -476,13 +480,15 @@ def parse_watch_comments(response: dict) -> tuple[list[WatchPageComment], str]:
     return comments, _get_comments_page_token(items)
 
 
-def _fetch_initial_comments(response: dict) -> tuple[list[WatchPageComment], str]:
+def _fetch_initial_comments(video_id: str, response: dict) -> tuple[list[WatchPageComment], str]:
     comments_panel = _get_engagement_panel(response, COMMENTS_PANEL_TARGET_ID)
     initial_token = _get_comments_continuation_token(comments_panel)
     if not initial_token:
         return [], ''
 
     comments_response = client.next(continuation=initial_token)
+    debug_dump("watch", response, f"innertube_next_comments_initial_{video_id}")
+
     return parse_watch_comments(comments_response)
 
 
@@ -707,6 +713,7 @@ def parse_watch_page_video(
         comments_count_text=comments_count_text,
         featured_music=featured_music,
         featured_socials=featured_socials,
+        tags=video_details.get('keywords', [])
     )
 
 
@@ -721,6 +728,7 @@ def get_watch_related_innertube(
         if continuation_token
         else client.next(video_id)
     )
+    debug_dump("watch", response, f"innertube_next_related_{video_id}")
 
     feed, token = parse_watch_related(response)
 
@@ -736,13 +744,17 @@ def get_watch_data_innertube(
 ) -> tuple[WatchPageData, WatchPageRelated, WatchPageComments]:
     """Fetch watch page data from the innertube next API."""
     response = client.next(video_id)
+    debug_dump("watch", response, f"innertube_next_{video_id}")
+
     player_response = client.player(video_id)
+    debug_dump("watch", player_response, f"innertube_player_{video_id}")
+
     related, related_token = parse_watch_related(response)
     comments_enabled, _ = _parse_comments_info(response)
     comments: list[WatchPageComment] = []
     comments_token = ''
     if comments_enabled:
-        comments, comments_token = _fetch_initial_comments(response)
+        comments, comments_token = _fetch_initial_comments(video_id, response)
 
     return (
         WatchPageData(
@@ -773,6 +785,8 @@ def get_watch_comments_innertube(
         if continuation_token
         else client.next(video_id)
     )
+    debug_dump("watch", response, f"innertube_next_comments_{video_id}")
+
     comments, comments_token = parse_watch_comments(response)
 
     return WatchPageComments(

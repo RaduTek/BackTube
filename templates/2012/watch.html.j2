@@ -364,32 +364,16 @@
                                 <p id="eow-description">{{ format_string_multiline(data.video.description) | safe }}</p>
                             </div>
                             <div id="watch-description-extras">
-                                {# <h4>
+                                <h4>
                                     Tags:
                                 </h4>
                                 <ul id="eow-tags" class="watch-info-tag-list">
+                                {% for tag in data.video.tags %}
                                     <li><a
-                                            href="/results?search_query=MinecraftLetsPlay8Web&search=tag">MinecraftLetsPlay8Web</a>
+                                            href="/results?search_query={{ tag }}&search=tag">{{ tag }}</a>
                                     </li>
-                                    <li><a
-                                            href="/results?search_query=achievement&search=tag">achievement</a>
-                                    </li>
-                                    <li><a href="/results?search_query=hunter&search=tag">hunter</a>
-                                    </li>
-                                    <li><a href="/results?search_query=funny&search=tag">funny</a></li>
-                                    <li><a
-                                            href="/results?search_query=minecraft&search=tag">minecraft</a>
-                                    </li>
-                                    <li><a href="/results?search_query=let%27s&search=tag">let&#39;s</a>
-                                    </li>
-                                    <li><a href="/results?search_query=play&search=tag">play</a></li>
-                                    <li><a href="/results?search_query=gavin&search=tag">gavin</a></li>
-                                    <li><a href="/results?search_query=geoff&search=tag">geoff</a></li>
-                                    <li><a href="/results?search_query=jack&search=tag">jack</a></li>
-                                    <li><a href="/results?search_query=ray&search=tag">ray</a></li>
-                                    <li><a href="/results?search_query=michael&search=tag">michael</a>
-                                    </li>
-                                </ul> #}
+                                {% endfor %}
+                                </ul>
                             </div>
                         </div>
 
