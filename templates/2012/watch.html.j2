@@ -361,7 +361,7 @@
                                     class="yt-user-name author" rel="author" dir="ltr">{{ data.video.channel_name }}</a>
                             </p>
                             <div id="watch-description-text">
-                                <p id="eow-description">{{ format_string_multiline(data.video.description) }}</p>
+                                <p id="eow-description">{{ format_string_multiline(data.video.description) | safe }}</p>
                             </div>
                             <div id="watch-description-extras">
                                 {# <h4>
