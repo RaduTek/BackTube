@@ -6,7 +6,7 @@ from innertube.clients import InnerTube
 
 from ..rydratings import RydRatings
 
-client = InnerTube("WEB")
+client = InnerTube("WEB", "2.20260911.01.00")
 
 
 class FeedItem(TypedDict):
