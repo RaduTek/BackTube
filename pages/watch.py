@@ -18,7 +18,7 @@ def _get_pager_for_comments(data: WatchPageData, page: int = 1):
 
     total_comments = parse_count(
         video['comments_count_text'],
-        default=-1,
+        default=0,
     )
 
     per_page_count = 20
