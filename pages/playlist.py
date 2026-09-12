@@ -1,9 +1,10 @@
+import math
 from urllib.parse import quote_plus
 
 from flask import render_template, request
 from werkzeug.exceptions import NotFound
 
-from helpers.innertube.playlist import get_playlist_page
+from helpers.innertube.playlist import get_playlist_page, PLAYLIST_PAGE_SIZE
 from helpers.pager import create_pager_props
 from helpers.parsers import parse_int
 
@@ -16,23 +17,12 @@ def playlist_page():
         raise NotFound("Playlist not found")
 
     page_number = parse_int(request.args.get('page'), 1, minimum=1)
-
-    try:
-        first_page = get_playlist_page(playlist_id)
-        data = (
-            first_page
-            if page_number == 1
-            else get_playlist_page(playlist_id, page_number)
-        )
-        total_pages = page_number + int(bool(data['continuation_token']))
-    except (IndexError, ValueError):
-        raise NotFound("Playlist not found")
-
-    encoded_playlist_id = quote_plus(playlist_id)
+    data = get_playlist_page(playlist_id, page_number)
+    total_pages = math.ceil(data['playlist']['video_count'] / PLAYLIST_PAGE_SIZE)
 
     def get_page_url(page: int) -> str:
         page_param = f'&page={page}' if page > 1 else ''
-        return f'/playlist?list={encoded_playlist_id}{page_param}'
+        return f'/playlist?list={playlist_id}{page_param}'
 
     pager = create_pager_props(page_number, total_pages, get_page_url)
     return render_template(

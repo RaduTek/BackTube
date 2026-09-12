@@ -2,6 +2,7 @@ from datetime import datetime
 from typing import TypedDict
 
 from helpers import links
+from helpers.debug import debug_dump
 from helpers.cache import CacheData, CacheDataList, CacheManager
 from helpers.parsers import parse_count
 
@@ -282,9 +283,10 @@ def _get_playlist_items(response: dict) -> list[dict]:
 
 def _get_continuation_token(items: list[dict]) -> str:
     for item in items:
-        if continuation := item.get('continuationItemRenderer'):
+        if continuation := item.get('continuationItemViewModel'):
             return (
-                continuation.get('continuationEndpoint', {})
+                continuation.get('continuationCommand', {})
+                .get('innertubeCommand', {})
                 .get('continuationCommand', {})
                 .get('token', '')
             )
@@ -394,6 +396,8 @@ def get_playlist_page_innertube(
     else:
         response = client.browse(browse_id=f'VL{playlist_id}')
 
+    debug_dump("playlist", response, f"innertube_{playlist_id}_{page_number}")
+
     if playlist is None:
         playlist = _parse_playlist_metadata(playlist_id, response)
         if not playlist['title']:
@@ -420,17 +424,6 @@ def get_playlist_page(
         raise ValueError('Playlist ID is required.')
     if page_number < 1:
         raise ValueError('Page number must be at least 1.')
-
-    cached_page = pages_cache.get_item(playlist_id, page_number - 1)
-    if cached_page is not None:
-        if page_number > 1 and not cached_page['entries']:
-            raise IndexError(f'Playlist {playlist_id} has no page {page_number}.')
-        return cached_page
-
-    if page_number > 1:
-        previous_page = get_playlist_page(playlist_id, page_number - 1)
-        if not previous_page['continuation_token']:
-            raise IndexError(f'Playlist {playlist_id} has no page {page_number}.')
 
     return pages_cache.get_item_default(playlist_id, page_number - 1)
 
