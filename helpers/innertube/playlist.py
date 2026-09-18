@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import TypedDict
 
 from helpers import links
@@ -71,7 +71,7 @@ cache = CacheManager(collection='playlist')
 video_data_cache = CacheData[dict[str, PlaylistVideo]](
     cache,
     'video_data',
-    ttl=None,
+    ttl=timedelta(minutes=30),
 )
 
 
