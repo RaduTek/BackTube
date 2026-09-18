@@ -8,6 +8,7 @@ from .. import links
 from .utils import get_text, get_first_run, get_channel_from_byline, get_thumbnail_url
 from ..cache import CacheDataList, CacheManager
 from ..rydratings import get_ratings_for_videos
+from ..debug import debug_dump
 
 from logger import logger
 
@@ -643,6 +644,8 @@ def get_search_results_innertube(
         params=search_params,
         continuation=continuation_token,
     )
+    
+    debug_dump("search", data, f"innertube_{search_query}")
 
     entries: list[FeedItem] = []
     for item in _get_item_section_contents(data):
@@ -709,6 +712,18 @@ def get_search_results_page(
             search_query,
             search_params=search_params,
         )
+
+        if len(first_page['entries']) == 0:
+            # Sometimes request returns 0 results for some reason, retry
+            first_page = get_search_results_innertube(
+                search_query,
+                search_params=search_params,
+            )
+
+        if len(first_page['entries']) == 0:
+            # If still no results, return empty search page, but don't cache it
+            return first_page
+
         results_cache.append(query_hash, first_page)
         return _attach_ryd_ratings(first_page)
 
