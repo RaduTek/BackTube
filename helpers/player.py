@@ -48,7 +48,7 @@ def ytdlinfo_generator(video_id: str) -> dict:
     info = ytdl.extract_info(f"https://youtube.com/watch?v={video_id}", download=False)
     return dict(info)
 
-ytdlinfo_cache = CacheData[dict](cache, 'ytdl_info', default_gen=ytdlinfo_generator, ttl=None, inherit_expiration_time=True)
+ytdlinfo_cache = CacheData[dict](cache, 'ytdl_info', default_gen=ytdlinfo_generator)
 
 def format_generator(video_id: str) -> list[str]:
     info = ytdlinfo_cache.get_default(video_id)
@@ -63,9 +63,9 @@ def format_generator(video_id: str) -> list[str]:
 
     return formats
 
-format_cache = CacheData[list[str]](cache, 'formats', default_gen=format_generator, ttl=None, inherit_expiration_time=True)
+format_cache = CacheData[list[str]](cache, 'formats', default_gen=format_generator)
 
-saved_cache = CacheData[dict](cache, 'saved', ttl=None, default_gen=lambda key: {}, inherit_expiration_time=True)
+saved_cache = CacheData[dict](cache, 'saved', default_gen=lambda key: {})
 
 
 def _resolve_format_id(

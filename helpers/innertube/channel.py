@@ -1,5 +1,5 @@
 import re
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import cast, Literal, TypedDict
 from urllib.parse import urljoin, urlparse
 from typing_extensions import NotRequired
@@ -82,9 +82,9 @@ class ChannelPlaylistsPage(TypedDict):
 
 _channel_handle_map: dict[str, str] | None = None
 
-cache = CacheManager(collection='channel')
-data_cache = CacheData[ChannelPageData](cache, 'page_data', ttl=None)
-handle_map_cache = CacheData[dict[str, str]](cache, 'handle_map', ttl=None)
+cache = CacheManager(collection='channel', ttl=timedelta(minutes=30))
+data_cache = CacheData[ChannelPageData](cache, 'page_data')
+handle_map_cache = CacheData[dict[str, str]](cache, 'handle_map')
 
 
 def _channel_videos_cache_item_gen(
@@ -129,7 +129,6 @@ playlists_caches: dict[
     sort: CacheDataList[ChannelPlaylistsPage](
         cache,
         f'playlists_{sort}',
-        ttl=None,
         depends_on_previous=False,
     )
     for sort in ('pn', 'lad')

@@ -85,7 +85,7 @@ class CacheData(CacheObject[T]):
         manager: "CacheManager",
         name: str,
         ttl: timedelta | None = None,
-        inherit_expiration_time: bool = False,
+        inherit_expiration_time: bool = True,
         default_gen: Callable[[str], T] | None = None,
         compare_by_updated_at: bool = False,
         pretty_json: bool = True,
@@ -192,7 +192,7 @@ class CacheDataList(CacheData[list[CacheDataListItem[T]]]):
         manager: "CacheManager",
         name: str,
         ttl: timedelta | None = None,
-        inherit_expiration_time: bool = False,
+        inherit_expiration_time: bool = True,
         item_gen: Callable[[str, T | None], T] | None = None,
         depends_on_previous: bool = True,
     ):
@@ -336,5 +336,7 @@ class CacheManager:
 
     def register(self, obj: CacheObject) -> "CacheManager":
         self.object_types[obj.name] = obj
+        if obj.inherit_expiration_time and obj.ttl == None:
+            obj.ttl = self.ttl
         return self
 
