@@ -708,6 +708,7 @@ def get_search_results_page(
     logger.debug(f"Retrieving search results page {page_number} for query {search_query} hash {query_hash}")
 
     if results_cache.is_empty(query_hash):
+        logger.debug(f"Getting first page of results for query {search_query}...")
         first_page = get_search_results_innertube(
             search_query,
             search_params=search_params,
@@ -715,6 +716,7 @@ def get_search_results_page(
 
         if len(first_page['entries']) == 0:
             # Sometimes request returns 0 results for some reason, retry
+            logger.debug("Search first page returned 0 results, trying again...")
             first_page = get_search_results_innertube(
                 search_query,
                 search_params=search_params,
@@ -722,7 +724,11 @@ def get_search_results_page(
 
         if len(first_page['entries']) == 0:
             # If still no results, return empty search page, but don't cache it
+            logger.debug("Search first page retry still returned 0 results, continuing with it")
             return first_page
+        
+        len_entries = len(first_page['entries'])
+        logger.debug(f"Got {len_entries} results")
 
         results_cache.append(query_hash, first_page)
         return _attach_ryd_ratings(first_page)
