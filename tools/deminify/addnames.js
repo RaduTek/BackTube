@@ -2,18 +2,22 @@
 //
 //   node addnames.js <map.json> <entries.json>          entries: { "minified": "new$name", ... }
 //   node addnames.js <map.json> --exports <bundle.js>    names taken from goog$exportSymbol("a.b", x) calls
+//   node addnames.js <map.json> --props <entries.json>   property names instead of top-level names
 //
 // Existing entries are kept; conflicts and duplicate target names are reported, not applied.
 
 const fs = require('fs');
 
-const [mapFile, ...rest] = process.argv.slice(2);
+const argv = process.argv.slice(2);
+const section = argv.includes('--props') ? 'props' : 'vars';
+const [mapFile, ...rest] = argv.filter((a) => a !== '--props');
 if (!mapFile || !rest.length) {
     console.error('usage: node addnames.js <map.json> <entries.json> | --exports <bundle.js>');
     process.exit(2);
 }
 const map = JSON.parse(fs.readFileSync(mapFile, 'utf8'));
-map.vars = map.vars || {};
+map[section] = map[section] || {};
+const target = map[section];
 
 let entries = {};
 if (rest[0] === '--exports') {
@@ -31,20 +35,20 @@ if (rest[0] === '--exports') {
     entries = JSON.parse(fs.readFileSync(rest[0], 'utf8'));
 }
 
-const used = new Set(Object.values(map.vars));
+const used = new Set(Object.values(target));
 let added = 0;
 for (const [from, to] of Object.entries(entries)) {
-    if (map.vars[from]) {
-        if (map.vars[from] !== to) console.log(`keep ${from}=${map.vars[from]} (not ${to})`);
+    if (target[from]) {
+        if (target[from] !== to) console.log(`keep ${from}=${target[from]} (not ${to})`);
         continue;
     }
     if (used.has(to)) {
         console.log(`duplicate target ${to} for ${from}, skipped`);
         continue;
     }
-    map.vars[from] = to;
+    target[from] = to;
     used.add(to);
     added++;
 }
 fs.writeFileSync(mapFile, JSON.stringify(map, null, 4) + '\n');
-console.log(`added ${added}, total ${Object.keys(map.vars).length}`);
+console.log(`added ${added} ${section}, total ${Object.keys(target).length}`);

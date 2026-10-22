@@ -39,6 +39,12 @@ for (const [name, b] of Object.entries(iife.scope.bindings)) {
     if (b.path.isFunctionDeclaration()) fn = b.path;
     else if (b.path.isVariableDeclarator() && b.path.get('init').isFunction()) fn = b.path.get('init');
     else if (b.path.isVariableDeclarator() && b.path.node.init) kind = 'var=' + b.path.node.init.type.replace('Expression', '');
+    else if (b.constantViolations.length === 1 && b.constantViolations[0].isAssignmentExpression()) {
+        // Module pattern: `var x;` at the top, `x = function () {...}` assigned once elsewhere.
+        const rhs = b.constantViolations[0].get('right');
+        if (rhs.isFunction()) fn = rhs;
+        else kind = 'set=' + rhs.node.type.replace('Expression', '');
+    }
     const strings = new Set();
     const members = new Set();
     const body = fn || (b.path.isVariableDeclarator() ? b.path.get('init') : null);

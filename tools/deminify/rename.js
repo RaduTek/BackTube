@@ -13,7 +13,11 @@
 //   },
 //   "vars":   { "ea": "goog$typeOf" },            // bindings in the bundle's top-level IIFE scope
 //   "locals": { "ea": { "a": "value" },           // params/vars of a top-level function...
-//               "X.prototype.oc": { "a": "el" } }, // ...or of a function assigned to a member chain
+//               "X.prototype.oc": { "a": "el" },  // ...or of a function assigned to a member chain,
+//               "export:yt.foo": { "a": "el" },   // ...or passed to exportSymbol("yt.foo", function...),
+//               "module:152:33": { "a": "el" },   // ...or a factory in registry.M(152, 33, function...),
+//               "iife:2": { "a": "el" },          // ...or the 3rd top-level (function () {...})() statement,
+//               "ea/2": { "a": "item" } },        // ...or the 3rd function nested (any depth) inside one
 //   "props":  { "Eb": "instance_" }               // property names, renamed file-wide
 // }
 //
@@ -87,12 +91,88 @@ function memberChain(node) {
     return parts.join('.');
 }
 
+// [publicName, fnPath] for a top-level `exportSymbol("a.b", function () {...})` statement.
+function exportedFunction(stmt) {
+    if (!stmt.isExpressionStatement()) return null;
+    const call = stmt.get('expression');
+    if (!call.isCallExpression() || call.node.arguments.length !== 2) return null;
+    const [name, fn] = call.get('arguments');
+    if (!name.isStringLiteral() || !fn.isFunctionExpression()) return null;
+    return [name.node.value, fn];
+}
+
+// The function of a top-level `(function () {...})();` statement, or null.
+function topLevelIife(stmt) {
+    if (!stmt.isExpressionStatement()) return null;
+    const call = stmt.get('expression');
+    if (!call.isCallExpression() || call.node.arguments.length) return null;
+    const fn = call.get('callee');
+    return fn.isFunctionExpression() ? fn : null;
+}
+
+// ["module:<a>:<b>", fnPath] for a top-level `x.y(<number a>, <number b>, function () {...})` statement.
+function moduleFactory(stmt) {
+    if (!stmt.isExpressionStatement()) return null;
+    const call = stmt.get('expression');
+    if (!call.isCallExpression() || call.node.arguments.length !== 3) return null;
+    const [a, b, fn] = call.get('arguments');
+    if (!a.isNumericLiteral() || !b.isNumericLiteral() || !fn.isFunctionExpression()) return null;
+    return [`module:${a.node.value}:${b.node.value}`, fn];
+}
+
+// Nested functions are addressed as "<key>/<n>": the n-th function (0-based, source order,
+// any depth) inside the function that <key> names.
+function nestedFunctions(fn) {
+    const list = [];
+    fn.traverse({
+        Function(p) {
+            list.push(p);
+        }
+    });
+    return list;
+}
+
 // Finds the function path for a "locals" key in the top-level IIFE scope.
 function findFunction(iife, key) {
+    const slash = key.indexOf('/');
+    if (slash >= 0) {
+        const parent = findFunction(iife, key.slice(0, slash));
+        const n = Number(key.slice(slash + 1));
+        return nestedFunctions(parent)[n] || fail(`locals: "${key}" has no nested function #${n}`);
+    }
+    // "export:a.b.c" is the anonymous function in a top-level exportSymbol("a.b.c", function () {...}).
+    // "module:152:33" is the factory in a top-level `registry.M(152, 33, function () {...})` call
+    // (the searchbox library's component registrations; `uf` registrations match too).
+    // "iife:2" is the 3rd top-level `(function () {...})();` statement (module-pattern bundles).
+    if (key.startsWith('iife:')) {
+        const n = Number(key.slice(5));
+        const found = iife.get('body.body').filter((stmt) => topLevelIife(stmt));
+        return (found[n] && topLevelIife(found[n])) || fail(`locals: "${key}" has no top-level IIFE #${n}`);
+    }
+    if (key.startsWith('module:')) {
+        const found = iife.get('body.body').filter((stmt) => moduleFactory(stmt) && moduleFactory(stmt)[0] === key);
+        if (found.length !== 1) fail(`locals: "${key}" matches ${found.length} module factories, expected 1`);
+        return moduleFactory(found[0])[1];
+    }
+    if (key.startsWith('export:')) {
+        const name = key.slice(7);
+        const found = iife.get('body.body').filter((stmt) => exportedFunction(stmt) && exportedFunction(stmt)[0] === name);
+        if (found.length !== 1) fail(`locals: "${key}" matches ${found.length} exported functions, expected 1`);
+        return exportedFunction(found[0])[1];
+    }
     if (!key.includes('.')) {
         const b = iife.scope.getOwnBinding(key) || fail(`locals: no top-level binding "${key}"`);
         if (b.path.isFunctionDeclaration()) return b.path;
         if (b.path.isVariableDeclarator() && b.path.get('init').isFunction()) return b.path.get('init');
+        // `var x = (function () {...})();` — the IIFE that produces x.
+        const init = b.path.isVariableDeclarator() && b.path.get('init');
+        if (init && init.isCallExpression() && init.get('callee').isFunctionExpression() && !init.node.arguments.length)
+            return init.get('callee');
+        // Module pattern: `var x;` at the top, `x = function () {...}` assigned exactly once elsewhere.
+        if (b.constantViolations.length === 1 && b.constantViolations[0].isAssignmentExpression()) {
+            const rhs = b.constantViolations[0].get('right');
+            if (rhs.isFunction()) return rhs;
+        }
         fail(`locals: "${key}" is not a function`);
     }
     const found = [];
@@ -105,14 +185,24 @@ function findFunction(iife, key) {
     return found[0];
 }
 
-function renameLocals(iife, locals) {
-    for (const [key, renames] of Object.entries(locals || {})) {
-        const fn = findFunction(iife, key);
+// Local renames that would collide are skipped with a warning rather than failing the build:
+// there are thousands of them and one bad name should not block the rest.
+const warnings = [];
+// Locals keys use original minified names, so functions are located before top-level renames
+// and renamed after them (so a local is never blocked by a minified top-level name).
+function resolveLocals(iife, locals) {
+    return Object.entries(locals || {}).map(([key, renames]) => [key, findFunction(iife, key), renames]);
+}
+
+function renameLocals(resolved) {
+    for (const [key, fn, renames] of resolved) {
         for (const [from, to] of Object.entries(renames)) {
             checkIdent(to, `locals ${key}.${from}`);
             if (!fn.scope.getOwnBinding(from)) fail(`locals: "${key}" has no own binding "${from}"`);
-            if (fn.scope.parent.hasBinding(to) || namesInside(fn).has(to))
-                fail(`locals: renaming ${key}.${from} -> ${to} would collide with an existing "${to}"`);
+            if (fn.scope.parent.hasBinding(to) || namesInside(fn).has(to)) {
+                warnings.push(`locals: skipped ${key}.${from} -> ${to} (collides with an existing "${to}")`);
+                continue;
+            }
             fn.scope.rename(from, to);
         }
     }
@@ -259,14 +349,15 @@ async function rename(code, map) {
     // Re-parse so scope information reflects the simplified tree.
     ast = parser.parse(generate(ast).code, { sourceType: 'script' });
     iife = findIife(ast);
-    // Locals first: their keys reference original top-level names.
-    renameLocals(iife, map.locals);
+    const locals = resolveLocals(iife, map.locals);
     renameProps(ast, map.props);
     renameVars(iife, map.vars);
+    renameLocals(locals);
+    if (warnings.length) console.warn(warnings.splice(0).join('\n'));
     return prettier.format(generate(ast, { retainLines: false, comments: true }).code, PRETTIER_OPTS);
 }
 
-module.exports = { rename };
+module.exports = { rename, nestedFunctions, exportedFunction, moduleFactory, topLevelIife };
 
 if (require.main === module) {
     const [inFile, mapFile, outFile] = process.argv.slice(2);

@@ -385,7 +385,8 @@
 {% block page_overlays %}{% endblock %}
 
 {% block core_js -%}
-<script id="www-core-js" src="//s.ytimg.com/yt/jsbin/www-core-vflWYkZkj.js"></script>
+{# <script id="www-core-js" src="//s.ytimg.com/yt/jsbin/www-core-vflWYkZkj.js"></script> #}
+<script id="www-core-js" src="/static/site_assets/2012/js_src/www-core-vflWYkZkj.js"></script>
 {%- endblock %}
 {% block body_js %}
 <script>
@@ -394,7 +395,8 @@
     });
 
     yt.pubsub.subscribe('init', function () {
-        yt.net.scriptloader.load("\/\/s.ytimg.com\/yt\/jsbin\/www-searchbox-vflPAcf6y.js", function () {
+        console.log('Loading searchbox script...');
+        yt.net.scriptloader.load("/static/site_assets/2012/js_src/www-searchbox-vflPAcf6y.js", function () {
 
             if (_gel('masthead-search')) {
                 yt.setTimeout(function () {

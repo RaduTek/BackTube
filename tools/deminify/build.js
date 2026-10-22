@@ -41,7 +41,7 @@ async function main() {
         }
         const counts = ['vars', 'locals', 'props'].map((k) => `${Object.keys(map[k] || {}).length} ${k}`).join(', ');
         console.log(`${name}: renamed (${counts})`);
-        ok = check(path.join(RAW, file), path.join(SRC, file)) && ok;
+        ok = check(path.join(RAW, file), path.join(SRC, file), undefined, undefined, map.props || {}) && ok;
     }
     process.exit(ok ? 0 : 1);
 }

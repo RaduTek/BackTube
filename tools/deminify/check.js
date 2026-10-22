@@ -18,17 +18,24 @@ function shape(v, depth, seen) {
     if (depth > 6) return typeof v;
     seen.add(v);
     const o = {};
-    let fnKeys = 0;
+    // Maps keyed by function source text (listener maps) change keys whenever code is
+    // renamed or reformatted, so their entries are compared as an unordered set.
+    const fnValues = [];
     for (const k of Object.keys(v).sort()) {
         if (/^closure_uid_/.test(k)) continue;
-        // listener maps keyed by function source text differ only in formatting
-        const key = /^function\s*[\w$]*\s*\(/.test(k) ? '<fnkey' + fnKeys++ + '>' : k;
-        o[key] = shape(v[k], depth + 1, seen);
+        if (/^function\s*[\w$]*\s*\(/.test(k)) fnValues.push(shape(v[k], depth + 1, seen));
+        else o[k] = shape(v[k], depth + 1, seen);
     }
+    fnValues
+        .map((s) => JSON.stringify(s))
+        .sort()
+        .forEach((s, i) => (o['<fnkey' + i + '>'] = JSON.parse(s)));
     if (typeof v === 'function') {
         o['<arity>'] = v.length;
         o['<proto>'] = Object.keys(v.prototype || {}).sort().join(',');
     }
+    // `seen` holds ancestors only: an object reachable under two keys is not a cycle.
+    seen.delete(v);
     return o;
 }
 
@@ -63,7 +70,18 @@ function diff(a, b, path, out) {
     } else out.push(`${path}: ${JSON.stringify(a)} -> ${JSON.stringify(b)}`);
 }
 
-function check(rawFile, outFile, withRaw, withOut) {
+// Renamed properties legitimately change the raw side's keys; map them before comparing.
+// Compiler-renamed names never collide with real property names, so this cannot hide a real key.
+function renameKeys(shape, props) {
+    if (!shape || typeof shape !== 'object') return shape;
+    const out = {};
+    for (const [k, v] of Object.entries(shape)) out[props[k] || k] = renameKeys(v, props);
+    if (typeof out['<proto>'] === 'string')
+        out['<proto>'] = out['<proto>'].split(',').map((k) => props[k] || k).sort().join(',');
+    return Object.fromEntries(Object.entries(out).sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0)));
+}
+
+function check(rawFile, outFile, withRaw, withOut, props = {}) {
     const name = rawFile.split('/').pop();
     let ok = true;
     try {
@@ -74,6 +92,8 @@ function check(rawFile, outFile, withRaw, withOut) {
     }
     const a = load([withRaw, rawFile].filter(Boolean));
     const b = load([withOut, outFile].filter(Boolean));
+    a.shape = renameKeys(a.shape, props);
+    b.shape = renameKeys(b.shape, {});
     const d = [];
     diff(a.shape, b.shape, '', d);
     if (d.length) {
