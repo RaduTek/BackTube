@@ -7022,7 +7022,6 @@
         };
         var searchBoxApi;
         var form;
-        var hiddenInputs = {};
         var browserFlags;
         var isWindows;
         var isMac;
@@ -7034,18 +7033,7 @@
                 return browserFlags;
             },
             b: function (query, searchType) {
-                var params = searchBoxApi.getStatsParameters(searchType);
-                var setField = function (name) {
-                    if (hiddenInputs[name]) {
-                        hiddenInputs[name].value = params[name];
-                    }
-                };
-                setField("oq");
-                setField("aq");
-                setField("aqi");
-                setField("aql");
-                setField("gs_upl");
-                setField("gs_sm");
+                // backtube: tracking fields (oq, aq, aqi, aql, gs_sm, gs_upl) are no longer filled in.
                 form.submit();
             },
             r: function (styleSheet) {
@@ -7268,10 +7256,8 @@
                 searchBoxApi.bindSearchButton(formElement, 12);
                 formElement.onclick = null;
             }
-            formElement = "oq,aq,aqi,aql,gs_sm,gs_upl".split(",");
-            for (input = 0; (language = formElement[input++]);) {
-                hiddenInputs[language] = searchBoxApi.addHiddenInput(form, language);
-            }
+            // backtube: the hidden tracking fields (oq, aq, aqi, aql, gs_sm, gs_upl) are no longer added
+            // to the search form, so a search submits only search_query.
         };
         return callbacks;
     })();
