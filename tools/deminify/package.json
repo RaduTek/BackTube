@@ -1,0 +1,20 @@
+{
+  "name": "backtube-deminify",
+  "private": true,
+  "description": "Tooling for turning the 2012 YouTube jsbin bundles into readable, editable code",
+  "type": "commonjs",
+  "scripts": {
+    "unminify": "node unminify.js",
+    "rename": "node rename.js",
+    "check": "node check.js"
+  },
+  "dependencies": {
+    "@babel/generator": "^7.26.0",
+    "@babel/parser": "^7.26.0",
+    "@babel/traverse": "^7.26.0",
+    "acorn": "^8.14.0",
+    "jsdom": "^25.0.1",
+    "prettier": "^3.4.2",
+    "webcrack": "^2.15.1"
+  }
+}

@@ -4,3 +4,4 @@
 /cache
 __pycache__
 *.mp4
+tools/deminify/node_modules
